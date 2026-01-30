@@ -68,6 +68,11 @@ async function main() {
   const user = await requireAuth();
   const jobId = getJobId();
 
+  document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "auth.html";
+  });
+
   if (!jobId) {
     msg.innerHTML = `<div class="alert alert-danger">Missing job id.</div>`;
     applyBtn.disabled = true;

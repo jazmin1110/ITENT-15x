@@ -60,3 +60,8 @@ const user = await requireEmployer();
 document.getElementById("postBtn").addEventListener("click", async () => {
   await postJob(user);
 });
+
+document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.href = "auth.html";
+});
