@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jobs</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="p-3">
+  <div class="container" style="max-width: 720px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">Available Jobs</h3>
+      <button id="logoutBtn" class="btn btn-outline-secondary btn-sm" type="button">Logout</button>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <input id="cityFilter" class="form-control" placeholder="Filter by city (e.g., Quezon City)">
+      </div>
+      <div class="col-md-6">
+        <input id="skillFilter" class="form-control" placeholder="Filter by skill (e.g., Masonry)">
+      </div>
+    </div>
+
+    <div id="msg" class="text-muted mb-2"></div>
+    <div id="jobList"></div>
+  </div>
+
+  <script type="module" src="./js/jobs.js"></script>
+</body>
+</html>
+
