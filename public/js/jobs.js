@@ -21,6 +21,8 @@ function renderJobs(jobs) {
     const requiredSkills = (job.required_skills || []).join(", ");
     const startDate = job.start_date ? new Date(job.start_date).toLocaleDateString() : "—";
     const rate = job.daily_rate ? `₱${job.daily_rate}/day` : "Rate not specified";
+    const verified = job.employer_profiles?.verified;
+    const badge = verified ? `<span class="badge bg-success ms-2">Verified</span>` : "";
 
     const card = document.createElement("div");
     card.className = "card mb-3";
@@ -28,7 +30,7 @@ function renderJobs(jobs) {
       <div class="card-body">
         <div class="d-flex justify-content-between">
           <div>
-            <h5 class="card-title mb-1">${job.title}</h5>
+            <h5 class="card-title mb-1">${job.title}${badge}</h5>
             <div class="text-muted">${job.city}</div>
           </div>
           <div class="text-end">
@@ -56,7 +58,7 @@ async function fetchJobs() {
   // Basic query: open jobs only (matches your RLS policy)
   const { data: jobs, error } = await supabase
     .from("jobs")
-    .select("*")
+    .select("*, employer_profiles!jobs_employer_id_fkey ( verified, company_name )")
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
