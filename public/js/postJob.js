@@ -25,7 +25,11 @@ function selectedSkills() {
 }
 
 async function postJob(user) {
-  msg.textContent = "Posting...";
+  const postBtn = document.getElementById("postBtn");
+  postBtn.disabled = true;
+  msg.className = "mt-3 alert alert-info";
+  msg.textContent = "Nagpo-post...";
+  msg.hidden = false;
 
   const payload = {
     employer_id: user.id,
@@ -38,7 +42,10 @@ async function postJob(user) {
   };
 
   if (!payload.title || !payload.city) {
-    msg.textContent = "Please fill in job title and city.";
+    postBtn.disabled = false;
+    msg.className = "mt-3 alert alert-warning";
+    msg.textContent = "Paki-lagay ang title at lungsod.";
+    msg.hidden = false;
     return;
   }
 
@@ -47,12 +54,17 @@ async function postJob(user) {
     .insert(payload);
 
   if (error) {
-    msg.textContent = "Post failed: " + error.message;
+    postBtn.disabled = false;
+    msg.className = "mt-3 alert alert-danger";
+    msg.textContent = "Error: " + error.message;
+    msg.hidden = false;
     return;
   }
 
-  msg.textContent = "Job posted ✅";
-  setTimeout(() => window.location.href = "employer-profile.html", 900);
+  msg.className = "mt-3 alert alert-success";
+  msg.textContent = "Na-post na ✅";
+  msg.hidden = false;
+  setTimeout(() => window.location.href = "employer-jobs.html", 900);
 }
 
 const user = await requireEmployer();

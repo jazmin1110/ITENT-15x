@@ -1,0 +1,53 @@
+/* base.css – shared styles, variables, typography */
+
+:root {
+  --color-primary: #0d6efd;
+  --color-success: #198754;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-light: #f8f9fa;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Card tweaks */
+.card {
+  border-radius: 0.5rem;
+}
+
+/* Form helpers */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Button loading state */
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+/* Touch-friendly targets (Juan: "isang pindot lang") */
+@media (pointer: coarse) {
+  .btn, .form-control, .form-select, .form-check-input {
+    min-height: 44px;
+  }
+  .form-check-label {
+    padding: 0.5rem 0;
+  }
+}
+
+/* Job/apply buttons - big tap targets */
+.card .btn-lg {
+  min-height: 48px;
+}

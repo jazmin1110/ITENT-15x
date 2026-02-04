@@ -107,18 +107,21 @@ async function main() {
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <h5 class="mb-1">${wp?.full_name ?? "Unknown Worker"}</h5>
-            <div class="text-muted">${wp?.city ?? "—"} • ${exp} yrs exp</div>
+            <div class="text-muted small">${wp?.city ?? "—"}</div>
           </div>
           <div>${statusBadge(app.status)}</div>
         </div>
 
-        <div class="mt-2 small"><span class="text-muted">Skills:</span> ${skills}</div>
+        <div class="mt-2">
+          <span class="badge bg-secondary me-1">${exp} yrs exp</span>
+          <span class="small">${skills}</span>
+        </div>
         <div class="mt-2 small"><span class="text-muted">Contact:</span> ${contact}</div>
 
         <div class="mt-3 d-flex gap-2 flex-wrap">
-          <button class="btn btn-outline-info btn-sm" data-action="viewed">Mark Viewed</button>
+          <button class="btn btn-outline-info btn-sm" data-action="viewed">Viewed</button>
           <button class="btn btn-outline-warning btn-sm" data-action="shortlisted">Shortlist</button>
-          <button class="btn btn-outline-success btn-sm" data-action="hired">Mark Hired</button>
+          <button class="btn btn-outline-success btn-sm" data-action="hired">Hired</button>
         </div>
       </div>
     `;

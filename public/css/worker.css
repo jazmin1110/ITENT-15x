@@ -1,0 +1,12 @@
+/* worker.css – worker-profile, jobs, job */
+
+/* Worker pages use blue navbar (bg-primary) */
+/* Trust: libre, verified employers prominent */
+.navbar-brand {
+  font-weight: 700;
+}
+
+/* Job cards - full-width CTA */
+.card .btn-lg.w-100 {
+  font-weight: 600;
+}

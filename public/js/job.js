@@ -28,13 +28,27 @@ async function loadJob(jobId) {
     .single();
 
   if (error) throw error;
-  return job;
+
+  let employerProf = null;
+  if (job.employer_id) {
+    const { data } = await supabase
+      .from("employer_profiles")
+      .select("company_name, verified")
+      .eq("user_id", job.employer_id)
+      .maybeSingle();
+    employerProf = data;
+  }
+
+  return { ...job, employer_profiles: employerProf };
 }
 
 function renderJob(job) {
   titleEl.textContent = job.title;
-  metaEl.textContent = `${job.city} • Status: ${job.status}`;
-  rateEl.textContent = job.daily_rate ? `₱${job.daily_rate}/day` : "Not specified";
+  const parts = [job.city];
+  if (job.employer_profiles?.company_name) parts.unshift(job.employer_profiles.company_name);
+  if (job.employer_profiles?.verified) parts.push("Verified employer");
+  metaEl.textContent = parts.join(" • ");
+  rateEl.textContent = job.daily_rate ? `₱${job.daily_rate}/day` : "Rate not specified";
   startEl.textContent = job.start_date ? new Date(job.start_date).toLocaleDateString() : "—";
   skillsEl.textContent = (job.required_skills || []).join(", ") || "—";
 }
@@ -88,17 +102,18 @@ async function main() {
     const already = await checkIfAlreadyApplied(jobId, user.id);
     if (already) {
       applyBtn.disabled = true;
-      applyBtn.textContent = "Already Applied";
-      msg.innerHTML = `<div class="alert alert-info mt-2">You already applied to this job.</div>`;
+      applyBtn.textContent = "Na-apply mo na";
+      msg.innerHTML = `<div class="alert alert-info mt-2">Na-send mo na ang application mo sa trabahong ito.</div>`;
       return;
     }
 
     applyBtn.addEventListener("click", async () => {
       applyBtn.disabled = true;
+      applyBtn.textContent = "Nagse-send...";
       try {
         await applyToJob(jobId, user.id);
-        applyBtn.textContent = "Application Sent ✅";
-        msg.innerHTML = `<div class="alert alert-success mt-2">Na-send na ang application mo.</div>`;
+        applyBtn.textContent = "Na-send na ✅";
+        msg.innerHTML = `<div class="alert alert-success mt-2">Na-send na. Hintayin ang tawag ng employer.</div>`;
       } catch (e) {
         applyBtn.disabled = false;
         msg.innerHTML = `<div class="alert alert-danger mt-2">${e.message}</div>`;

@@ -1,0 +1,42 @@
+/* layout.css – layout, containers, navbar */
+
+/* Page containers */
+.container--narrow {
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container--medium {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container--wide {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Auth full-height centering */
+.auth-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Navbar adjustments */
+.navbar {
+  border-radius: 0;
+}
+
+.navbar-brand {
+  font-weight: 600;
+}

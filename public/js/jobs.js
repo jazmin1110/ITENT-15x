@@ -12,7 +12,7 @@ async function requireAuth() {
 }
 
 function renderEmpty() {
-  jobList.innerHTML = `<div class="alert alert-light">Walang available jobs ngayon.</div>`;
+  jobList.innerHTML = `<div class="alert alert-light text-center py-5">Walang available jobs ngayon. Balik mamaya.</div>`;
 }
 
 function renderJobs(jobs) {
@@ -39,12 +39,10 @@ function renderJobs(jobs) {
           </div>
         </div>
 
-        <div class="mt-2 small">
-          <span class="text-muted">Skills:</span> ${requiredSkills || "—"}
-        </div>
+        <div class="mt-2 small text-muted">${requiredSkills || "—"}</div>
 
         <div class="mt-3">
-          <a class="btn btn-primary btn-sm" href="job.html?id=${job.id}">View Job</a>
+          <a class="btn btn-primary btn-lg w-100" href="job.html?id=${job.id}">Tingnan • Apply</a>
         </div>
       </div>
     `;
@@ -53,23 +51,37 @@ function renderJobs(jobs) {
 }
 
 async function fetchJobs() {
-  msg.textContent = "Loading jobs...";
+  msg.textContent = "Naglo-load...";
 
-  // Basic query: open jobs only (matches your RLS policy)
   const { data: jobs, error } = await supabase
     .from("jobs")
-    .select("*, employer_profiles!jobs_employer_id_fkey ( verified, company_name )")
+    .select("id, title, city, daily_rate, start_date, required_skills, employer_id, status")
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
   if (error) {
-    msg.textContent = "Error loading jobs: " + error.message;
+    msg.textContent = "";
     jobList.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
     return [];
   }
 
+  const employerIds = [...new Set((jobs || []).map((j) => j.employer_id).filter(Boolean))];
+  let wpByid = {};
+  if (employerIds.length) {
+    const { data: profs } = await supabase
+      .from("employer_profiles")
+      .select("user_id, verified, company_name")
+      .in("user_id", employerIds);
+    wpByid = Object.fromEntries((profs || []).map((p) => [p.user_id, p]));
+  }
+
+  const enriched = (jobs || []).map((j) => ({
+    ...j,
+    employer_profiles: wpByid[j.employer_id] || null
+  }));
+
   msg.textContent = "";
-  return jobs || [];
+  return enriched;
 }
 
 function applyFilters(jobs) {

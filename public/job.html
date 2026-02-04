@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Job Details</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/worker.css">
 </head>
 
 <body>
@@ -24,21 +27,21 @@
     </div>
   </nav>
 
-  <div class="container" style="max-width: 720px;">
-    <a href="jobs.html" class="btn btn-link px-0">&larr; Back to Jobs</a>
+  <div class="container container--medium">
+    <a href="jobs.html" class="btn btn-link px-0 mb-2">&larr; Bumalik</a>
 
     <div id="msg" class="mb-2"></div>
 
     <div class="card">
       <div class="card-body">
-        <h3 id="title" class="mb-1">Loading...</h3>
-        <div id="meta" class="text-muted mb-3"></div>
+        <h3 id="title" class="mb-2"></h3>
+        <div id="meta" class="text-muted small mb-3"></div>
 
-        <div class="mb-2"><span class="text-muted">Daily rate:</span> <span id="rate"></span></div>
-        <div class="mb-2"><span class="text-muted">Start date:</span> <span id="startDate"></span></div>
-        <div class="mb-3"><span class="text-muted">Required skills:</span> <span id="skills"></span></div>
+        <div class="mb-2"><strong id="rate"></strong></div>
+        <div class="mb-2 small"><span class="text-muted">Start:</span> <span id="startDate"></span></div>
+        <div class="mb-4 small"><span class="text-muted">Skills needed:</span> <span id="skills"></span></div>
 
-        <button id="applyBtn" class="btn btn-primary" type="button">Apply</button>
+        <button id="applyBtn" class="btn btn-success btn-lg w-100 py-3" type="button">Mag-apply na</button>
       </div>
     </div>
   </div>
