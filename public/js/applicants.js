@@ -9,7 +9,7 @@ function getJobId() {
 
 async function requireEmployer() {
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) window.location.href = "auth.html";
+  if (!data?.user) window.location.href = "index.html";
 
   const { data: prof } = await supabase
     .from("profiles")
@@ -54,7 +54,7 @@ async function main() {
 
   document.getElementById("logoutBtn")?.addEventListener("click", async () => {
     await supabase.auth.signOut();
-    window.location.href = "auth.html";
+    window.location.href = "index.html";
   });
 
   const jobId = getJobId();

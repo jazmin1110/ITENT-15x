@@ -1,7 +1,192 @@
 <!doctype html>
 <html>
-  <head>
-    <meta http-equiv="refresh" content="0; url=auth.html">
-  </head>
-  <body></body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ITENT - Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="bg-light">
+  <div class="container auth-wrap">
+    <div class="card shadow-sm auth-card">
+      <div class="card-body p-4">
+        <h3 class="text-center mb-2">ITENT</h3>
+        <p class="text-success text-center small fw-semibold mb-3">100% Libre para sa workers • Walang bayad</p>
+        <p class="text-muted text-center small mb-4">Hanap trabaho o mag-post ng trabaho</p>
+
+        <div class="mb-3">
+          <label class="form-label" for="email">Email</label>
+          <input id="email" type="email" class="form-control form-control-lg" placeholder="email@halimbawa.com" autocomplete="email" autofocus />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-group">
+            <input id="password" type="password" class="form-control form-control-lg" placeholder="Password" autocomplete="current-password" />
+            <button class="btn btn-outline-secondary" type="button" id="togglePass" title="Show password" aria-label="Show password">
+              <span id="togglePassIcon">👁</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" for="role">Ako ay...</label>
+          <select id="role" class="form-select form-select-lg">
+            <option value="worker">Maghanap ng trabaho (Worker)</option>
+            <option value="employer">Mag-hire (Employer)</option>
+          </select>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="button" id="signupBtn" class="btn btn-primary btn-lg">Mag-sign up</button>
+          <button type="button" id="loginBtn" class="btn btn-outline-secondary btn-lg">Mag-log in</button>
+        </div>
+
+        <div id="msg" class="mt-3" role="alert" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./js/supabaseClient.js";
+
+    // Auto-redirect if already logged in
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (prof?.role === "worker") window.location.href = "worker-profile.html";
+      else if (prof?.role === "employer") window.location.href = "employer-profile.html";
+      else if (prof?.role === "admin") window.location.href = "admin.html";
+    }
+
+    const msg = document.getElementById("msg");
+    const signupBtn = document.getElementById("signupBtn");
+    const loginBtn = document.getElementById("loginBtn");
+
+    document.getElementById("togglePass").addEventListener("click", () => {
+      const p = document.getElementById("password");
+      const icon = document.getElementById("togglePassIcon");
+      if (p.type === "password") {
+        p.type = "text";
+        icon.textContent = "🙈";
+      } else {
+        p.type = "password";
+        icon.textContent = "👁";
+      }
+    });
+
+    function setLoading(loading) {
+      signupBtn.disabled = loginBtn.disabled = loading;
+    }
+
+    function showErr(e) {
+      const s = e?.message || String(e);
+      msg.className = "mt-3 alert alert-danger";
+      msg.innerHTML = s;
+      msg.hidden = false;
+      console.error(e);
+    }
+
+    function showOk(s) {
+      msg.className = "mt-3 alert alert-success";
+      msg.textContent = s;
+      msg.hidden = false;
+    }
+
+    function clearMsg() {
+      msg.className = "mt-3";
+      msg.textContent = "";
+      msg.hidden = true;
+    }
+
+    async function upsertProfileRole(userId, role) {
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ id: userId, role }, { onConflict: "id" });
+
+      if (error) throw error;
+    }
+
+    document.getElementById("signupBtn").onclick = async () => {
+      try {
+        clearMsg();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value;
+
+        if (!email || !password) {
+          showErr("Please enter email and password.");
+          return;
+        }
+
+        setLoading(true);
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) { setLoading(false); showErr(error.message); return; }
+
+        const user = data.user;
+        if (!user) {
+          setLoading(false);
+          showOk("Check your email to confirm signup.");
+          return;
+        }
+
+        await upsertProfileRole(user.id, role);
+        setLoading(false);
+        showOk("Signed up! Role saved. You can now log in.");
+      } catch (e) {
+        setLoading(false);
+        showErr("Signup / save role failed: " + (e?.message || e));
+      }
+    };
+
+    document.getElementById("loginBtn").onclick = async () => {
+      try {
+        clearMsg();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!email || !password) {
+          showErr("Please enter email and password.");
+          return;
+        }
+
+        setLoading(true);
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { setLoading(false); showErr(error.message); return; }
+
+        const userId = data.user?.id;
+        if (!userId) { setLoading(false); showErr("Login succeeded but no user id."); return; }
+
+        const { data: prof, error: profErr } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (profErr) {
+          setLoading(false);
+          showErr("Could not load profile: " + profErr.message);
+          return;
+        }
+
+        showOk("Logged in! Redirecting...");
+
+        if (prof?.role === "worker") window.location.href = "worker-profile.html";
+        else if (prof?.role === "employer") window.location.href = "employer-profile.html";
+        else window.location.href = "admin.html";
+      } catch (e) {
+        setLoading(false);
+        showErr("Login failed: " + (e?.message || e));
+      }
+    };
+  </script>
+</body>
 </html>

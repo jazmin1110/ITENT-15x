@@ -7,7 +7,7 @@ const skillFilter = document.getElementById("skillFilter");
 
 async function requireAuth() {
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) window.location.href = "auth.html";
+  if (!data?.user) window.location.href = "index.html";
   return data.user;
 }
 
@@ -117,7 +117,7 @@ async function main() {
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
-    window.location.href = "auth.html";
+    window.location.href = "index.html";
   });
 }
 
