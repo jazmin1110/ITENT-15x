@@ -5,7 +5,7 @@ const jobList = document.getElementById("jobList");
 
 async function requireEmployer() {
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) window.location.href = "index.html";
+  if (!data?.user) window.location.href = "auth.html";
 
   const { data: prof } = await supabase
     .from("profiles")
@@ -81,7 +81,7 @@ async function main() {
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
-    window.location.href = "index.html";
+    window.location.href = "auth.html";
   });
 }
 

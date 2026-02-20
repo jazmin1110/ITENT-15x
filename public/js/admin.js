@@ -5,7 +5,7 @@ const list = document.getElementById("list");
 
 async function requireAdmin() {
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) window.location.href = "index.html";
+  if (!data?.user) window.location.href = "auth.html";
 
   const { data: prof, error } = await supabase
     .from("profiles")
@@ -15,7 +15,7 @@ async function requireAdmin() {
 
   if (error || !prof || prof.role !== "admin") {
     alert("Admin access only.");
-    window.location.href = "index.html";
+    window.location.href = "auth.html";
   }
 
   return data.user;
@@ -112,5 +112,5 @@ render(employers);
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();
-  window.location.href = "index.html";
+  window.location.href = "auth.html";
 });

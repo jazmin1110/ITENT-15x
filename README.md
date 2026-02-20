@@ -27,4 +27,4 @@ create policy "Users can read own profile"
   using (auth.uid() = id);
 ```
 
-Run the app via Live Server from the **project root** (so both `public/` and `js/` are served), or open `public/` as the root. The app starts at `index.html` (login/auth page).
+Run the app via Live Server from the **project root** (so both `public/` and `js/` are served), or open `public/` as the root and use `public/auth.html`.

@@ -4,7 +4,7 @@ const msg = document.getElementById("msg");
 
 async function requireEmployer() {
   const { data } = await supabase.auth.getUser();
-  if (!data?.user) window.location.href = "index.html";
+  if (!data?.user) window.location.href = "auth.html";
 
   // check role
   const { data: prof, error } = await supabase
@@ -13,7 +13,7 @@ async function requireEmployer() {
     .eq("id", data.user.id)
     .single();
 
-  if (error || !prof) window.location.href = "index.html";
+  if (error || !prof) window.location.href = "auth.html";
   if (prof.role !== "employer") {
     alert("Employer access only.");
     window.location.href = "worker-profile.html";
@@ -71,5 +71,5 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   await supabase.auth.signOut();
-  window.location.href = "index.html";
+  window.location.href = "auth.html";
 });
