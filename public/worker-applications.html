@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jobs</title>
+  <title>My Applications</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/worker.css">
 </head>
-
 <body>
   <nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-4">
     <div class="container">
@@ -20,8 +19,8 @@
       <div class="collapse navbar-collapse" id="workerNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link" href="worker-profile.html">My Profile</a></li>
-          <li class="nav-item"><a class="nav-link active" href="jobs.html">Browse Jobs</a></li>
-          <li class="nav-item"><a class="nav-link" href="worker-applications.html">My Applications</a></li>
+          <li class="nav-item"><a class="nav-link" href="jobs.html">Browse Jobs</a></li>
+          <li class="nav-item"><a class="nav-link active" href="worker-applications.html">My Applications</a></li>
         </ul>
         <button id="logoutBtn" type="button" class="btn btn-outline-light btn-sm">Logout</button>
       </div>
@@ -29,24 +28,13 @@
   </nav>
 
   <div class="container container--medium">
-    <h3 class="mb-2">Trabaho na available</h3>
-    <p class="text-success small mb-3">100% libre • Verified employers</p>
+    <h3 class="mb-3">My Applications</h3>
 
-    <div class="row g-2 mb-3">
-      <div class="col-md-6">
-        <input id="cityFilter" class="form-control" placeholder="Lungsod (e.g., Quezon City)" aria-label="Filter by city">
-      </div>
-      <div class="col-md-6">
-        <input id="skillFilter" class="form-control" placeholder="Skill (e.g., Masonry)" aria-label="Filter by skill">
-      </div>
-    </div>
-
-    <div id="msg" class="text-muted mb-2" role="status"></div>
-    <div id="jobList"></div>
+    <div id="msg" class="text-muted mb-2"></div>
+    <div id="list"></div>
   </div>
 
-  <script type="module" src="./js/jobs.js"></script>
+  <script type="module" src="./js/workerApplications.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
