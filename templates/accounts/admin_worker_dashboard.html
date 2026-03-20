@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Verification - ITENT{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h2><i class="bi bi-shield-check"></i> Verification Dashboard</h2>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'admin_dashboard' %}">
+      <i class="bi bi-building"></i> Employers
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'admin_worker_dashboard' %}">
+      <i class="bi bi-person"></i> Workers
+    </a>
+  </li>
+</ul>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+    <i class="bi bi-hourglass-split"></i> Pending
+  </a>
+  <a href="?status=verified" class="btn btn-sm {% if status_filter == 'verified' %}btn-success{% else %}btn-outline-success{% endif %}">
+    <i class="bi bi-patch-check"></i> Verified
+  </a>
+  <a href="?status=rejected" class="btn btn-sm {% if status_filter == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+    <i class="bi bi-x-circle"></i> Rejected
+  </a>
+  <a href="?status=not_submitted" class="btn btn-sm {% if status_filter == 'not_submitted' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+    <i class="bi bi-dash-circle"></i> Not Submitted
+  </a>
+  <a href="?status=all" class="btn btn-sm {% if status_filter == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}">
+    <i class="bi bi-list"></i> Lahat
+  </a>
+</div>
+
+{% for worker in workers %}
+<div class="card mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background:var(--color-surface);border-bottom:1px solid var(--color-border);">
+    <div class="d-flex align-items-center gap-3">
+      <div class="user-avatar" style="width:40px;height:40px;font-size:1rem;">
+        {{ worker.full_name|make_list|first }}
+      </div>
+      <div>
+        <h5 class="mb-0 fw-bold">{{ worker.full_name }}</h5>
+        <small class="text-muted">
+          <i class="bi bi-geo-alt"></i> {{ worker.city }}
+          &bull; <i class="bi bi-phone"></i> {{ worker.contact_number }}
+          &bull; <i class="bi bi-clock"></i> {{ worker.years_experience }} yrs experience
+        </small>
+      </div>
+    </div>
+    <div>
+      {% if worker.verification_status == 'verified' %}
+        <span class="badge bg-success"><i class="bi bi-patch-check"></i> Verified</span>
+      {% elif worker.verification_status == 'pending' %}
+        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Pending</span>
+      {% elif worker.verification_status == 'rejected' %}
+        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rejected</span>
+      {% else %}
+        <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> Not Submitted</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card-body p-4">
+    <h6 class="fw-bold text-muted mb-3" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Verification Documents</h6>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--color-surface);border:1px solid var(--color-border);">
+          {% if worker.doc_nbi_clearance %}
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span style="font-size:0.85rem;">NBI Clearance</span>
+            <a href="{{ worker.doc_nbi_clearance.url }}" target="_blank" class="ms-auto btn btn-outline-primary btn-sm" style="font-size:0.75rem;">
+              <i class="bi bi-eye"></i> View
+            </a>
+          {% else %}
+            <i class="bi bi-x-circle text-danger"></i>
+            <span class="text-muted" style="font-size:0.85rem;">NBI Clearance</span>
+            <span class="ms-auto badge bg-light text-muted">Missing</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--color-surface);border:1px solid var(--color-border);">
+          {% if worker.national_id_status == 'verified' %}
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span style="font-size:0.85rem;">National ID (PSA eVerify)</span>
+            <span class="ms-auto badge bg-success" style="font-size:0.7rem;">Verified</span>
+          {% elif worker.national_id_number %}
+            <i class="bi bi-exclamation-circle text-warning"></i>
+            <span style="font-size:0.85rem;">National ID: {{ worker.national_id_number }}</span>
+            <span class="ms-auto badge bg-warning text-dark" style="font-size:0.7rem;">{{ worker.get_national_id_status_display }}</span>
+          {% else %}
+            <i class="bi bi-x-circle text-danger"></i>
+            <span class="text-muted" style="font-size:0.85rem;">National ID (PhilSys)</span>
+            <span class="ms-auto badge bg-light text-muted">Missing</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if worker.skills %}
+      <div class="mb-3">
+        <small class="text-muted fw-bold" style="font-size:0.75rem;text-transform:uppercase;">Skills:</small>
+        {% for skill in worker.skills %}
+          <span class="skill-tag">{{ skill }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if worker.verification_status == 'rejected' and worker.rejection_reason %}
+      <div class="alert alert-danger py-2 mb-3" style="font-size:0.85rem;">
+        <strong>Rejection reason:</strong> {{ worker.rejection_reason }}
+      </div>
+    {% endif %}
+
+    <div class="d-flex flex-wrap gap-2">
+      {% if worker.verification_status == 'pending' %}
+        <a href="{% url 'approve_worker' worker.id %}" class="btn btn-success">
+          <i class="bi bi-check-circle"></i> Approve
+        </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#reject-w-{{ worker.id }}">
+          <i class="bi bi-x-circle"></i> Reject
+        </button>
+      {% elif worker.verification_status == 'verified' %}
+        <a href="{% url 'revoke_worker' worker.id %}" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-shield-x"></i> Revoke Verification
+        </a>
+      {% endif %}
+    </div>
+
+    {% if worker.verification_status == 'pending' %}
+      <div class="collapse mt-3" id="reject-w-{{ worker.id }}">
+        <form method="post" action="{% url 'reject_worker' worker.id %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:0.85rem;">Dahilan ng Rejection</label>
+            <textarea name="reason" class="form-control" rows="2" placeholder="Ilagay ang dahilan kung bakit hindi pumasa..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-x-circle"></i> Confirm Reject
+          </button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% empty %}
+<div class="card">
+  <div class="card-body">
+    <div class="empty-state py-4">
+      <i class="bi bi-person"></i>
+      <h5>Walang worker na nahanap</h5>
+      <p>Walang worker sa filter na ito.</p>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

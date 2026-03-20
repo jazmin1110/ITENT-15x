@@ -37,7 +37,10 @@
             <a href="{% url 'view_ratings' app.job.employer.id %}" class="text-decoration-none text-muted">
               <i class="bi bi-building"></i> {{ app.job.employer.employer_profile.company_name }}
               {% if app.job.employer.get_average_rating %}
-                &nbsp;<span class="text-warning">&#9733;</span> {{ app.job.employer.get_average_rating }}
+                &nbsp;<span class="text-warning">&#9733;</span> {{ app.job.employer.get_average_rating }}/5
+                <small>({{ app.job.employer.get_rating_count }})</small>
+              {% else %}
+                &nbsp;<small>No ratings yet</small>
               {% endif %}
             </a>
           </div>

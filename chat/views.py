@@ -41,6 +41,6 @@ def chat(request, conversation_id):
 
     return render(request, 'chat/chat.html', {
         'conversation': conversation,
-        'messages': chat_messages,
+        'chat_messages': chat_messages,
         'other_user': other_user,
     })

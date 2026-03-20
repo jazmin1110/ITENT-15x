@@ -55,7 +55,6 @@ class Application(models.Model):
         return f"{self.worker.username} -> {self.job.title}"
 
     class Meta:
-        unique_together = ['job', 'worker']
         ordering = ['-created_at']
 
 

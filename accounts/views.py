@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -39,7 +39,7 @@ def dashboard(request):
 
 @login_required
 def worker_profile(request):
-    """Worker profile view and edit."""
+    """Worker profile view and edit with verification documents."""
     if request.user.role != 'worker':
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
@@ -50,22 +50,28 @@ def worker_profile(request):
         profile = None
 
     if request.method == 'POST':
-        form = WorkerProfileForm(request.POST, instance=profile)
+        form = WorkerProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             profile = form.save(commit=False)
             profile.user = request.user
+            if profile.verification_status == 'rejected':
+                profile.verification_status = 'not_submitted'
+                profile.rejection_reason = ''
             profile.save()
             messages.success(request, 'Profile updated!')
-            return redirect('job_list')
+            return redirect('worker_profile')
     else:
         form = WorkerProfileForm(instance=profile)
 
-    return render(request, 'accounts/worker_profile.html', {'form': form})
+    return render(request, 'accounts/worker_profile.html', {
+        'form': form,
+        'profile': profile,
+    })
 
 
 @login_required
 def employer_profile(request):
-    """Employer profile view and edit."""
+    """Employer profile view and edit with document uploads."""
     if request.user.role != 'employer':
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
@@ -76,17 +82,51 @@ def employer_profile(request):
         profile = None
 
     if request.method == 'POST':
-        form = EmployerProfileForm(request.POST, instance=profile)
+        form = EmployerProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             profile = form.save(commit=False)
             profile.user = request.user
+            if profile.verification_status == 'rejected':
+                profile.verification_status = 'not_submitted'
+                profile.rejection_reason = ''
             profile.save()
             messages.success(request, 'Profile updated!')
-            return redirect('employer_jobs')
+            return redirect('employer_profile')
     else:
         form = EmployerProfileForm(instance=profile)
 
-    return render(request, 'accounts/employer_profile.html', {'form': form})
+    return render(request, 'accounts/employer_profile.html', {
+        'form': form,
+        'profile': profile,
+    })
+
+
+@login_required
+def submit_verification(request):
+    """Employer submits documents for admin verification."""
+    if request.user.role != 'employer':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    try:
+        profile = request.user.employer_profile
+    except EmployerProfile.DoesNotExist:
+        messages.error(request, 'I-complete muna ang profile mo.')
+        return redirect('employer_profile')
+
+    if not profile.all_docs_uploaded:
+        messages.error(request, 'I-upload muna ang lahat ng required documents bago mag-submit.')
+        return redirect('employer_profile')
+
+    if profile.verification_status == 'pending':
+        messages.info(request, 'Naka-submit na ang documents mo. Hinihintay ang review ng admin.')
+        return redirect('employer_profile')
+
+    profile.verification_status = 'pending'
+    profile.rejection_reason = ''
+    profile.save()
+    messages.success(request, 'Na-submit na ang documents mo para sa verification! Hinihintay ang approval ng admin.')
+    return redirect('employer_profile')
 
 
 @login_required
@@ -96,24 +136,206 @@ def admin_dashboard(request):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
+    status_filter = request.GET.get('status', 'pending')
     employers = EmployerProfile.objects.select_related('user').all()
-    return render(request, 'accounts/admin_dashboard.html', {'employers': employers})
+
+    if status_filter and status_filter != 'all':
+        employers = employers.filter(verification_status=status_filter)
+
+    return render(request, 'accounts/admin_dashboard.html', {
+        'employers': employers,
+        'status_filter': status_filter,
+    })
 
 
 @login_required
-def toggle_verification(request, employer_id):
-    """Toggle employer verification status."""
+def approve_employer(request, employer_id):
+    """Admin approves employer verification."""
     if request.user.role != 'admin':
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
-    try:
-        profile = EmployerProfile.objects.get(id=employer_id)
-        profile.verified = not profile.verified
-        profile.save()
-        status = 'verified' if profile.verified else 'unverified'
-        messages.success(request, f'{profile.company_name} is now {status}.')
-    except EmployerProfile.DoesNotExist:
-        messages.error(request, 'Employer not found.')
-
+    profile = get_object_or_404(EmployerProfile, id=employer_id)
+    profile.verification_status = 'verified'
+    profile.rejection_reason = ''
+    profile.save()
+    messages.success(request, f'{profile.company_name} is now verified!')
     return redirect('admin_dashboard')
+
+
+@login_required
+def reject_employer(request, employer_id):
+    """Admin rejects employer verification with a reason."""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    profile = get_object_or_404(EmployerProfile, id=employer_id)
+    reason = request.POST.get('reason', '').strip() if request.method == 'POST' else ''
+    profile.verification_status = 'rejected'
+    profile.rejection_reason = reason or 'Hindi pumasa sa verification. Subukan ulit.'
+    profile.save()
+    messages.success(request, f'{profile.company_name} has been rejected.')
+    return redirect('admin_dashboard')
+
+
+@login_required
+def revoke_employer(request, employer_id):
+    """Admin revokes a previously verified employer."""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    profile = get_object_or_404(EmployerProfile, id=employer_id)
+    profile.verification_status = 'not_submitted'
+    profile.rejection_reason = ''
+    profile.save()
+    messages.success(request, f'{profile.company_name} verification has been revoked.')
+    return redirect('admin_dashboard')
+
+
+# ---------------------------------------------------------------------------
+# Worker verification
+# ---------------------------------------------------------------------------
+
+@login_required
+def verify_national_id(request):
+    """
+    Placeholder for PSA eVerify National ID verification.
+
+    In production this would call the PSA eVerify API
+    (via DICT/PSA's PhilSys platform) to validate the worker's
+    Philippine National ID number with a liveness check.
+
+    Reference: https://www.ateneo.edu/features/2026/01/ateneo-build-trl-achieve-key-milestone-digital-public-infrastructure-e-verify-kyc
+
+    TODO: Replace with actual PSA eVerify API integration when access is granted.
+    """
+    if request.user.role != 'worker':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    try:
+        profile = request.user.worker_profile
+    except WorkerProfile.DoesNotExist:
+        messages.error(request, 'I-complete muna ang profile mo.')
+        return redirect('worker_profile')
+
+    if not profile.national_id_number:
+        messages.error(request, 'Ilagay muna ang National ID number sa profile mo.')
+        return redirect('worker_profile')
+
+    if profile.national_id_status == 'verified':
+        messages.info(request, 'Na-verify na ang National ID mo.')
+        return redirect('worker_profile')
+
+    # --- PLACEHOLDER: Simulated PSA eVerify API call ---
+    # In production, this would:
+    # 1. Send the PhilSys number to the PSA eVerify endpoint
+    # 2. Trigger a face capture / liveness check
+    # 3. Receive a verification result (match / no match)
+    #
+    # For now, we auto-approve to simulate a successful verification.
+    profile.national_id_status = 'verified'
+    profile.save()
+    messages.success(request,
+        'National ID verified! (Placeholder — sa production, gagamitin ang PSA eVerify API.)'
+    )
+    return redirect('worker_profile')
+
+
+@login_required
+def submit_worker_verification(request):
+    """Worker submits NBI clearance + verified National ID for admin review."""
+    if request.user.role != 'worker':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    try:
+        profile = request.user.worker_profile
+    except WorkerProfile.DoesNotExist:
+        messages.error(request, 'I-complete muna ang profile mo.')
+        return redirect('worker_profile')
+
+    if not profile.all_requirements_met:
+        messages.error(request,
+            'I-upload ang NBI Clearance at i-verify ang National ID bago mag-submit.'
+        )
+        return redirect('worker_profile')
+
+    if profile.verification_status == 'pending':
+        messages.info(request, 'Naka-submit na. Hinihintay ang review ng admin.')
+        return redirect('worker_profile')
+
+    profile.verification_status = 'pending'
+    profile.rejection_reason = ''
+    profile.save()
+    messages.success(request,
+        'Na-submit na ang documents mo para sa verification! Hinihintay ang approval ng admin.'
+    )
+    return redirect('worker_profile')
+
+
+@login_required
+def admin_worker_dashboard(request):
+    """Admin dashboard for worker verification."""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    status_filter = request.GET.get('status', 'pending')
+    workers = WorkerProfile.objects.select_related('user').all()
+
+    if status_filter and status_filter != 'all':
+        workers = workers.filter(verification_status=status_filter)
+
+    return render(request, 'accounts/admin_worker_dashboard.html', {
+        'workers': workers,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def approve_worker(request, worker_id):
+    """Admin approves worker verification."""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    profile = get_object_or_404(WorkerProfile, id=worker_id)
+    profile.verification_status = 'verified'
+    profile.rejection_reason = ''
+    profile.save()
+    messages.success(request, f'{profile.full_name} is now verified!')
+    return redirect('admin_worker_dashboard')
+
+
+@login_required
+def reject_worker(request, worker_id):
+    """Admin rejects worker verification with a reason."""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    profile = get_object_or_404(WorkerProfile, id=worker_id)
+    reason = request.POST.get('reason', '').strip() if request.method == 'POST' else ''
+    profile.verification_status = 'rejected'
+    profile.rejection_reason = reason or 'Hindi pumasa sa verification. Subukan ulit.'
+    profile.save()
+    messages.success(request, f'{profile.full_name} has been rejected.')
+    return redirect('admin_worker_dashboard')
+
+
+@login_required
+def revoke_worker(request, worker_id):
+    """Admin revokes a previously verified worker."""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    profile = get_object_or_404(WorkerProfile, id=worker_id)
+    profile.verification_status = 'not_submitted'
+    profile.rejection_reason = ''
+    profile.save()
+    messages.success(request, f'{profile.full_name} verification has been revoked.')
+    return redirect('admin_worker_dashboard')

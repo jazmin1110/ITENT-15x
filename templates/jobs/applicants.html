@@ -47,6 +47,9 @@
                   <a href="{% url 'view_ratings' app.worker.id %}" class="text-decoration-none fw-semibold">
                     {{ app.worker.worker_profile.full_name }}
                   </a>
+                  {% if app.worker.worker_profile.verified %}
+                    <span class="verified-badge" style="font-size:0.7rem;"><i class="bi bi-patch-check-fill"></i></span>
+                  {% endif %}
                 {% else %}
                   {{ app.worker.username }}
                 {% endif %}

@@ -4,20 +4,50 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
+  <div class="col-md-10 col-lg-8">
     <div class="page-header d-flex align-items-center gap-3 mb-4">
       <div class="user-avatar" style="width:48px;height:48px;font-size:1.2rem;">
         {{ user.username|make_list|first }}
       </div>
       <div>
         <h2 class="mb-0">Worker Profile</h2>
-        <span class="text-muted" style="font-size:0.85rem;">I-update ang iyong impormasyon</span>
+        <span class="text-muted" style="font-size:0.85rem;">I-update ang iyong impormasyon at i-verify ang account mo</span>
       </div>
     </div>
 
-    <div class="card">
+    {% if profile and profile.verification_status == 'verified' %}
+      <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-patch-check-fill me-2 fs-5"></i>
+        <div>
+          <strong>Verified!</strong> Na-verify na ang iyong account. Salamat!
+        </div>
+      </div>
+    {% elif profile and profile.verification_status == 'pending' %}
+      <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-hourglass-split me-2 fs-5"></i>
+        <div>
+          <strong>Pending Review</strong> — Naka-submit na ang documents mo. Hinihintay ang approval ng admin.
+        </div>
+      </div>
+    {% elif profile and profile.verification_status == 'rejected' %}
+      <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-x-circle me-2 fs-5"></i>
+        <div>
+          <strong>Rejected</strong> — Hindi pumasa ang verification.
+          {% if profile.rejection_reason %}
+            <br><span class="mt-1 d-block" style="font-size:0.9rem;">Dahilan: {{ profile.rejection_reason }}</span>
+          {% endif %}
+          <br><small>I-update ang documents at i-submit ulit.</small>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card mb-4">
+      <div class="card-header py-3" style="background:var(--color-surface);border-bottom:1px solid var(--color-border);">
+        <h5 class="mb-0"><i class="bi bi-person"></i> Personal Information</h5>
+      </div>
       <div class="card-body p-4">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
 
           <div class="mb-3">
@@ -55,12 +85,122 @@
             </div>
           </div>
 
+          <hr class="my-4">
+
+          <h5 class="mb-1"><i class="bi bi-shield-lock"></i> Verification Documents</h5>
+          <p class="text-muted mb-4" style="font-size:0.85rem;">
+            Para ma-verify ang account mo, kailangan ng NBI Clearance at National ID verification.
+          </p>
+
+          <div class="mb-3 p-3 rounded" style="background:var(--color-surface);border:1px solid var(--color-border);">
+            <label for="id_doc_nbi_clearance" class="form-label fw-semibold">
+              NBI Clearance
+            </label>
+            {% if profile and profile.doc_nbi_clearance %}
+              <div class="mb-2">
+                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Uploaded</span>
+                <a href="{{ profile.doc_nbi_clearance.url }}" target="_blank" class="ms-2 text-decoration-none" style="font-size:0.85rem;">
+                  <i class="bi bi-eye"></i> View file
+                </a>
+              </div>
+            {% else %}
+              <div class="mb-2">
+                <span class="badge bg-secondary"><i class="bi bi-cloud-upload"></i> Not uploaded</span>
+              </div>
+            {% endif %}
+            {{ form.doc_nbi_clearance }}
+            <small class="form-text">I-upload ang NBI Clearance (PDF, JPG, o PNG)</small>
+          </div>
+
+          <div class="mb-4 p-3 rounded" style="background:var(--color-surface);border:1px solid var(--color-border);">
+            <label for="id_national_id_number" class="form-label fw-semibold">
+              Philippine National ID (PhilSys) Number
+            </label>
+            {{ form.national_id_number }}
+            <small class="form-text">Ilagay ang PhilSys Number (PSN) mula sa iyong National ID card</small>
+
+            {% if profile %}
+              <div class="mt-3">
+                {% if profile.national_id_status == 'verified' %}
+                  <span class="badge bg-success"><i class="bi bi-patch-check"></i> National ID Verified</span>
+                  <small class="text-muted ms-1">Na-verify na sa PSA eVerify</small>
+                {% elif profile.national_id_status == 'pending' %}
+                  <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Verification Pending</span>
+                {% elif profile.national_id_status == 'failed' %}
+                  <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Verification Failed</span>
+                  <small class="text-muted ms-1">I-check ang number at subukan ulit</small>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+
           <button type="submit" class="btn btn-primary btn-lg w-100">
             <i class="bi bi-check-lg"></i> I-save ang Profile
           </button>
         </form>
       </div>
     </div>
+
+    {% if profile and profile.national_id_number and profile.national_id_status != 'verified' %}
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:var(--blue-50);color:var(--blue-500);">
+              <i class="bi bi-fingerprint fs-4"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h5 class="mb-1">I-Verify ang National ID</h5>
+              <p class="text-muted mb-3" style="font-size:0.85rem;">
+                Gamitin ang PSA eVerify para ma-validate ang iyong Philippine National ID.
+                Ito ay konektado sa PhilSys — ang national identification system ng Pilipinas.
+              </p>
+              <div class="alert alert-info py-2 mb-3" style="font-size:0.8rem;">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Placeholder:</strong> Sa production, gagamitin ang PSA eVerify API para sa identity verification
+                kasama ang face capture at liveness check.
+                <a href="https://www.ateneo.edu/features/2026/01/ateneo-build-trl-achieve-key-milestone-digital-public-infrastructure-e-verify-kyc" target="_blank" class="ms-1">Learn more</a>
+              </div>
+              <a href="{% url 'verify_national_id' %}" class="btn btn-primary">
+                <i class="bi bi-fingerprint"></i> Verify National ID via PSA eVerify
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if profile and profile.verification_status != 'verified' and profile.verification_status != 'pending' %}
+      <div class="card">
+        <div class="card-body p-4 text-center">
+          {% if profile.all_requirements_met %}
+            <h5 class="mb-2"><i class="bi bi-shield-check"></i> Handa na para sa Verification?</h5>
+            <p class="text-muted mb-3" style="font-size:0.9rem;">
+              Kumpleto na ang NBI Clearance at na-verify na ang National ID mo. I-submit para ma-review ng admin.
+            </p>
+            <a href="{% url 'submit_worker_verification' %}" class="btn btn-success btn-lg">
+              <i class="bi bi-send"></i> Submit para sa Verification
+            </a>
+          {% else %}
+            <h5 class="mb-2 text-muted"><i class="bi bi-shield-exclamation"></i> Hindi pa Kumpleto ang Requirements</h5>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">
+              Kailangan mong:
+            </p>
+            <ul class="list-unstyled mt-2 mb-0" style="font-size:0.9rem;">
+              {% if not profile.doc_nbi_clearance %}
+                <li class="text-danger"><i class="bi bi-x-circle"></i> I-upload ang NBI Clearance</li>
+              {% else %}
+                <li class="text-success"><i class="bi bi-check-circle"></i> NBI Clearance uploaded</li>
+              {% endif %}
+              {% if profile.national_id_status != 'verified' %}
+                <li class="text-danger"><i class="bi bi-x-circle"></i> I-verify ang National ID</li>
+              {% else %}
+                <li class="text-success"><i class="bi bi-check-circle"></i> National ID verified</li>
+              {% endif %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

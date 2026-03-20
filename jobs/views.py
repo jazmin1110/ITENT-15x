@@ -33,28 +33,36 @@ def job_list(request):
 def job_detail(request, job_id):
     """View job details."""
     job = get_object_or_404(Job.objects.select_related('employer__employer_profile'), id=job_id)
-    has_applied = False
+    has_active_application = False
+    has_completed_application = False
 
     if request.user.role == 'worker':
-        has_applied = Application.objects.filter(job=job, worker=request.user).exists()
+        worker_apps = Application.objects.filter(job=job, worker=request.user)
+        has_active_application = worker_apps.exclude(status='completed').exists()
+        has_completed_application = worker_apps.filter(status='completed').exists()
 
     return render(request, 'jobs/job_detail.html', {
         'job': job,
-        'has_applied': has_applied,
+        'has_active_application': has_active_application,
+        'has_completed_application': has_completed_application,
     })
 
 
 @login_required
 def apply_job(request, job_id):
-    """Apply for a job."""
+    """Apply for a job. Workers can reapply after a completed application."""
     if request.user.role != 'worker':
         messages.error(request, 'Only workers can apply for jobs.')
         return redirect('job_list')
 
     job = get_object_or_404(Job, id=job_id)
 
-    if Application.objects.filter(job=job, worker=request.user).exists():
-        messages.info(request, 'You have already applied for this job.')
+    active_application = Application.objects.filter(
+        job=job, worker=request.user
+    ).exclude(status='completed').exists()
+
+    if active_application:
+        messages.info(request, 'May active application ka na para sa job na ito.')
     else:
         Application.objects.create(job=job, worker=request.user)
         messages.success(request, 'Application submitted!')

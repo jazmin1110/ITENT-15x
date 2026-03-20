@@ -14,12 +14,13 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(WorkerProfile)
 class WorkerProfileAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'city', 'years_experience', 'user']
+    list_display = ['full_name', 'city', 'years_experience', 'verification_status', 'user']
+    list_filter = ['verification_status', 'national_id_status']
     search_fields = ['full_name', 'city']
 
 
 @admin.register(EmployerProfile)
 class EmployerProfileAdmin(admin.ModelAdmin):
-    list_display = ['company_name', 'city', 'verified', 'user']
-    list_filter = ['verified']
+    list_display = ['company_name', 'city', 'verification_status', 'user']
+    list_filter = ['verification_status']
     search_fields = ['company_name', 'city']

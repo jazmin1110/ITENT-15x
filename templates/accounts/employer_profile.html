@@ -4,20 +4,50 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
+  <div class="col-md-10 col-lg-8">
     <div class="page-header d-flex align-items-center gap-3 mb-4">
       <div class="user-avatar" style="width:48px;height:48px;font-size:1.2rem;background:var(--blue-500);">
         {{ user.username|make_list|first }}
       </div>
       <div>
         <h2 class="mb-0">Employer Profile</h2>
-        <span class="text-muted" style="font-size:0.85rem;">I-update ang impormasyon ng company</span>
+        <span class="text-muted" style="font-size:0.85rem;">I-update ang impormasyon ng company at i-upload ang documents</span>
       </div>
     </div>
 
-    <div class="card">
+    {% if profile and profile.verification_status == 'verified' %}
+      <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-patch-check-fill me-2 fs-5"></i>
+        <div>
+          <strong>Verified!</strong> Na-verify na ang iyong business. Salamat!
+        </div>
+      </div>
+    {% elif profile and profile.verification_status == 'pending' %}
+      <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-hourglass-split me-2 fs-5"></i>
+        <div>
+          <strong>Pending Review</strong> — Naka-submit na ang iyong documents. Hinihintay ang approval ng admin.
+        </div>
+      </div>
+    {% elif profile and profile.verification_status == 'rejected' %}
+      <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-x-circle me-2 fs-5"></i>
+        <div>
+          <strong>Rejected</strong> — Hindi pumasa ang verification.
+          {% if profile.rejection_reason %}
+            <br><span class="mt-1 d-block" style="font-size:0.9rem;">Dahilan: {{ profile.rejection_reason }}</span>
+          {% endif %}
+          <br><small>I-update ang documents at i-submit ulit.</small>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card mb-4">
+      <div class="card-header py-3" style="background:var(--color-surface);border-bottom:1px solid var(--color-border);">
+        <h5 class="mb-0"><i class="bi bi-building"></i> Company Information</h5>
+      </div>
       <div class="card-body p-4">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
 
           <div class="mb-3">
@@ -36,16 +66,45 @@
             </div>
           </div>
 
-          <div class="mb-3">
+          <div class="mb-4">
             <label for="id_contact_number" class="form-label">Contact Number</label>
             {{ form.contact_number }}
           </div>
 
-          <div class="mb-4">
-            <label for="id_doc_url" class="form-label">Link ng Business Document</label>
-            {{ form.doc_url }}
-            <small class="form-text">Optional — para sa verification ng account</small>
-          </div>
+          <hr class="my-4">
+
+          <h5 class="mb-1"><i class="bi bi-file-earmark-arrow-up"></i> Business Documents</h5>
+          <p class="text-muted mb-4" style="font-size:0.85rem;">
+            I-upload ang lahat ng documents para ma-verify ang iyong business. Tanggap: PDF, JPG, PNG.
+          </p>
+
+          {% for field in form %}
+            {% if field.name|slice:":4" == "doc_" %}
+              <div class="mb-3 p-3 rounded" style="background:var(--color-surface);border:1px solid var(--color-border);">
+                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                  {{ field.label }}
+                </label>
+                {% if field.value %}
+                  <div class="mb-2">
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Uploaded</span>
+                    <a href="{{ field.value.url }}" target="_blank" class="ms-2 text-decoration-none" style="font-size:0.85rem;">
+                      <i class="bi bi-eye"></i> View file
+                    </a>
+                  </div>
+                {% else %}
+                  <div class="mb-2">
+                    <span class="badge bg-secondary"><i class="bi bi-cloud-upload"></i> Not uploaded</span>
+                  </div>
+                {% endif %}
+                {{ field }}
+                {% if field.errors %}
+                  <div class="text-danger small mt-1">
+                    <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
 
           <button type="submit" class="btn btn-primary btn-lg w-100">
             <i class="bi bi-check-lg"></i> I-save ang Profile
@@ -53,6 +112,27 @@
         </form>
       </div>
     </div>
+
+    {% if profile and profile.verification_status != 'verified' and profile.verification_status != 'pending' %}
+      <div class="card">
+        <div class="card-body p-4 text-center">
+          {% if profile.all_docs_uploaded %}
+            <h5 class="mb-2"><i class="bi bi-shield-check"></i> Handa na para sa Verification?</h5>
+            <p class="text-muted mb-3" style="font-size:0.9rem;">
+              Kumpleto na ang documents mo. I-submit para ma-review ng admin.
+            </p>
+            <a href="{% url 'submit_verification' %}" class="btn btn-success btn-lg">
+              <i class="bi bi-send"></i> Submit para sa Verification
+            </a>
+          {% else %}
+            <h5 class="mb-2 text-muted"><i class="bi bi-shield-exclamation"></i> Hindi pa kumpleto ang Documents</h5>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">
+              I-upload muna ang lahat ng required documents sa itaas bago ka mag-submit para sa verification.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

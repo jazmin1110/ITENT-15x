@@ -42,7 +42,7 @@
     </div>
 
     <div class="chat-container" id="chatBox">
-      {% for msg in messages %}
+      {% for msg in chat_messages %}
       <div class="message {% if msg.sender == user %}mine{% else %}theirs{% endif %}">
         <div class="bubble">
           {{ msg.content }}
