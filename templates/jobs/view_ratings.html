@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Ratings - ITENT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="card-title mb-1">
+              {% if rated_user.role == 'worker' and rated_user.worker_profile %}
+                {{ rated_user.worker_profile.full_name }}
+              {% elif rated_user.role == 'employer' and rated_user.employer_profile %}
+                {{ rated_user.employer_profile.company_name }}
+              {% else %}
+                {{ rated_user.username }}
+              {% endif %}
+            </h2>
+            <span class="badge {% if rated_user.role == 'worker' %}bg-primary{% else %}bg-success{% endif %}">
+              {{ rated_user.role|title }}
+            </span>
+          </div>
+          <div class="text-end">
+            {% if rated_user.get_average_rating %}
+              <div class="fs-3 text-warning">
+                {% for i in "12345"|make_list %}
+                  {% if forloop.counter <= rated_user.get_average_rating %}⭐{% endif %}
+                {% endfor %}
+              </div>
+              <div class="text-muted">
+                {{ rated_user.get_average_rating }}/5 ({{ rated_user.get_rating_count }} rating{{ rated_user.get_rating_count|pluralize }})
+              </div>
+            {% else %}
+              <span class="text-muted">No ratings yet</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <hr>
+
+        <h5 class="mb-3">All Reviews</h5>
+
+        {% for rating in ratings %}
+        <div class="border rounded p-3 mb-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="text-warning mb-1">
+                {% for i in "12345"|make_list %}
+                  {% if forloop.counter <= rating.score %}⭐{% else %}☆{% endif %}
+                {% endfor %}
+              </div>
+              <strong>
+                {% if rating.rater.role == 'worker' and rating.rater.worker_profile %}
+                  {{ rating.rater.worker_profile.full_name }}
+                {% elif rating.rater.role == 'employer' and rating.rater.employer_profile %}
+                  {{ rating.rater.employer_profile.company_name }}
+                {% else %}
+                  {{ rating.rater.username }}
+                {% endif %}
+              </strong>
+            </div>
+            <small class="text-muted">{{ rating.created_at|date:"M d, Y" }}</small>
+          </div>
+          {% if rating.review %}
+            <p class="mt-2 mb-0">{{ rating.review }}</p>
+          {% endif %}
+          <small class="text-muted">Job: {{ rating.application.job.title }}</small>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center">No reviews yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button onclick="history.back()" class="btn btn-outline-secondary mt-3">Back</button>
+  </div>
+</div>
+{% endblock %}

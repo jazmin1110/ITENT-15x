@@ -15,7 +15,15 @@
 
         <dl class="row">
           <dt class="col-sm-4">Company</dt>
-          <dd class="col-sm-8">{{ job.employer.employer_profile.company_name }}</dd>
+          <dd class="col-sm-8">
+            <a href="{% url 'view_ratings' job.employer.id %}" class="text-decoration-none">
+              {{ job.employer.employer_profile.company_name }}
+            </a>
+            {% if job.employer.get_average_rating %}
+              <span class="text-warning">⭐</span> {{ job.employer.get_average_rating }}/5
+              <small class="text-muted">({{ job.employer.get_rating_count }} rating{{ job.employer.get_rating_count|pluralize }})</small>
+            {% endif %}
+          </dd>
 
           <dt class="col-sm-4">Location</dt>
           <dd class="col-sm-8">{{ job.city }}</dd>

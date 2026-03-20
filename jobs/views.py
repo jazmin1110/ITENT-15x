@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
-from .models import Job, Application
-from .forms import JobForm
+from .models import Job, Application, Rating
+from .forms import JobForm, RatingForm
 from chat.models import Conversation
 
 
@@ -98,20 +98,24 @@ def employer_jobs(request):
 def applicants(request, job_id):
     """View applicants for a job."""
     job = get_object_or_404(Job, id=job_id, employer=request.user)
-    applications = job.applications.select_related('worker__worker_profile')
+    applications = job.applications.select_related('worker__worker_profile').prefetch_related('ratings')
+
+    for app in applications:
+        app.employer_has_rated = app.ratings.filter(rater=request.user).exists()
+
     return render(request, 'jobs/applicants.html', {'job': job, 'applications': applications})
 
 
 @login_required
 def update_application_status(request, application_id, status):
-    """Update application status (viewed, shortlisted, hired)."""
+    """Update application status (viewed, shortlisted, hired, completed)."""
     application = get_object_or_404(Application, id=application_id)
 
     if application.job.employer != request.user:
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
-    if status not in ['viewed', 'shortlisted', 'hired']:
+    if status not in ['viewed', 'shortlisted', 'hired', 'completed']:
         messages.error(request, 'Invalid status.')
         return redirect('applicants', job_id=application.job.id)
 
@@ -125,6 +129,10 @@ def update_application_status(request, application_id, status):
             employer=request.user
         )
 
+    if status == 'completed':
+        messages.success(request, 'Job marked as completed! You can now rate the worker.')
+        return redirect('rate_worker', application_id=application.id)
+
     messages.success(request, f'Application marked as {status}.')
     return redirect('applicants', job_id=application.job.id)
 
@@ -136,7 +144,15 @@ def worker_applications(request):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
-    applications = Application.objects.filter(worker=request.user).select_related('job__employer__employer_profile')
+    applications = Application.objects.filter(
+        worker=request.user
+    ).select_related(
+        'job__employer__employer_profile'
+    ).prefetch_related('ratings')
+
+    for app in applications:
+        app.worker_has_rated = app.ratings.filter(rater=request.user).exists()
+
     return render(request, 'jobs/worker_applications.html', {'applications': applications})
 
 
@@ -148,3 +164,101 @@ def toggle_job_status(request, job_id):
     job.save()
     messages.success(request, f'Job is now {job.status}.')
     return redirect('employer_jobs')
+
+
+@login_required
+def rate_worker(request, application_id):
+    """Employer rates a worker after job completion."""
+    application = get_object_or_404(
+        Application.objects.select_related('job', 'worker__worker_profile'),
+        id=application_id
+    )
+
+    if application.job.employer != request.user:
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    if application.status not in ['hired', 'completed']:
+        messages.error(request, 'You can only rate workers for hired/completed jobs.')
+        return redirect('applicants', job_id=application.job.id)
+
+    if Rating.objects.filter(application=application, rater=request.user).exists():
+        messages.info(request, 'You have already rated this worker.')
+        return redirect('applicants', job_id=application.job.id)
+
+    if request.method == 'POST':
+        form = RatingForm(request.POST)
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.application = application
+            rating.rater = request.user
+            rating.ratee = application.worker
+            rating.save()
+
+            if application.status == 'hired':
+                application.status = 'completed'
+                application.save()
+
+            messages.success(request, 'Rating submitted! Salamat!')
+            return redirect('applicants', job_id=application.job.id)
+    else:
+        form = RatingForm()
+
+    return render(request, 'jobs/rate_worker.html', {
+        'form': form,
+        'application': application,
+        'worker': application.worker,
+    })
+
+
+@login_required
+def rate_employer(request, application_id):
+    """Worker rates an employer after job completion."""
+    application = get_object_or_404(
+        Application.objects.select_related('job__employer__employer_profile'),
+        id=application_id
+    )
+
+    if application.worker != request.user:
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    if application.status not in ['hired', 'completed']:
+        messages.error(request, 'You can only rate employers for completed jobs.')
+        return redirect('worker_applications')
+
+    if Rating.objects.filter(application=application, rater=request.user).exists():
+        messages.info(request, 'You have already rated this employer.')
+        return redirect('worker_applications')
+
+    if request.method == 'POST':
+        form = RatingForm(request.POST)
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.application = application
+            rating.rater = request.user
+            rating.ratee = application.job.employer
+            rating.save()
+            messages.success(request, 'Rating submitted! Salamat!')
+            return redirect('worker_applications')
+    else:
+        form = RatingForm()
+
+    return render(request, 'jobs/rate_employer.html', {
+        'form': form,
+        'application': application,
+        'employer': application.job.employer,
+    })
+
+
+@login_required
+def view_ratings(request, user_id):
+    """View all ratings for a user."""
+    from accounts.models import User
+    user = get_object_or_404(User, id=user_id)
+    ratings = user.ratings_received.select_related('rater', 'application__job').order_by('-created_at')
+
+    return render(request, 'jobs/view_ratings.html', {
+        'rated_user': user,
+        'ratings': ratings,
+    })

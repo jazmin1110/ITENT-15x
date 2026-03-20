@@ -42,9 +42,21 @@
             <span class="badge bg-secondary">{{ skill }}</span>
           {% endfor %}
         </div>
-        <p class="text-muted small">
+        <p class="text-muted small mb-2">
           Start: {{ job.start_date|date:"M d, Y" }}
         </p>
+
+        {% if job.employer.employer_profile %}
+          <p class="small mb-2">
+            <a href="{% url 'view_ratings' job.employer.id %}" class="text-decoration-none text-muted">
+              {{ job.employer.employer_profile.company_name }}
+              {% if job.employer.get_average_rating %}
+                <span class="text-warning">⭐</span> {{ job.employer.get_average_rating }}
+              {% endif %}
+            </a>
+          </p>
+        {% endif %}
+
         {% if job.employer.employer_profile.verified %}
           <span class="badge bg-success">Verified Employer</span>
         {% endif %}

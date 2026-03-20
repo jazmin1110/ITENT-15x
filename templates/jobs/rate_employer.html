@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate Employer - ITENT{% endblock %}
+
+{% block extra_css %}
+<style>
+  .star-rating .form-check {
+    display: inline-block;
+    margin-right: 0.5rem;
+  }
+  .star-rating .form-check-input:checked + .form-check-label {
+    color: #ffc107;
+    font-weight: bold;
+  }
+  .star-rating .form-check-label {
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <h2 class="card-title mb-4">Rate Employer</h2>
+
+        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+          <div>
+            <h5 class="mb-1">
+              {% if employer.employer_profile %}
+                {{ employer.employer_profile.company_name }}
+              {% else %}
+                {{ employer.username }}
+              {% endif %}
+            </h5>
+            <p class="text-muted mb-0">
+              Job: {{ application.job.title }}
+            </p>
+          </div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-4">
+            <label class="form-label fw-bold">How would you rate this employer?</label>
+            <div class="star-rating d-flex gap-3 flex-wrap">
+              {% for radio in form.score %}
+                <div class="form-check">
+                  {{ radio.tag }}
+                  <label class="form-check-label" for="{{ radio.id_for_label }}">
+                    {% for i in "12345"|make_list %}
+                      {% if forloop.counter <= forloop.parentloop.counter %}
+                        ⭐
+                      {% endif %}
+                    {% endfor %}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="id_review" class="form-label fw-bold">Review (optional)</label>
+            {{ form.review }}
+            <small class="text-muted">Share your experience working with this employer</small>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100">Submit Rating</button>
+        </form>
+
+        <a href="{% url 'worker_applications' %}" class="btn btn-outline-secondary mt-3">Cancel</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

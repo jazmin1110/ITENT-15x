@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Job(models.Model):
@@ -37,6 +38,7 @@ class Application(models.Model):
         ('viewed', 'Viewed'),
         ('shortlisted', 'Shortlisted'),
         ('hired', 'Hired'),
+        ('completed', 'Completed'),
     ]
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
@@ -55,3 +57,33 @@ class Application(models.Model):
     class Meta:
         unique_together = ['job', 'worker']
         ordering = ['-created_at']
+
+
+class Rating(models.Model):
+    """Rating given after job completion."""
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name='ratings'
+    )
+    rater = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ratings_given'
+    )
+    ratee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ratings_received'
+    )
+    score = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    review = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['application', 'rater']
+
+    def __str__(self):
+        return f"{self.rater.username} rated {self.ratee.username}: {self.score}/5"

@@ -15,6 +15,7 @@
         <thead>
           <tr>
             <th>Name</th>
+            <th>Rating</th>
             <th>City</th>
             <th>Experience</th>
             <th>Skills</th>
@@ -27,9 +28,19 @@
           <tr>
             <td>
               {% if app.worker.worker_profile %}
-                {{ app.worker.worker_profile.full_name }}
+                <a href="{% url 'view_ratings' app.worker.id %}" class="text-decoration-none">
+                  {{ app.worker.worker_profile.full_name }}
+                </a>
               {% else %}
                 {{ app.worker.username }}
+              {% endif %}
+            </td>
+            <td>
+              {% if app.worker.get_average_rating %}
+                <span class="text-warning">⭐</span> {{ app.worker.get_average_rating }}
+                <small class="text-muted">({{ app.worker.get_rating_count }})</small>
+              {% else %}
+                <span class="text-muted">New</span>
               {% endif %}
             </td>
             <td>
@@ -62,6 +73,8 @@
                 <span class="badge bg-warning text-dark">Shortlisted</span>
               {% elif app.status == 'hired' %}
                 <span class="badge bg-success">Hired</span>
+              {% elif app.status == 'completed' %}
+                <span class="badge bg-dark">Completed</span>
               {% endif %}
             </td>
             <td>
@@ -69,23 +82,37 @@
                 {% if app.status == 'sent' %}
                   <a href="{% url 'update_application_status' app.id 'viewed' %}" class="btn btn-outline-info">Mark Viewed</a>
                 {% endif %}
-                {% if app.status != 'shortlisted' and app.status != 'hired' %}
+                {% if app.status != 'shortlisted' and app.status != 'hired' and app.status != 'completed' %}
                   <a href="{% url 'update_application_status' app.id 'shortlisted' %}" class="btn btn-outline-warning">Shortlist</a>
                 {% endif %}
-                {% if app.status != 'hired' %}
+                {% if app.status != 'hired' and app.status != 'completed' %}
                   <a href="{% url 'update_application_status' app.id 'hired' %}" class="btn btn-outline-success">Hire</a>
                 {% endif %}
+                {% if app.status == 'hired' %}
+                  <a href="{% url 'update_application_status' app.id 'completed' %}" class="btn btn-outline-dark">Mark Complete</a>
+                {% endif %}
               </div>
+
               {% if app.status == 'hired' and app.worker.worker_profile %}
                 <div class="mt-1">
                   <small class="text-muted">Contact: {{ app.worker.worker_profile.contact_number }}</small>
+                </div>
+              {% endif %}
+
+              {% if app.status == 'completed' or app.status == 'hired' %}
+                <div class="mt-2">
+                  {% if app.employer_has_rated %}
+                    <span class="badge bg-light text-dark">Rated ✓</span>
+                  {% else %}
+                    <a href="{% url 'rate_worker' app.id %}" class="btn btn-sm btn-warning">⭐ Rate Worker</a>
+                  {% endif %}
                 </div>
               {% endif %}
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="text-center text-muted">No applicants yet.</td>
+            <td colspan="7" class="text-center text-muted">No applicants yet.</td>
           </tr>
           {% endfor %}
         </tbody>
