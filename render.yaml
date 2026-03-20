@@ -1,0 +1,38 @@
+databases:
+  - name: itent-db
+    plan: free
+    databaseName: itent
+    user: itent
+
+services:
+  - type: redis
+    name: itent-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+  - type: web
+    name: itent-web
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT itent.asgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: itent-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: itent-redis
+          type: redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.12.3"
