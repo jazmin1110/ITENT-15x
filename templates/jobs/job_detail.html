@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - ITENT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <h2 class="card-title">{{ job.title }}</h2>
+
+        {% if job.employer.employer_profile.verified %}
+          <span class="badge bg-success mb-3">Verified Employer</span>
+        {% endif %}
+
+        <dl class="row">
+          <dt class="col-sm-4">Company</dt>
+          <dd class="col-sm-8">{{ job.employer.employer_profile.company_name }}</dd>
+
+          <dt class="col-sm-4">Location</dt>
+          <dd class="col-sm-8">{{ job.city }}</dd>
+
+          <dt class="col-sm-4">Daily Rate</dt>
+          <dd class="col-sm-8 text-success fw-bold">₱{{ job.daily_rate }}</dd>
+
+          <dt class="col-sm-4">Start Date</dt>
+          <dd class="col-sm-8">{{ job.start_date|date:"F d, Y" }}</dd>
+
+          <dt class="col-sm-4">Required Skills</dt>
+          <dd class="col-sm-8">
+            {% for skill in job.required_skills %}
+              <span class="badge bg-secondary">{{ skill }}</span>
+            {% endfor %}
+          </dd>
+
+          <dt class="col-sm-4">Status</dt>
+          <dd class="col-sm-8">
+            <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ job.status|title }}
+            </span>
+          </dd>
+        </dl>
+
+        {% if user.role == 'worker' %}
+          {% if has_applied %}
+            <button class="btn btn-secondary btn-lg w-100" disabled>Na-apply na</button>
+          {% elif job.status == 'open' %}
+            <a href="{% url 'apply_job' job.id %}" class="btn btn-primary btn-lg w-100">Apply Ngayon</a>
+          {% else %}
+            <button class="btn btn-secondary btn-lg w-100" disabled>Job Closed</button>
+          {% endif %}
+        {% endif %}
+
+        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary mt-3">Bumalik sa listahan</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

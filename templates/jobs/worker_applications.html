@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}My Applications - ITENT{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Mga Application Ko</h2>
+
+<div class="row">
+  {% for app in applications %}
+  <div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ app.job.title }}</h5>
+        <p class="card-text">
+          {{ app.job.city }}<br>
+          <span class="text-success fw-bold">₱{{ app.job.daily_rate }}/araw</span>
+        </p>
+        <p class="small text-muted">
+          {% if app.job.employer.employer_profile %}
+            {{ app.job.employer.employer_profile.company_name }}
+          {% endif %}
+        </p>
+        {% if app.status == 'sent' %}
+          <span class="badge bg-secondary">Sent</span>
+        {% elif app.status == 'viewed' %}
+          <span class="badge bg-info">Viewed</span>
+        {% elif app.status == 'shortlisted' %}
+          <span class="badge bg-warning text-dark">Shortlisted</span>
+        {% elif app.status == 'hired' %}
+          <span class="badge bg-success">Hired!</span>
+        {% endif %}
+
+        {% if app.status == 'hired' and app.job.employer.employer_profile %}
+          <div class="mt-2 p-2 bg-light rounded">
+            <small class="text-muted">Contact:</small><br>
+            {{ app.job.employer.employer_profile.contact_number }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="card-footer bg-transparent">
+        <a href="{% url 'job_detail' app.job.id %}" class="btn btn-outline-primary w-100">View Job</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="alert alert-info">
+      Wala ka pang application. <a href="{% url 'job_list' %}">Mag-browse ng trabaho!</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

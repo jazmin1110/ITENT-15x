@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicants - {{ job.title }} - ITENT{% endblock %}
+
+{% block content %}
+<h2 class="mb-2">{{ job.title }}</h2>
+<p class="text-muted mb-4">{{ job.city }} • ₱{{ job.daily_rate }}/araw</p>
+
+<div class="card shadow">
+  <div class="card-body">
+    <h5 class="card-title mb-3">Mga Applicants</h5>
+
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>City</th>
+            <th>Experience</th>
+            <th>Skills</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+            <td>
+              {% if app.worker.worker_profile %}
+                {{ app.worker.worker_profile.full_name }}
+              {% else %}
+                {{ app.worker.username }}
+              {% endif %}
+            </td>
+            <td>
+              {% if app.worker.worker_profile %}
+                {{ app.worker.worker_profile.city }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              {% if app.worker.worker_profile %}
+                {{ app.worker.worker_profile.years_experience }} yrs
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              {% if app.worker.worker_profile %}
+                {% for skill in app.worker.worker_profile.skills %}
+                  <span class="badge bg-secondary">{{ skill }}</span>
+                {% endfor %}
+              {% endif %}
+            </td>
+            <td>
+              {% if app.status == 'sent' %}
+                <span class="badge bg-secondary">Sent</span>
+              {% elif app.status == 'viewed' %}
+                <span class="badge bg-info">Viewed</span>
+              {% elif app.status == 'shortlisted' %}
+                <span class="badge bg-warning text-dark">Shortlisted</span>
+              {% elif app.status == 'hired' %}
+                <span class="badge bg-success">Hired</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                {% if app.status == 'sent' %}
+                  <a href="{% url 'update_application_status' app.id 'viewed' %}" class="btn btn-outline-info">Mark Viewed</a>
+                {% endif %}
+                {% if app.status != 'shortlisted' and app.status != 'hired' %}
+                  <a href="{% url 'update_application_status' app.id 'shortlisted' %}" class="btn btn-outline-warning">Shortlist</a>
+                {% endif %}
+                {% if app.status != 'hired' %}
+                  <a href="{% url 'update_application_status' app.id 'hired' %}" class="btn btn-outline-success">Hire</a>
+                {% endif %}
+              </div>
+              {% if app.status == 'hired' and app.worker.worker_profile %}
+                <div class="mt-1">
+                  <small class="text-muted">Contact: {{ app.worker.worker_profile.contact_number }}</small>
+                </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No applicants yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<a href="{% url 'employer_jobs' %}" class="btn btn-outline-secondary mt-3">Back to Jobs</a>
+{% endblock %}

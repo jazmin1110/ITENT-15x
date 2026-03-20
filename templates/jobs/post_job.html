@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Job - ITENT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <h2 class="card-title mb-4">Mag-post ng Trabaho</h2>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="id_title" class="form-label">Job Title</label>
+            {{ form.title }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_city" class="form-label">Lungsod/Bayan</label>
+            {{ form.city }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_daily_rate" class="form-label">Daily Rate (₱)</label>
+            {{ form.daily_rate }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_start_date" class="form-label">Start Date</label>
+            {{ form.start_date }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Required Skills</label>
+            <div class="d-flex flex-wrap gap-3">
+              {% for checkbox in form.required_skills %}
+                <div class="form-check">
+                  {{ checkbox.tag }}
+                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                    {{ checkbox.choice_label }}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success btn-lg w-100">I-post ang Trabaho</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}My Jobs - ITENT{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Mga Job Post Ko</h2>
+  <a href="{% url 'post_job' %}" class="btn btn-success">+ Post Job</a>
+</div>
+
+<div class="row">
+  {% for job in jobs %}
+  <div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ job.title }}</h5>
+        <p class="card-text">
+          {{ job.city }}<br>
+          <span class="text-success fw-bold">₱{{ job.daily_rate }}/araw</span>
+        </p>
+        <p class="small text-muted">
+          {{ job.applications.count }} applicant{% if job.applications.count != 1 %}s{% endif %}
+        </p>
+        <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+          {{ job.status|title }}
+        </span>
+      </div>
+      <div class="card-footer bg-transparent">
+        <div class="d-grid gap-2">
+          <a href="{% url 'applicants' job.id %}" class="btn btn-primary">View Applicants</a>
+          <a href="{% url 'toggle_job_status' job.id %}" class="btn btn-outline-secondary btn-sm">
+            {% if job.status == 'open' %}Close{% else %}Reopen{% endif %} Job
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="alert alert-info">
+      Wala ka pang job post. <a href="{% url 'post_job' %}">Mag-post ngayon!</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

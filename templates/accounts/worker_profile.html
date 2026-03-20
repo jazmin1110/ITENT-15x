@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Profile - ITENT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <h2 class="card-title mb-4">Worker Profile</h2>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="id_full_name" class="form-label">Buong Pangalan</label>
+            {{ form.full_name }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_city" class="form-label">Lungsod/Bayan</label>
+            {{ form.city }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_contact_number" class="form-label">Contact Number</label>
+            {{ form.contact_number }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_years_experience" class="form-label">Taon ng Karanasan</label>
+            {{ form.years_experience }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Mga Skills</label>
+            <div class="d-flex flex-wrap gap-3">
+              {% for checkbox in form.skills %}
+                <div class="form-check">
+                  {{ checkbox.tag }}
+                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                    {{ checkbox.choice_label }}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100">I-save ang Profile</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

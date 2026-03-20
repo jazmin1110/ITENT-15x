@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - ITENT{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Employer Verification</h2>
+
+<div class="card shadow">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>City</th>
+            <th>Contact Person</th>
+            <th>Document</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for employer in employers %}
+          <tr>
+            <td>{{ employer.company_name }}</td>
+            <td>{{ employer.city }}</td>
+            <td>{{ employer.contact_person }}</td>
+            <td>
+              {% if employer.doc_url %}
+                <a href="{{ employer.doc_url }}" target="_blank">View</a>
+              {% else %}
+                <span class="text-muted">None</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if employer.verified %}
+                <span class="badge bg-success">Verified</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'toggle_verification' employer.id %}" class="btn btn-sm {% if employer.verified %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                {% if employer.verified %}Unverify{% else %}Verify{% endif %}
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No employers yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

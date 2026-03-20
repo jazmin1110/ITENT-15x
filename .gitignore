@@ -116,6 +116,12 @@ temp/
 *.temp
 *.cache
 
+# --- Django ---
+db.sqlite3
+*.sqlite3
+staticfiles/
+media/
+
 # --- Misc ---
 *.pid
 *.seed
