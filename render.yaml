@@ -9,6 +9,7 @@ services:
     name: itent-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []
 
   - type: web
     name: itent-web
