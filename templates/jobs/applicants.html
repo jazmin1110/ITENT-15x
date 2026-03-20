@@ -3,15 +3,23 @@
 {% block title %}Applicants - {{ job.title }} - ITENT{% endblock %}
 
 {% block content %}
-<h2 class="mb-2">{{ job.title }}</h2>
-<p class="text-muted mb-4">{{ job.city }} • ₱{{ job.daily_rate }}/araw</p>
+<a href="{% url 'employer_jobs' %}" class="btn btn-outline-secondary btn-sm mb-3">
+  <i class="bi bi-arrow-left"></i> Back to Jobs
+</a>
 
-<div class="card shadow">
-  <div class="card-body">
-    <h5 class="card-title mb-3">Mga Applicants</h5>
+<div class="page-header d-flex align-items-center gap-3 mb-4">
+  <div>
+    <h2 class="mb-0">{{ job.title }}</h2>
+    <span class="text-muted" style="font-size:0.9rem;">
+      <i class="bi bi-geo-alt"></i> {{ job.city }} &bull; ₱{{ job.daily_rate }}/araw
+    </span>
+  </div>
+</div>
 
+<div class="card">
+  <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover">
+      <table class="table table-hover mb-0">
         <thead>
           <tr>
             <th>Name</th>
@@ -27,40 +35,49 @@
           {% for app in applications %}
           <tr>
             <td>
-              {% if app.worker.worker_profile %}
-                <a href="{% url 'view_ratings' app.worker.id %}" class="text-decoration-none">
-                  {{ app.worker.worker_profile.full_name }}
-                </a>
-              {% else %}
-                {{ app.worker.username }}
-              {% endif %}
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar" style="width:28px;height:28px;font-size:0.7rem;">
+                  {% if app.worker.worker_profile %}
+                    {{ app.worker.worker_profile.full_name|make_list|first }}
+                  {% else %}
+                    {{ app.worker.username|make_list|first }}
+                  {% endif %}
+                </div>
+                {% if app.worker.worker_profile %}
+                  <a href="{% url 'view_ratings' app.worker.id %}" class="text-decoration-none fw-semibold">
+                    {{ app.worker.worker_profile.full_name }}
+                  </a>
+                {% else %}
+                  {{ app.worker.username }}
+                {% endif %}
+              </div>
             </td>
             <td>
               {% if app.worker.get_average_rating %}
-                <span class="text-warning">⭐</span> {{ app.worker.get_average_rating }}
+                <span class="text-warning">&#9733;</span> {{ app.worker.get_average_rating }}
                 <small class="text-muted">({{ app.worker.get_rating_count }})</small>
               {% else %}
-                <span class="text-muted">New</span>
+                <span class="text-muted" style="font-size:0.8rem;">New</span>
               {% endif %}
             </td>
             <td>
               {% if app.worker.worker_profile %}
                 {{ app.worker.worker_profile.city }}
               {% else %}
-                -
+                &mdash;
               {% endif %}
             </td>
             <td>
               {% if app.worker.worker_profile %}
                 {{ app.worker.worker_profile.years_experience }} yrs
               {% else %}
-                -
+                &mdash;
               {% endif %}
             </td>
             <td>
               {% if app.worker.worker_profile %}
                 {% for skill in app.worker.worker_profile.skills %}
-                  <span class="badge bg-secondary">{{ skill }}</span>
+                  <span class="skill-tag">{{ skill }}</span>
                 {% endfor %}
               {% endif %}
             </td>
@@ -70,7 +87,7 @@
               {% elif app.status == 'viewed' %}
                 <span class="badge bg-info">Viewed</span>
               {% elif app.status == 'shortlisted' %}
-                <span class="badge bg-warning text-dark">Shortlisted</span>
+                <span class="badge bg-warning">Shortlisted</span>
               {% elif app.status == 'hired' %}
                 <span class="badge bg-success">Hired</span>
               {% elif app.status == 'completed' %}
@@ -78,33 +95,43 @@
               {% endif %}
             </td>
             <td>
-              <div class="btn-group btn-group-sm">
+              <div class="d-flex flex-wrap gap-1">
                 {% if app.status == 'sent' %}
-                  <a href="{% url 'update_application_status' app.id 'viewed' %}" class="btn btn-outline-info">Mark Viewed</a>
+                  <a href="{% url 'update_application_status' app.id 'viewed' %}" class="btn btn-outline-secondary btn-sm" style="font-size:0.75rem;">
+                    <i class="bi bi-eye"></i> Viewed
+                  </a>
                 {% endif %}
                 {% if app.status != 'shortlisted' and app.status != 'hired' and app.status != 'completed' %}
-                  <a href="{% url 'update_application_status' app.id 'shortlisted' %}" class="btn btn-outline-warning">Shortlist</a>
+                  <a href="{% url 'update_application_status' app.id 'shortlisted' %}" class="btn btn-outline-secondary btn-sm" style="font-size:0.75rem;">
+                    <i class="bi bi-star"></i> Shortlist
+                  </a>
                 {% endif %}
                 {% if app.status != 'hired' and app.status != 'completed' %}
-                  <a href="{% url 'update_application_status' app.id 'hired' %}" class="btn btn-outline-success">Hire</a>
+                  <a href="{% url 'update_application_status' app.id 'hired' %}" class="btn btn-primary btn-sm" style="font-size:0.75rem;">
+                    <i class="bi bi-check-lg"></i> Hire
+                  </a>
                 {% endif %}
                 {% if app.status == 'hired' %}
-                  <a href="{% url 'update_application_status' app.id 'completed' %}" class="btn btn-outline-dark">Mark Complete</a>
+                  <a href="{% url 'update_application_status' app.id 'completed' %}" class="btn btn-outline-secondary btn-sm" style="font-size:0.75rem;">
+                    <i class="bi bi-check-all"></i> Complete
+                  </a>
                 {% endif %}
               </div>
 
               {% if app.status == 'hired' and app.worker.worker_profile %}
                 <div class="mt-1">
-                  <small class="text-muted">Contact: {{ app.worker.worker_profile.contact_number }}</small>
+                  <small class="text-muted"><i class="bi bi-phone"></i> {{ app.worker.worker_profile.contact_number }}</small>
                 </div>
               {% endif %}
 
               {% if app.status == 'completed' or app.status == 'hired' %}
                 <div class="mt-2">
                   {% if app.employer_has_rated %}
-                    <span class="badge bg-light text-dark">Rated ✓</span>
+                    <span class="badge bg-light"><i class="bi bi-check"></i> Rated</span>
                   {% else %}
-                    <a href="{% url 'rate_worker' app.id %}" class="btn btn-sm btn-warning">⭐ Rate Worker</a>
+                    <a href="{% url 'rate_worker' app.id %}" class="btn btn-outline-secondary btn-sm" style="font-size:0.75rem;">
+                      <i class="bi bi-star"></i> Rate Worker
+                    </a>
                   {% endif %}
                 </div>
               {% endif %}
@@ -112,7 +139,13 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="text-center text-muted">No applicants yet.</td>
+            <td colspan="7">
+              <div class="empty-state py-4">
+                <i class="bi bi-people"></i>
+                <h5>No applicants yet</h5>
+                <p>Maghintay — lalabas dito ang mga mag-a-apply.</p>
+              </div>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -120,6 +153,4 @@
     </div>
   </div>
 </div>
-
-<a href="{% url 'employer_jobs' %}" class="btn btn-outline-secondary mt-3">Back to Jobs</a>
 {% endblock %}

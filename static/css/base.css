@@ -1,12 +1,57 @@
-/* base.css – shared styles, variables, typography */
+/* ==========================================================
+   ITENT Design System
+   Inspired by Grab (green, friendly) + LinkedIn (clean, professional)
+   ========================================================== */
 
 :root {
-  --color-primary: #0d6efd;
-  --color-success: #198754;
-  --color-danger: #dc3545;
-  --color-warning: #ffc107;
-  --color-light: #f8f9fa;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Brand */
+  --green-50:  #e8f5e9;
+  --green-100: #c8e6c9;
+  --green-500: #00b14f;
+  --green-600: #009e47;
+  --green-700: #008c3e;
+
+  /* LinkedIn-style accents */
+  --blue-500: #0a66c2;
+  --blue-600: #004182;
+
+  /* Neutrals */
+  --gray-50:  #f3f2ef;
+  --gray-100: #e8e6df;
+  --gray-200: #d4d2cc;
+  --gray-400: #9e9e9e;
+  --gray-500: #666666;
+  --gray-700: #404040;
+  --gray-900: #191919;
+  --white:    #ffffff;
+
+  /* Semantic */
+  --color-primary:   var(--green-500);
+  --color-primary-hover: var(--green-600);
+  --color-link:      var(--blue-500);
+  --color-success:   #2e7d32;
+  --color-warning:   #f9a825;
+  --color-danger:    #d32f2f;
+  --color-info:      #0288d1;
+  --color-bg:        var(--gray-50);
+  --color-surface:   var(--white);
+  --color-text:      var(--gray-900);
+  --color-text-muted:var(--gray-500);
+  --color-border:    #e0e0e0;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 50px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 *,
@@ -17,27 +62,467 @@
 
 body {
   font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-/* Card tweaks */
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+a:hover {
+  color: var(--blue-600);
+  text-decoration: underline;
+}
+
+/* ---- Navbar ---- */
+.itent-navbar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+.itent-navbar .navbar-brand {
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+}
+.itent-navbar .navbar-brand:hover {
+  color: var(--color-primary-hover);
+  text-decoration: none;
+}
+.itent-navbar .nav-link {
+  color: var(--gray-500);
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.itent-navbar .nav-link:hover {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.itent-navbar .nav-link.active,
+.itent-navbar .nav-link:focus {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+.itent-navbar .nav-link i {
+  font-size: 1.1rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green-500);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+/* ---- Cards ---- */
 .card {
-  border-radius: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+.card-footer {
+  background: transparent;
+  border-top: 1px solid var(--color-border);
 }
 
-/* Form helpers */
-.form-control:focus,
-.form-select:focus {
+/* ---- Buttons ---- */
+.btn {
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 1.25rem;
+  transition: all 0.2s ease;
+}
+.btn-lg {
+  padding: 0.625rem 1.5rem;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: var(--color-primary);
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  color: var(--white);
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  box-shadow: 0 2px 8px rgba(0, 177, 79, 0.3);
 }
 
-/* Button loading state */
+.btn-success {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--white);
+}
+.btn-success:hover, .btn-success:focus {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-outline-primary {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn-outline-primary:hover {
+  background: var(--color-primary);
+  color: var(--white);
+}
+
+.btn-outline-secondary {
+  color: var(--gray-500);
+  border-color: var(--color-border);
+}
+.btn-outline-secondary:hover {
+  background: var(--gray-50);
+  color: var(--gray-700);
+  border-color: var(--gray-200);
+}
+
 .btn:disabled {
   cursor: not-allowed;
+  opacity: 0.55;
 }
 
-/* Touch-friendly targets (Juan: "isang pindot lang") */
+/* ---- Forms ---- */
+.form-control, .form-select {
+  border-radius: var(--radius-sm);
+  border-color: var(--color-border);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 177, 79, 0.15);
+}
+.form-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  margin-bottom: 0.375rem;
+}
+.form-text {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+}
+.form-check-input:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ---- Badges ---- */
+.badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.35em 0.75em;
+  border-radius: var(--radius-pill);
+}
+.badge.bg-secondary {
+  background: var(--gray-50) !important;
+  color: var(--gray-700) !important;
+  border: 1px solid var(--color-border);
+}
+.badge.bg-success {
+  background: var(--green-50) !important;
+  color: var(--green-700) !important;
+  border: 1px solid var(--green-100);
+}
+.badge.bg-warning {
+  background: #fff8e1 !important;
+  color: #f57f17 !important;
+  border: 1px solid #ffe082;
+}
+.badge.bg-info {
+  background: #e1f5fe !important;
+  color: #01579b !important;
+  border: 1px solid #b3e5fc;
+}
+.badge.bg-danger {
+  background: #ffebee !important;
+  color: #c62828 !important;
+  border: 1px solid #ffcdd2;
+}
+.badge.bg-dark {
+  background: var(--gray-700) !important;
+  color: var(--white) !important;
+}
+.badge.bg-light {
+  background: var(--gray-50) !important;
+  color: var(--gray-700) !important;
+  border: 1px solid var(--color-border);
+}
+
+/* ---- Alerts ---- */
+.alert {
+  border-radius: var(--radius-sm);
+  border: none;
+  font-size: 0.9rem;
+}
+
+/* ---- Tables ---- */
+.table {
+  font-size: 0.9rem;
+}
+.table thead th {
+  background: var(--gray-50);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gray-500);
+  border-bottom: 2px solid var(--color-border);
+  padding: 0.75rem 1rem;
+}
+.table td {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+.table-hover tbody tr:hover {
+  background: var(--green-50);
+}
+
+/* ---- List Groups ---- */
+.list-group-item {
+  border-color: var(--color-border);
+  padding: 1rem 1.25rem;
+  transition: background 0.15s;
+}
+.list-group-item:hover,
+.list-group-item-action:hover {
+  background: var(--green-50);
+  text-decoration: none;
+}
+
+/* ---- Page Header ---- */
+.page-header {
+  margin-bottom: 1.5rem;
+}
+.page-header h2 {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+/* ---- Section card ---- */
+.section-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ---- Filter bar ---- */
+.filter-bar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ---- Job card ---- */
+.job-card {
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.job-card .card-body {
+  padding: 1.25rem;
+}
+.job-card .card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+}
+.job-card .job-rate {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.job-card .job-meta {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+/* ---- Skill tags ---- */
+.skill-tag {
+  display: inline-block;
+  background: var(--green-50);
+  color: var(--green-700);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius-pill);
+  padding: 0.2em 0.65em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ---- Verified badge ---- */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--green-50);
+  color: var(--green-700);
+  border: 1px solid var(--green-100);
+  border-radius: var(--radius-pill);
+  padding: 0.2em 0.6em;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ---- Auth pages (login/signup) ---- */
+.auth-page {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+.auth-brand {
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+.auth-subtitle {
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ---- Chat ---- */
+.chat-container {
+  height: 420px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: var(--gray-50);
+}
+.message {
+  max-width: 70%;
+  margin-bottom: 0.75rem;
+}
+.message.mine {
+  margin-left: auto;
+}
+.message .bubble {
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.message.mine .bubble {
+  background: var(--color-primary);
+  color: var(--white);
+  border-bottom-right-radius: 4px;
+}
+.message.theirs .bubble {
+  background: var(--white);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 4px;
+}
+
+.connection-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+}
+.status-connected {
+  background: var(--green-50);
+  color: var(--green-700);
+}
+.status-disconnected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* ---- Star rating form ---- */
+.star-rating .form-check {
+  display: inline-block;
+  margin-right: 0.25rem;
+}
+.star-rating .form-check-input:checked + .form-check-label {
+  color: #f9a825;
+  font-weight: bold;
+}
+.star-rating .form-check-label {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* ---- Empty state ---- */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--gray-400);
+}
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.empty-state h5 {
+  color: var(--gray-700);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.empty-state p {
+  color: var(--gray-400);
+  margin-bottom: 1rem;
+}
+
+/* ---- Footer ---- */
+.itent-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--gray-400);
+  font-size: 0.8rem;
+  margin-top: 3rem;
+}
+
+/* ---- Touch targets (mobile) ---- */
 @media (pointer: coarse) {
   .btn, .form-control, .form-select, .form-check-input {
     min-height: 44px;
@@ -45,9 +530,18 @@ body {
   .form-check-label {
     padding: 0.5rem 0;
   }
+  .card .btn-lg {
+    min-height: 48px;
+  }
 }
 
-/* Job/apply buttons - big tap targets */
-.card .btn-lg {
-  min-height: 48px;
+/* ---- Responsive ---- */
+@media (max-width: 767.98px) {
+  .itent-navbar .nav-link {
+    padding: 0.5rem 0.75rem;
+    border-bottom: none;
+  }
+  .page-header h2 {
+    font-size: 1.25rem;
+  }
 }

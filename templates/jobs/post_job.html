@@ -5,10 +5,12 @@
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-8 col-lg-6">
-    <div class="card shadow">
-      <div class="card-body p-4">
-        <h2 class="card-title mb-4">Mag-post ng Trabaho</h2>
+    <div class="page-header mb-4">
+      <h2><i class="bi bi-plus-circle"></i> Mag-post ng Trabaho</h2>
+    </div>
 
+    <div class="card">
+      <div class="card-body p-4">
         <form method="post">
           {% csrf_token %}
 
@@ -17,14 +19,15 @@
             {{ form.title }}
           </div>
 
-          <div class="mb-3">
-            <label for="id_city" class="form-label">Lungsod/Bayan</label>
-            {{ form.city }}
-          </div>
-
-          <div class="mb-3">
-            <label for="id_daily_rate" class="form-label">Daily Rate (₱)</label>
-            {{ form.daily_rate }}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="id_city" class="form-label">Lungsod / Bayan</label>
+              {{ form.city }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="id_daily_rate" class="form-label">Daily Rate (₱)</label>
+              {{ form.daily_rate }}
+            </div>
           </div>
 
           <div class="mb-3">
@@ -32,9 +35,9 @@
             {{ form.start_date }}
           </div>
 
-          <div class="mb-3">
+          <div class="mb-4">
             <label class="form-label">Required Skills</label>
-            <div class="d-flex flex-wrap gap-3">
+            <div class="d-flex flex-wrap gap-2">
               {% for checkbox in form.required_skills %}
                 <div class="form-check">
                   {{ checkbox.tag }}
@@ -46,7 +49,9 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-success btn-lg w-100">I-post ang Trabaho</button>
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-send"></i> I-post ang Trabaho
+          </button>
         </form>
       </div>
     </div>

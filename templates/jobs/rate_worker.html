@@ -2,42 +2,34 @@
 
 {% block title %}Rate Worker - ITENT{% endblock %}
 
-{% block extra_css %}
-<style>
-  .star-rating .form-check {
-    display: inline-block;
-    margin-right: 0.5rem;
-  }
-  .star-rating .form-check-input:checked + .form-check-label {
-    color: #ffc107;
-    font-weight: bold;
-  }
-  .star-rating .form-check-label {
-    font-size: 1.5rem;
-    cursor: pointer;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-8 col-lg-6">
-    <div class="card shadow">
-      <div class="card-body p-4">
-        <h2 class="card-title mb-4">Rate Worker</h2>
+    <a href="{% url 'applicants' application.job.id %}" class="btn btn-outline-secondary btn-sm mb-3">
+      <i class="bi bi-arrow-left"></i> Cancel
+    </a>
 
-        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+    <div class="card">
+      <div class="card-body p-4">
+        <h2 class="mb-4" style="font-weight:700;">Rate Worker</h2>
+
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded" style="background:var(--gray-50);border:1px solid var(--color-border);">
+          <div class="user-avatar" style="width:44px;height:44px;font-size:1rem;">
+            {% if worker.worker_profile %}
+              {{ worker.worker_profile.full_name|make_list|first }}
+            {% else %}
+              {{ worker.username|make_list|first }}
+            {% endif %}
+          </div>
           <div>
-            <h5 class="mb-1">
+            <h5 class="mb-0" style="font-size:1rem;">
               {% if worker.worker_profile %}
                 {{ worker.worker_profile.full_name }}
               {% else %}
                 {{ worker.username }}
               {% endif %}
             </h5>
-            <p class="text-muted mb-0">
-              Job: {{ application.job.title }}
-            </p>
+            <small class="text-muted">Job: {{ application.job.title }}</small>
           </div>
         </div>
 
@@ -45,16 +37,14 @@
           {% csrf_token %}
 
           <div class="mb-4">
-            <label class="form-label fw-bold">How would you rate this worker?</label>
+            <label class="form-label">How would you rate this worker?</label>
             <div class="star-rating d-flex gap-3 flex-wrap">
               {% for radio in form.score %}
                 <div class="form-check">
                   {{ radio.tag }}
                   <label class="form-check-label" for="{{ radio.id_for_label }}">
                     {% for i in "12345"|make_list %}
-                      {% if forloop.counter <= forloop.parentloop.counter %}
-                        ⭐
-                      {% endif %}
+                      {% if forloop.counter <= forloop.parentloop.counter %}&#9733;{% endif %}
                     {% endfor %}
                   </label>
                 </div>
@@ -63,15 +53,15 @@
           </div>
 
           <div class="mb-4">
-            <label for="id_review" class="form-label fw-bold">Review (optional)</label>
+            <label for="id_review" class="form-label">Review (optional)</label>
             {{ form.review }}
-            <small class="text-muted">Share your experience working with this person</small>
+            <small class="form-text">Share your experience working with this person</small>
           </div>
 
-          <button type="submit" class="btn btn-success btn-lg w-100">Submit Rating</button>
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-send"></i> Submit Rating
+          </button>
         </form>
-
-        <a href="{% url 'applicants' application.job.id %}" class="btn btn-outline-secondary mt-3">Cancel</a>
       </div>
     </div>
   </div>

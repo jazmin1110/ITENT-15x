@@ -4,32 +4,47 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2>Mga Job Post Ko</h2>
-  <a href="{% url 'post_job' %}" class="btn btn-success">+ Post Job</a>
+  <div class="page-header mb-0">
+    <h2><i class="bi bi-briefcase"></i> Mga Job Post Ko</h2>
+  </div>
+  <a href="{% url 'post_job' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> Post Job
+  </a>
 </div>
 
 <div class="row">
   {% for job in jobs %}
   <div class="col-md-6 col-lg-4 mb-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">{{ job.title }}</h5>
-        <p class="card-text">
-          {{ job.city }}<br>
-          <span class="text-success fw-bold">₱{{ job.daily_rate }}/araw</span>
-        </p>
-        <p class="small text-muted">
-          {{ job.applications.count }} applicant{% if job.applications.count != 1 %}s{% endif %}
-        </p>
-        <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
-          {{ job.status|title }}
-        </span>
+    <div class="card job-card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="card-title mb-0">{{ job.title }}</h5>
+          <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+            {{ job.status|title }}
+          </span>
+        </div>
+
+        <div class="job-meta mb-1">
+          <i class="bi bi-geo-alt"></i> {{ job.city }}
+        </div>
+        <div class="job-rate mb-2">₱{{ job.daily_rate }}<span class="text-muted fw-normal" style="font-size:0.8rem;">/araw</span></div>
+
+        <div class="d-flex align-items-center gap-2 mt-auto pt-2" style="border-top: 1px solid var(--color-border);">
+          <i class="bi bi-people text-muted"></i>
+          <span class="text-muted" style="font-size:0.85rem;">{{ job.applications.count }} applicant{% if job.applications.count != 1 %}s{% endif %}</span>
+        </div>
       </div>
-      <div class="card-footer bg-transparent">
+      <div class="card-footer py-3">
         <div class="d-grid gap-2">
-          <a href="{% url 'applicants' job.id %}" class="btn btn-primary">View Applicants</a>
+          <a href="{% url 'applicants' job.id %}" class="btn btn-primary">
+            <i class="bi bi-people"></i> View Applicants
+          </a>
           <a href="{% url 'toggle_job_status' job.id %}" class="btn btn-outline-secondary btn-sm">
-            {% if job.status == 'open' %}Close{% else %}Reopen{% endif %} Job
+            {% if job.status == 'open' %}
+              <i class="bi bi-pause-circle"></i> Close Job
+            {% else %}
+              <i class="bi bi-play-circle"></i> Reopen Job
+            {% endif %}
           </a>
         </div>
       </div>
@@ -37,8 +52,13 @@
   </div>
   {% empty %}
   <div class="col-12">
-    <div class="alert alert-info">
-      Wala ka pang job post. <a href="{% url 'post_job' %}">Mag-post ngayon!</a>
+    <div class="empty-state">
+      <i class="bi bi-briefcase"></i>
+      <h5>Wala ka pang job post</h5>
+      <p>Mag-post ng iyong unang trabaho para makahanap ng workers.</p>
+      <a href="{% url 'post_job' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Mag-post Ngayon
+      </a>
     </div>
   </div>
   {% endfor %}

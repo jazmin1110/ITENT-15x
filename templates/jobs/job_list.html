@@ -3,72 +3,85 @@
 {% block title %}Mga Trabaho - ITENT{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Trabaho na Available</h2>
+<div class="page-header mb-3">
+  <h2><i class="bi bi-search"></i> Trabaho na Available</h2>
+</div>
 
-<div class="card mb-4">
-  <div class="card-body">
-    <form method="get" class="row g-3">
-      <div class="col-md-4">
-        <input type="text" name="city" class="form-control" placeholder="Filter by city" value="{{ city }}">
-      </div>
-      <div class="col-md-4">
-        <select name="skill" class="form-select">
-          <option value="">All Skills</option>
-          {% for s in skills %}
-            <option value="{{ s }}" {% if s == skill %}selected{% endif %}>{{ s }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-4">
-        <button type="submit" class="btn btn-primary">Filter</button>
-        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary">Clear</a>
-      </div>
-    </form>
-  </div>
+<div class="filter-bar">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Lungsod</label>
+      <input type="text" name="city" class="form-control" placeholder="Halimbawa: Quezon City" value="{{ city }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Skill</label>
+      <select name="skill" class="form-select">
+        <option value="">Lahat ng Skills</option>
+        {% for s in skills %}
+          <option value="{{ s }}" {% if s == skill %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary flex-grow-1">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+      <a href="{% url 'job_list' %}" class="btn btn-outline-secondary">Clear</a>
+    </div>
+  </form>
 </div>
 
 <div class="row">
   {% for job in jobs %}
   <div class="col-md-6 col-lg-4 mb-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">{{ job.title }}</h5>
-        <p class="card-text">
-          <strong>{{ job.city }}</strong><br>
-          <span class="text-success fw-bold">₱{{ job.daily_rate }}/araw</span>
-        </p>
+    <div class="card job-card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="card-title mb-0">{{ job.title }}</h5>
+          {% if job.employer.employer_profile.verified %}
+            <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex align-items-center gap-2 mb-2 job-meta">
+          <i class="bi bi-geo-alt"></i> {{ job.city }}
+        </div>
+
+        <div class="job-rate mb-2">₱{{ job.daily_rate }}<span class="text-muted fw-normal" style="font-size:0.8rem;">/araw</span></div>
+
         <div class="mb-2">
           {% for skill in job.required_skills %}
-            <span class="badge bg-secondary">{{ skill }}</span>
+            <span class="skill-tag">{{ skill }}</span>
           {% endfor %}
         </div>
-        <p class="text-muted small mb-2">
-          Start: {{ job.start_date|date:"M d, Y" }}
-        </p>
+
+        <div class="job-meta mb-2">
+          <i class="bi bi-calendar3"></i> Start: {{ job.start_date|date:"M d, Y" }}
+        </div>
 
         {% if job.employer.employer_profile %}
-          <p class="small mb-2">
+          <div class="job-meta mt-auto pt-2" style="border-top: 1px solid var(--color-border);">
             <a href="{% url 'view_ratings' job.employer.id %}" class="text-decoration-none text-muted">
-              {{ job.employer.employer_profile.company_name }}
+              <i class="bi bi-building"></i> {{ job.employer.employer_profile.company_name }}
               {% if job.employer.get_average_rating %}
-                <span class="text-warning">⭐</span> {{ job.employer.get_average_rating }}
+                &nbsp;<span class="text-warning">&#9733;</span> {{ job.employer.get_average_rating }}
               {% endif %}
             </a>
-          </p>
-        {% endif %}
-
-        {% if job.employer.employer_profile.verified %}
-          <span class="badge bg-success">Verified Employer</span>
+          </div>
         {% endif %}
       </div>
-      <div class="card-footer bg-transparent">
+      <div class="card-footer text-center py-3">
         <a href="{% url 'job_detail' job.id %}" class="btn btn-primary w-100">Tingnan</a>
       </div>
     </div>
   </div>
   {% empty %}
   <div class="col-12">
-    <div class="alert alert-info">Walang trabaho na available ngayon.</div>
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h5>Walang trabaho na available ngayon</h5>
+      <p>Subukang baguhin ang mga filter o bumalik mamaya.</p>
+    </div>
   </div>
   {% endfor %}
 </div>

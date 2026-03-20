@@ -4,62 +4,86 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow">
+  <div class="col-md-8 col-lg-7">
+    <a href="{% url 'job_list' %}" class="btn btn-outline-secondary btn-sm mb-3">
+      <i class="bi bi-arrow-left"></i> Bumalik sa listahan
+    </a>
+
+    <div class="card">
       <div class="card-body p-4">
-        <h2 class="card-title">{{ job.title }}</h2>
-
-        {% if job.employer.employer_profile.verified %}
-          <span class="badge bg-success mb-3">Verified Employer</span>
-        {% endif %}
-
-        <dl class="row">
-          <dt class="col-sm-4">Company</dt>
-          <dd class="col-sm-8">
-            <a href="{% url 'view_ratings' job.employer.id %}" class="text-decoration-none">
-              {{ job.employer.employer_profile.company_name }}
-            </a>
-            {% if job.employer.get_average_rating %}
-              <span class="text-warning">⭐</span> {{ job.employer.get_average_rating }}/5
-              <small class="text-muted">({{ job.employer.get_rating_count }} rating{{ job.employer.get_rating_count|pluralize }})</small>
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h2 class="mb-1" style="font-weight:700;">{{ job.title }}</h2>
+            {% if job.employer.employer_profile %}
+              <a href="{% url 'view_ratings' job.employer.id %}" class="text-decoration-none text-muted">
+                <i class="bi bi-building"></i> {{ job.employer.employer_profile.company_name }}
+                {% if job.employer.get_average_rating %}
+                  &nbsp;<span class="text-warning">&#9733;</span> {{ job.employer.get_average_rating }}/5
+                  <small>({{ job.employer.get_rating_count }} rating{{ job.employer.get_rating_count|pluralize }})</small>
+                {% endif %}
+              </a>
             {% endif %}
-          </dd>
+          </div>
+          {% if job.employer.employer_profile.verified %}
+            <span class="verified-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+          {% endif %}
+        </div>
 
-          <dt class="col-sm-4">Location</dt>
-          <dd class="col-sm-8">{{ job.city }}</dd>
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="section-card text-center p-3">
+              <div class="text-muted" style="font-size:0.75rem;">Daily Rate</div>
+              <div class="job-rate">₱{{ job.daily_rate }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="section-card text-center p-3">
+              <div class="text-muted" style="font-size:0.75rem;">Location</div>
+              <div class="fw-semibold" style="font-size:0.95rem;">{{ job.city }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="section-card text-center p-3">
+              <div class="text-muted" style="font-size:0.75rem;">Start Date</div>
+              <div class="fw-semibold" style="font-size:0.95rem;">{{ job.start_date|date:"M d, Y" }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="section-card text-center p-3">
+              <div class="text-muted" style="font-size:0.75rem;">Status</div>
+              <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ job.status|title }}
+              </span>
+            </div>
+          </div>
+        </div>
 
-          <dt class="col-sm-4">Daily Rate</dt>
-          <dd class="col-sm-8 text-success fw-bold">₱{{ job.daily_rate }}</dd>
-
-          <dt class="col-sm-4">Start Date</dt>
-          <dd class="col-sm-8">{{ job.start_date|date:"F d, Y" }}</dd>
-
-          <dt class="col-sm-4">Required Skills</dt>
-          <dd class="col-sm-8">
+        <div class="mb-4">
+          <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Required Skills</h6>
+          <div class="d-flex flex-wrap gap-1">
             {% for skill in job.required_skills %}
-              <span class="badge bg-secondary">{{ skill }}</span>
+              <span class="skill-tag">{{ skill }}</span>
             {% endfor %}
-          </dd>
-
-          <dt class="col-sm-4">Status</dt>
-          <dd class="col-sm-8">
-            <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
-              {{ job.status|title }}
-            </span>
-          </dd>
-        </dl>
+          </div>
+        </div>
 
         {% if user.role == 'worker' %}
-          {% if has_applied %}
-            <button class="btn btn-secondary btn-lg w-100" disabled>Na-apply na</button>
-          {% elif job.status == 'open' %}
-            <a href="{% url 'apply_job' job.id %}" class="btn btn-primary btn-lg w-100">Apply Ngayon</a>
-          {% else %}
-            <button class="btn btn-secondary btn-lg w-100" disabled>Job Closed</button>
-          {% endif %}
+          <div class="pt-3" style="border-top: 1px solid var(--color-border);">
+            {% if has_applied %}
+              <button class="btn btn-outline-secondary btn-lg w-100" disabled>
+                <i class="bi bi-check-circle"></i> Na-apply na
+              </button>
+            {% elif job.status == 'open' %}
+              <a href="{% url 'apply_job' job.id %}" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-send"></i> Apply Ngayon
+              </a>
+            {% else %}
+              <button class="btn btn-outline-secondary btn-lg w-100" disabled>
+                <i class="bi bi-lock"></i> Job Closed
+              </button>
+            {% endif %}
+          </div>
         {% endif %}
-
-        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary mt-3">Bumalik sa listahan</a>
       </div>
     </div>
   </div>

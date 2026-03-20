@@ -5,10 +5,18 @@
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-8 col-lg-6">
-    <div class="card shadow">
-      <div class="card-body p-4">
-        <h2 class="card-title mb-4">Worker Profile</h2>
+    <div class="page-header d-flex align-items-center gap-3 mb-4">
+      <div class="user-avatar" style="width:48px;height:48px;font-size:1.2rem;">
+        {{ user.username|make_list|first }}
+      </div>
+      <div>
+        <h2 class="mb-0">Worker Profile</h2>
+        <span class="text-muted" style="font-size:0.85rem;">I-update ang iyong impormasyon</span>
+      </div>
+    </div>
 
+    <div class="card">
+      <div class="card-body p-4">
         <form method="post">
           {% csrf_token %}
 
@@ -17,14 +25,15 @@
             {{ form.full_name }}
           </div>
 
-          <div class="mb-3">
-            <label for="id_city" class="form-label">Lungsod/Bayan</label>
-            {{ form.city }}
-          </div>
-
-          <div class="mb-3">
-            <label for="id_contact_number" class="form-label">Contact Number</label>
-            {{ form.contact_number }}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="id_city" class="form-label">Lungsod / Bayan</label>
+              {{ form.city }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="id_contact_number" class="form-label">Contact Number</label>
+              {{ form.contact_number }}
+            </div>
           </div>
 
           <div class="mb-3">
@@ -32,9 +41,9 @@
             {{ form.years_experience }}
           </div>
 
-          <div class="mb-3">
+          <div class="mb-4">
             <label class="form-label">Mga Skills</label>
-            <div class="d-flex flex-wrap gap-3">
+            <div class="d-flex flex-wrap gap-2">
               {% for checkbox in form.skills %}
                 <div class="form-check">
                   {{ checkbox.tag }}
@@ -46,7 +55,9 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-lg w-100">I-save ang Profile</button>
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-check-lg"></i> I-save ang Profile
+          </button>
         </form>
       </div>
     </div>
