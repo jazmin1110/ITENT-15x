@@ -1,9 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
 from .models import WorkerProfile, EmployerProfile
+
+
+class CustomLoginView(LoginView):
+    """Login view that honours the 'Remember me' checkbox."""
+    template_name = 'accounts/login.html'
+
+    def form_valid(self, form):
+        if not self.request.POST.get('remember'):
+            self.request.session.set_expiry(0)
+        else:
+            self.request.session.set_expiry(1209600)  # 2 weeks
+        return super().form_valid(form)
 
 
 def signup(request):

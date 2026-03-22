@@ -1,15 +1,25 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError as DjangoValidationError
+
 from .models import User, WorkerProfile, EmployerProfile
+
+PH_PHONE_RE = re.compile(r'^(09\d{9}|\+639\d{9})$')
 
 
 class SignUpForm(UserCreationForm):
     """Registration form with role selection."""
-    role = forms.ChoiceField(choices=User.ROLE_CHOICES[:2])  # worker or employer only
+    role = forms.ChoiceField(choices=User.ROLE_CHOICES[:2])
     phone_number = forms.CharField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'e.g. 09171234567'}),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g. 09171234567',
+            'type': 'tel',
+        }),
     )
 
     class Meta:
@@ -19,9 +29,37 @@ class SignUpForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].required = False
+        self.fields['email'].widget.input_type = 'email'
         self.fields['phone_number'].required = False
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip()
+        if not email:
+            return email
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            raise forms.ValidationError('Invalid na email address. Suriin at subukan ulit.')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Ginagamit na ang email na ito.')
+        return email
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number', '').strip()
+        if not phone:
+            return phone
+        if not PH_PHONE_RE.match(phone):
+            raise forms.ValidationError(
+                'Invalid na phone number. Gamitin ang 09XXXXXXXXX o +639XXXXXXXXX format.'
+            )
+        # Normalize +639 → 09 for consistent lookups
+        if phone.startswith('+63'):
+            phone = '0' + phone[3:]
+        if User.objects.filter(phone_number=phone).exists():
+            raise forms.ValidationError('Ginagamit na ang phone number na ito.')
+        return phone
 
     def clean(self):
         cleaned_data = super().clean()
@@ -31,8 +69,6 @@ class SignUpForm(UserCreationForm):
             raise forms.ValidationError(
                 'Kailangan ng email o phone number. Maglagay ng kahit isa.'
             )
-        if phone and User.objects.filter(phone_number=phone).exists():
-            self.add_error('phone_number', 'Ginagamit na ang phone number na ito.')
         return cleaned_data
 
 

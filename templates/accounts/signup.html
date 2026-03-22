@@ -12,7 +12,7 @@
         </div>
         <p class="auth-subtitle">Gumawa ng bagong account</p>
 
-        <form method="post">
+        <form method="post" id="signupForm" novalidate>
           {% csrf_token %}
 
           {% if form.non_field_errors %}
@@ -22,25 +22,96 @@
             </div>
           {% endif %}
 
-          {% for field in form %}
-            <div class="mb-3">
-              <label for="{{ field.id_for_label }}" class="form-label">
-                {{ field.label }}
-                {% if field.name == 'email' or field.name == 'phone_number' %}
-                  <span class="text-muted small">(opsyonal kung may isa na)</span>
-                {% endif %}
+          {# --- Role selector as cards --- #}
+          <div class="mb-3">
+            <label class="form-label">Ikaw ba ay</label>
+            <div class="role-selector">
+              <label class="role-card {% if form.role.value == 'worker' %}active{% endif %}">
+                <input type="radio" name="role" value="worker" {% if form.role.value == 'worker' or not form.role.value %}checked{% endif %}>
+                <i class="bi bi-tools"></i>
+                <span>Worker</span>
               </label>
-              {{ field }}
-              {% if field.errors %}
-                <div class="text-danger small mt-1">
-                  <i class="bi bi-exclamation-circle"></i> {{ field.errors.0 }}
-                </div>
-              {% endif %}
-              {% if field.help_text %}
-                <small class="form-text">{{ field.help_text }}</small>
-              {% endif %}
+              <label class="role-card {% if form.role.value == 'employer' %}active{% endif %}">
+                <input type="radio" name="role" value="employer" {% if form.role.value == 'employer' %}checked{% endif %}>
+                <i class="bi bi-building"></i>
+                <span>Employer</span>
+              </label>
             </div>
-          {% endfor %}
+            {% if form.role.errors %}
+              <div class="text-danger small mt-1">
+                <i class="bi bi-exclamation-circle"></i> {{ form.role.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+          {# --- Username --- #}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>
+            {% endif %}
+            {% if form.username.help_text %}
+              <small class="form-text">{{ form.username.help_text }}</small>
+            {% endif %}
+          </div>
+
+          {# --- Email --- #}
+          <div class="mb-3">
+            <label for="id_email" class="form-label">
+              Email <span class="text-muted small">(opsyonal kung may phone na)</span>
+            </label>
+            {{ form.email }}
+            <div class="validation-feedback" id="emailFeedback"></div>
+            {% if form.email.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          {# --- Phone number --- #}
+          <div class="mb-3">
+            <label for="id_phone_number" class="form-label">
+              Phone Number <span class="text-muted small">(opsyonal kung may email na)</span>
+            </label>
+            {{ form.phone_number }}
+            <div class="validation-feedback" id="phoneFeedback"></div>
+            {% if form.phone_number.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.phone_number.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          {# --- Password 1 --- #}
+          <div class="mb-3">
+            <label for="id_password1" class="form-label">Password</label>
+            <div class="password-wrapper">
+              {{ form.password1 }}
+              <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <div class="validation-feedback" id="pwStrength"></div>
+            {% if form.password1.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>
+            {% endif %}
+            {% if form.password1.help_text %}
+              <small class="form-text">{{ form.password1.help_text }}</small>
+            {% endif %}
+          </div>
+
+          {# --- Password 2 --- #}
+          <div class="mb-3">
+            <label for="id_password2" class="form-label">Confirm Password</label>
+            <div class="password-wrapper">
+              {{ form.password2 }}
+              <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <div class="validation-feedback" id="pwMatch"></div>
+            {% if form.password2.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>
+            {% endif %}
+          </div>
 
           <button type="submit" class="btn btn-primary w-100 btn-lg">Create Account</button>
         </form>
@@ -53,4 +124,97 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var phoneRe = /^(09\d{9}|\+639\d{9})$/;
+
+  function feedback(el, ok, msg){
+    el.textContent = msg;
+    el.className = 'validation-feedback small mt-1 ' + (ok ? 'text-success' : 'text-danger');
+    var input = el.closest('.mb-3').querySelector('.form-control');
+    if(input){
+      input.classList.toggle('is-valid', ok && msg !== '');
+      input.classList.toggle('is-invalid', !ok && msg !== '');
+    }
+  }
+
+  var emailInput = document.getElementById('id_email');
+  var phonInput  = document.getElementById('id_phone_number');
+  var pw1        = document.getElementById('id_password1');
+  var pw2        = document.getElementById('id_password2');
+
+  if(emailInput){
+    emailInput.addEventListener('blur', function(){
+      var v = this.value.trim();
+      if(!v) return feedback(document.getElementById('emailFeedback'), true, '');
+      feedback(document.getElementById('emailFeedback'),
+        emailRe.test(v),
+        emailRe.test(v) ? '' : 'Invalid na email format.');
+    });
+  }
+
+  if(phonInput){
+    phonInput.addEventListener('blur', function(){
+      var v = this.value.trim();
+      if(!v) return feedback(document.getElementById('phoneFeedback'), true, '');
+      feedback(document.getElementById('phoneFeedback'),
+        phoneRe.test(v),
+        phoneRe.test(v) ? '' : 'Gamitin ang 09XXXXXXXXX o +639XXXXXXXXX.');
+    });
+  }
+
+  function checkPasswords(){
+    var v1 = pw1 ? pw1.value : '';
+    var v2 = pw2 ? pw2.value : '';
+    var strengthEl = document.getElementById('pwStrength');
+    var matchEl    = document.getElementById('pwMatch');
+
+    if(v1.length === 0){
+      feedback(strengthEl, true, '');
+    } else if(v1.length < 8){
+      feedback(strengthEl, false, 'Masyadong maikli — kailangan ng 8+ characters.');
+    } else {
+      feedback(strengthEl, true, 'Pasado ang haba ng password.');
+    }
+
+    if(v2.length === 0){
+      feedback(matchEl, true, '');
+    } else if(v1 === v2){
+      feedback(matchEl, true, 'Tugma ang passwords.');
+    } else {
+      feedback(matchEl, false, 'Hindi tugma ang passwords.');
+    }
+  }
+
+  if(pw1) pw1.addEventListener('input', checkPasswords);
+  if(pw2) pw2.addEventListener('input', checkPasswords);
+
+  // Password visibility toggles
+  document.querySelectorAll('.password-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var input = this.previousElementSibling;
+      var icon = this.querySelector('i');
+      if(input.type === 'password'){
+        input.type = 'text';
+        icon.classList.replace('bi-eye','bi-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash','bi-eye');
+      }
+    });
+  });
+
+  // Role card selector
+  document.querySelectorAll('.role-card input').forEach(function(radio){
+    radio.addEventListener('change', function(){
+      document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('active'); });
+      if(this.checked) this.closest('.role-card').classList.add('active');
+    });
+  });
+})();
+</script>
 {% endblock %}

@@ -35,6 +35,22 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% if user.is_authenticated %}
+  <script>
+  (function(){
+    var timeout = 15 * 60 * 1000;
+    var timer;
+    function resetTimer(){
+      clearTimeout(timer);
+      timer = setTimeout(function(){ window.location.href = "{% url 'logout' %}"; }, timeout);
+    }
+    ["mousemove","keydown","scroll","touchstart","click"].forEach(function(e){
+      document.addEventListener(e, resetTimer, {passive:true});
+    });
+    resetTimer();
+  })();
+  </script>
+  {% endif %}
   {% block extra_js %}{% endblock %}
 </body>
 </html>
