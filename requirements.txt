@@ -33,4 +33,5 @@ Twisted==25.5.0
 txaio==23.6.1
 typing_extensions==4.15.0
 whitenoise==6.11.0
+Faker
 zope.interface==8.0.1
