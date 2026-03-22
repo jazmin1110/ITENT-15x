@@ -7,6 +7,11 @@ from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
 from .models import WorkerProfile, EmployerProfile
 
 
+def is_platform_admin(user):
+    """True if user may access in-app verification admin (role admin or Django superuser)."""
+    return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
+
+
 class CustomLoginView(LoginView):
     """Login view that honours the 'Remember me' checkbox."""
     template_name = 'accounts/login.html'
@@ -145,7 +150,7 @@ def submit_verification(request):
 @login_required
 def admin_dashboard(request):
     """Admin dashboard for employer verification."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -164,7 +169,7 @@ def admin_dashboard(request):
 @login_required
 def approve_employer(request, employer_id):
     """Admin approves employer verification."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -179,7 +184,7 @@ def approve_employer(request, employer_id):
 @login_required
 def reject_employer(request, employer_id):
     """Admin rejects employer verification with a reason."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -195,7 +200,7 @@ def reject_employer(request, employer_id):
 @login_required
 def revoke_employer(request, employer_id):
     """Admin revokes a previously verified employer."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -292,7 +297,7 @@ def submit_worker_verification(request):
 @login_required
 def admin_worker_dashboard(request):
     """Admin dashboard for worker verification."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -311,7 +316,7 @@ def admin_worker_dashboard(request):
 @login_required
 def approve_worker(request, worker_id):
     """Admin approves worker verification."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -326,7 +331,7 @@ def approve_worker(request, worker_id):
 @login_required
 def reject_worker(request, worker_id):
     """Admin rejects worker verification with a reason."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
@@ -342,7 +347,7 @@ def reject_worker(request, worker_id):
 @login_required
 def revoke_worker(request, worker_id):
     """Admin revokes a previously verified worker."""
-    if request.user.role != 'admin':
+    if not is_platform_admin(request.user):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 

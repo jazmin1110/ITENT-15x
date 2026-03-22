@@ -8,3 +8,4 @@ python manage.py collectstatic --noinput
 python manage.py migrate
 
 python manage.py createsuperuser --noinput --username admin --email admin@example.com || true
+python manage.py populate_testdata || true

@@ -11,6 +11,13 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         {% if user.is_authenticated %}
+          {% if user.role == 'admin' or user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                <i class="bi bi-shield-check"></i> Admin Dashboard
+              </a>
+            </li>
+          {% endif %}
           {% if user.role == 'worker' %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'job_list' %}">
@@ -41,12 +48,6 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'employer_profile' %}">
                 <i class="bi bi-building"></i> Profile
-              </a>
-            </li>
-          {% else %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'admin_dashboard' %}">
-                <i class="bi bi-shield-check"></i> Admin Dashboard
               </a>
             </li>
           {% endif %}

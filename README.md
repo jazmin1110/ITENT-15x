@@ -1,5 +1,26 @@
 # ITENT-15x
 
+## Local Django: fake data and admin UI
+
+1. **Install and migrate** (from project root): `pip install -r requirements.txt` then `python manage.py migrate`.
+
+2. **Load demo users and jobs**:
+   ```bash
+   python manage.py populate_testdata
+   ```
+   Test accounts use usernames like `test_worker_01` / `test_employer_01` and password `TestPass123!`.
+
+3. **Remove all fake data**:
+   ```bash
+   python manage.py populate_testdata --clear
+   ```
+
+4. **In-app “Admin Dashboard”** (verification queues at `/accounts/admin-dashboard/`):
+   - **Django superusers** can open it even if their `role` is still `worker` (e.g. after `createsuperuser`).
+   - The default tab is **Pending** only. Use **Lahat** or **Verified** to see most seeded employers/workers.
+
+5. **Django site admin** (`/admin/`): lists all users including `test_*` if you use the same database as step 2 (default: `db.sqlite3` unless `DATABASE_URL` is set).
+
 ## Supabase `profiles` setup
 
 For sign-up/login to save roles, you need a `profiles` table and RLS policies.
