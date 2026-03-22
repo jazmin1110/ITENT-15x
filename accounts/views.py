@@ -15,7 +15,7 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend="accounts.backends.PhoneEmailBackend")
             messages.success(request, 'Account created! Please complete your profile.')
             if user.role == 'worker':
                 return redirect('worker_profile')
