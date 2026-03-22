@@ -35,5 +35,7 @@ services:
           name: itent-redis
           type: redis
           property: connectionString
+      - key: DJANGO_SUPERUSER_PASSWORD
+        generateValue: true
       - key: PYTHON_VERSION
         value: "3.12.3"
