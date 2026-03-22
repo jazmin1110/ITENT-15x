@@ -18,7 +18,7 @@
               </a>
             </li>
           {% endif %}
-          {% if user.role == 'worker' %}
+          {% if user.role == 'worker' and not user.is_superuser %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'job_list' %}">
                 <i class="bi bi-search"></i> Mga Trabaho
@@ -34,7 +34,7 @@
                 <i class="bi bi-person"></i> Profile
               </a>
             </li>
-          {% elif user.role == 'employer' %}
+          {% elif user.role == 'employer' and not user.is_superuser %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'employer_jobs' %}">
                 <i class="bi bi-briefcase"></i> Mga Job Post
