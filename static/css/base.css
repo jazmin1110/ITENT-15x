@@ -630,3 +630,49 @@ a:hover {
     font-size: 1.25rem;
   }
 }
+
+/* ---- Staff console ---- */
+.staff-layout .staff-side-nav .list-group-item {
+  border-color: var(--color-border);
+  color: var(--color-text);
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+}
+.staff-layout .staff-side-nav .list-group-item:hover {
+  background: var(--gray-50);
+}
+.staff-layout .staff-side-nav .list-group-item.active {
+  background: var(--green-50);
+  border-color: var(--green-100);
+  color: var(--green-700);
+  font-weight: 600;
+}
+.staff-metric-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 1.25rem;
+  height: 100%;
+  box-shadow: var(--shadow-sm);
+}
+.staff-metric-card .metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.staff-metric-card a.stretched-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.staff-thread-bubble {
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  max-width: 85%;
+  background: var(--gray-50);
+  border: 1px solid var(--color-border);
+}
+.staff-thread-bubble.is-mine {
+  margin-left: auto;
+  background: var(--green-50);
+  border-color: var(--green-100);
+}

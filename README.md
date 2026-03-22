@@ -15,11 +15,14 @@
    python manage.py populate_testdata --clear
    ```
 
-4. **In-app “Admin Dashboard”** (verification queues at `/accounts/admin-dashboard/`):
-   - **Django superusers** can open it even if their `role` is still `worker` (e.g. after `createsuperuser`).
-   - The default tab is **Pending** only. Use **Lahat** or **Verified** to see most seeded employers/workers.
+4. **In-app staff console** (metrics, verification, jobs, applications, users, conversations):
+   - **Home:** `/accounts/staff/`
+   - **Employer / worker verification:** `/accounts/staff/verification/employers/` and `/accounts/staff/verification/workers/`
+   - Legacy URLs `/accounts/admin-dashboard/` and `/accounts/admin-workers/` redirect to those verification pages.
+   - **Django superusers** can open the staff console even if their `role` is still `worker` (e.g. after `createsuperuser`).
+   - On verification pages the default filter is **Pending**. Use **Lahat** or **Verified** to see most seeded employers/workers.
 
-5. **Django site admin** (`/admin/`): lists all users including `test_*` if you use the same database as step 2 (default: `db.sqlite3` unless `DATABASE_URL` is set).
+5. **Django site admin** (`/admin/`): full model access and editing—use alongside the staff console when you need raw rows or fields not exposed in the custom UI.
 
 ## Supabase `profiles` setup
 

@@ -1,0 +1,63 @@
+{% extends 'staff/base_staff.html' %}
+
+{% block staff_title %}Applications{% endblock %}
+
+{% block staff_content %}
+<div class="page-header mb-4">
+  <h2 class="h4 fw-bold"><i class="bi bi-inboxes"></i> Applications</h2>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a href="{% url 'staff_applications' %}" class="btn btn-sm {% if not status %}btn-dark{% else %}btn-outline-dark{% endif %}">All</a>
+  {% for value, label in status_choices %}
+  <a href="?status={{ value }}" class="btn btn-sm {% if status == value %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Worker</th>
+          <th>Job</th>
+          <th>Employer</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in page_obj %}
+        <tr>
+          <td>{{ app.worker.username }}</td>
+          <td>{{ app.job.title }}</td>
+          <td class="text-muted small">{{ app.job.employer.username }}</td>
+          <td><span class="badge bg-secondary">{{ app.get_status_display }}</span></td>
+          <td class="text-muted small">{{ app.created_at|date:"M j, Y H:i" }}</td>
+          <td class="text-muted small">{{ app.updated_at|date:"M j, Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">No applications in this view.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="mt-3 d-flex justify-content-center" aria-label="Pagination">
+  <ul class="pagination pagination-sm mb-0">
+    {% if page_obj.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status }}">Previous</a></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status }}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

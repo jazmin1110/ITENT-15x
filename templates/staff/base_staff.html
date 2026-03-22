@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}{% block staff_title %}Staff{% endblock %} - ITENT{% endblock %}
+
+{% block content %}
+<div class="staff-layout">
+  <div class="row g-4">
+    <aside class="col-lg-3">
+      {% include 'staff/_sidebar.html' %}
+    </aside>
+    <div class="col-lg-9">
+      {% block staff_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

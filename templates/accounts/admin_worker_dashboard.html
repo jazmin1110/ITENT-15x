@@ -1,20 +1,20 @@
-{% extends 'base.html' %}
+{% extends 'staff/base_staff.html' %}
 
-{% block title %}Worker Verification - ITENT{% endblock %}
+{% block staff_title %}Worker verification{% endblock %}
 
-{% block content %}
+{% block staff_content %}
 <div class="page-header mb-4">
-  <h2><i class="bi bi-shield-check"></i> Verification Dashboard</h2>
+  <h2 class="h4 fw-bold"><i class="bi bi-shield-check"></i> Verification — Workers</h2>
 </div>
 
 <ul class="nav nav-tabs mb-4">
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'admin_dashboard' %}">
+    <a class="nav-link" href="{% url 'staff_verification_employers' %}">
       <i class="bi bi-building"></i> Employers
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link active" href="{% url 'admin_worker_dashboard' %}">
+    <a class="nav-link active" href="{% url 'staff_verification_workers' %}">
       <i class="bi bi-person"></i> Workers
     </a>
   </li>

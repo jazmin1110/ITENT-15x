@@ -3,13 +3,9 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
+from .decorators import staff_member_required
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
 from .models import WorkerProfile, EmployerProfile
-
-
-def is_platform_admin(user):
-    """True if user may access in-app verification admin (role admin or Django superuser)."""
-    return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
 
 
 class CustomLoginView(LoginView):
@@ -52,7 +48,7 @@ def dashboard(request):
     elif request.user.role == 'employer':
         return redirect('employer_jobs')
     else:
-        return redirect('admin_dashboard')
+        return redirect('staff_home')
 
 
 @login_required
@@ -147,13 +143,9 @@ def submit_verification(request):
     return redirect('employer_profile')
 
 
-@login_required
+@staff_member_required
 def admin_dashboard(request):
     """Admin dashboard for employer verification."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     status_filter = request.GET.get('status', 'pending')
     employers = EmployerProfile.objects.select_related('user').all()
 
@@ -166,50 +158,38 @@ def admin_dashboard(request):
     })
 
 
-@login_required
+@staff_member_required
 def approve_employer(request, employer_id):
     """Admin approves employer verification."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     profile = get_object_or_404(EmployerProfile, id=employer_id)
     profile.verification_status = 'verified'
     profile.rejection_reason = ''
     profile.save()
     messages.success(request, f'{profile.company_name} is now verified!')
-    return redirect('admin_dashboard')
+    return redirect('staff_verification_employers')
 
 
-@login_required
+@staff_member_required
 def reject_employer(request, employer_id):
     """Admin rejects employer verification with a reason."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     profile = get_object_or_404(EmployerProfile, id=employer_id)
     reason = request.POST.get('reason', '').strip() if request.method == 'POST' else ''
     profile.verification_status = 'rejected'
     profile.rejection_reason = reason or 'Hindi pumasa sa verification. Subukan ulit.'
     profile.save()
     messages.success(request, f'{profile.company_name} has been rejected.')
-    return redirect('admin_dashboard')
+    return redirect('staff_verification_employers')
 
 
-@login_required
+@staff_member_required
 def revoke_employer(request, employer_id):
     """Admin revokes a previously verified employer."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     profile = get_object_or_404(EmployerProfile, id=employer_id)
     profile.verification_status = 'not_submitted'
     profile.rejection_reason = ''
     profile.save()
     messages.success(request, f'{profile.company_name} verification has been revoked.')
-    return redirect('admin_dashboard')
+    return redirect('staff_verification_employers')
 
 
 # ---------------------------------------------------------------------------
@@ -294,13 +274,9 @@ def submit_worker_verification(request):
     return redirect('worker_profile')
 
 
-@login_required
+@staff_member_required
 def admin_worker_dashboard(request):
     """Admin dashboard for worker verification."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     status_filter = request.GET.get('status', 'pending')
     workers = WorkerProfile.objects.select_related('user').all()
 
@@ -313,47 +289,35 @@ def admin_worker_dashboard(request):
     })
 
 
-@login_required
+@staff_member_required
 def approve_worker(request, worker_id):
     """Admin approves worker verification."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     profile = get_object_or_404(WorkerProfile, id=worker_id)
     profile.verification_status = 'verified'
     profile.rejection_reason = ''
     profile.save()
     messages.success(request, f'{profile.full_name} is now verified!')
-    return redirect('admin_worker_dashboard')
+    return redirect('staff_verification_workers')
 
 
-@login_required
+@staff_member_required
 def reject_worker(request, worker_id):
     """Admin rejects worker verification with a reason."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     profile = get_object_or_404(WorkerProfile, id=worker_id)
     reason = request.POST.get('reason', '').strip() if request.method == 'POST' else ''
     profile.verification_status = 'rejected'
     profile.rejection_reason = reason or 'Hindi pumasa sa verification. Subukan ulit.'
     profile.save()
     messages.success(request, f'{profile.full_name} has been rejected.')
-    return redirect('admin_worker_dashboard')
+    return redirect('staff_verification_workers')
 
 
-@login_required
+@staff_member_required
 def revoke_worker(request, worker_id):
     """Admin revokes a previously verified worker."""
-    if not is_platform_admin(request.user):
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
     profile = get_object_or_404(WorkerProfile, id=worker_id)
     profile.verification_status = 'not_submitted'
     profile.rejection_reason = ''
     profile.save()
     messages.success(request, f'{profile.full_name} verification has been revoked.')
-    return redirect('admin_worker_dashboard')
+    return redirect('staff_verification_workers')

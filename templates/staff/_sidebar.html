@@ -1,0 +1,25 @@
+{% with n=request.resolver_match.url_name %}
+<nav class="list-group staff-side-nav shadow-sm" aria-label="Staff navigation">
+  <a class="list-group-item list-group-item-action {% if n == 'staff_home' %}active{% endif %}" href="{% url 'staff_home' %}">
+    <i class="bi bi-speedometer2 me-2"></i> Overview
+  </a>
+  <a class="list-group-item list-group-item-action {% if n == 'staff_verification_employers' %}active{% endif %}" href="{% url 'staff_verification_employers' %}">
+    <i class="bi bi-building me-2"></i> Employer verification
+  </a>
+  <a class="list-group-item list-group-item-action {% if n == 'staff_verification_workers' %}active{% endif %}" href="{% url 'staff_verification_workers' %}">
+    <i class="bi bi-person-badge me-2"></i> Worker verification
+  </a>
+  <a class="list-group-item list-group-item-action {% if n == 'staff_jobs' %}active{% endif %}" href="{% url 'staff_jobs' %}">
+    <i class="bi bi-briefcase me-2"></i> Jobs
+  </a>
+  <a class="list-group-item list-group-item-action {% if n == 'staff_applications' %}active{% endif %}" href="{% url 'staff_applications' %}">
+    <i class="bi bi-inboxes me-2"></i> Applications
+  </a>
+  <a class="list-group-item list-group-item-action {% if n == 'staff_users' %}active{% endif %}" href="{% url 'staff_users' %}">
+    <i class="bi bi-people me-2"></i> Users
+  </a>
+  <a class="list-group-item list-group-item-action {% if n == 'staff_conversations' or n == 'staff_conversation_detail' %}active{% endif %}" href="{% url 'staff_conversations' %}">
+    <i class="bi bi-chat-dots me-2"></i> Conversations
+  </a>
+</nav>
+{% endwith %}

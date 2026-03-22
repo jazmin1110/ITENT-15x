@@ -1,0 +1,92 @@
+{% extends 'staff/base_staff.html' %}
+
+{% block staff_title %}Staff overview{% endblock %}
+
+{% block staff_content %}
+<div class="page-header mb-4">
+  <h2 class="h4 fw-bold"><i class="bi bi-speedometer2 text-success"></i> Staff overview</h2>
+  <p class="text-muted mb-0 small">Metrics and quick links. Use Django <code>/admin/</code> for full model editing when needed.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-4">
+    <div class="staff-metric-card position-relative">
+      <div class="text-muted small text-uppercase fw-semibold">Pending employers</div>
+      <div class="metric-value text-warning">{{ pending_employers }}</div>
+      <a href="{% url 'staff_verification_employers' %}?status=pending" class="stretched-link text-success">Review queue <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="staff-metric-card position-relative">
+      <div class="text-muted small text-uppercase fw-semibold">Pending workers</div>
+      <div class="metric-value text-warning">{{ pending_workers }}</div>
+      <a href="{% url 'staff_verification_workers' %}?status=pending" class="stretched-link text-success">Review queue <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="staff-metric-card position-relative">
+      <div class="text-muted small text-uppercase fw-semibold">Open jobs</div>
+      <div class="metric-value">{{ open_jobs }}</div>
+      <a href="{% url 'staff_jobs' %}?status=open" class="stretched-link text-success">View listings <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="staff-metric-card position-relative">
+      <div class="text-muted small text-uppercase fw-semibold">Applications</div>
+      <div class="metric-value">{{ total_applications }}</div>
+      <a href="{% url 'staff_applications' %}" class="stretched-link text-success">Browse all <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="staff-metric-card position-relative">
+      <div class="text-muted small text-uppercase fw-semibold">Active users</div>
+      <div class="metric-value">{{ active_users }}</div>
+      <a href="{% url 'staff_users' %}" class="stretched-link text-success">Manage users <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="staff-metric-card position-relative">
+      <div class="text-muted small text-uppercase fw-semibold">Conversations</div>
+      <div class="metric-value">{{ conversation_count }}</div>
+      <a href="{% url 'staff_conversations' %}" class="stretched-link text-success">Support view <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header py-3 fw-semibold" style="background:var(--color-surface);border-bottom:1px solid var(--color-border);">
+    <i class="bi bi-clock-history me-1"></i> Recent applications
+  </div>
+  <div class="card-body p-0">
+    {% if recent_applications %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Worker</th>
+            <th>Job</th>
+            <th>Status</th>
+            <th>When</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in recent_applications %}
+          <tr>
+            <td>{{ app.worker.username }}</td>
+            <td>{{ app.job.title }}</td>
+            <td><span class="badge bg-secondary">{{ app.get_status_display }}</span></td>
+            <td class="text-muted small">{{ app.created_at|date:"M j, Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-muted text-center">No applications yet.</div>
+    {% endif %}
+  </div>
+  <div class="card-footer bg-transparent border-top-0">
+    <a href="{% url 'staff_applications' %}" class="btn btn-sm btn-outline-success">All applications</a>
+  </div>
+</div>
+{% endblock %}
