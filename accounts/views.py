@@ -6,6 +6,7 @@ from django.contrib import messages
 from .decorators import staff_member_required
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
 from .models import WorkerProfile, EmployerProfile
+from .permissions import is_platform_admin
 
 
 class CustomLoginView(LoginView):
@@ -43,12 +44,13 @@ def signup(request):
 @login_required
 def dashboard(request):
     """Redirect to appropriate dashboard based on role."""
+    if is_platform_admin(request.user):
+        return redirect('staff_home')
     if request.user.role == 'worker':
         return redirect('job_list')
-    elif request.user.role == 'employer':
+    if request.user.role == 'employer':
         return redirect('employer_jobs')
-    else:
-        return redirect('staff_home')
+    return redirect('staff_home')
 
 
 @login_required
