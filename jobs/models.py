@@ -52,7 +52,7 @@ class Application(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.worker.username} -> {self.job.title}"
+        return f"{self.worker.phone_number} -> {self.job.title}"
 
     class Meta:
         ordering = ['-created_at']
@@ -85,4 +85,4 @@ class Rating(models.Model):
         unique_together = ['application', 'rater']
 
     def __str__(self):
-        return f"{self.rater.username} rated {self.ratee.username}: {self.score}/5"
+        return f"{self.rater.phone_number} rated {self.ratee.phone_number}: {self.score}/5"

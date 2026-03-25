@@ -84,10 +84,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             try:
                 return self.user.worker_profile.full_name
             except:
-                return self.user.username
+                return self.user.phone_number
         elif self.user.role == "employer":
             try:
                 return self.user.employer_profile.company_name
             except:
-                return self.user.username
-        return self.user.username
+                return self.user.phone_number
+        return self.user.phone_number

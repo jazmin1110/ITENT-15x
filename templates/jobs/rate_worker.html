@@ -18,7 +18,7 @@
             {% if worker.worker_profile %}
               {{ worker.worker_profile.full_name|make_list|first }}
             {% else %}
-              {{ worker.username|make_list|first }}
+              {{ worker.phone_number|make_list|first }}
             {% endif %}
           </div>
           <div>
@@ -26,7 +26,7 @@
               {% if worker.worker_profile %}
                 {{ worker.worker_profile.full_name }}
               {% else %}
-                {{ worker.username }}
+                {{ worker.phone_number }}
               {% endif %}
             </h5>
             <small class="text-muted">Job: {{ application.job.title }}</small>

@@ -16,7 +16,7 @@
         {% elif other_user.role == 'worker' and other_user.worker_profile %}
           {{ other_user.worker_profile.full_name|make_list|first }}
         {% else %}
-          {{ other_user.username|make_list|first }}
+          {{ other_user.phone_number|make_list|first }}
         {% endif %}
       </div>
       <div>
@@ -26,7 +26,7 @@
           {% elif other_user.role == 'worker' and other_user.worker_profile %}
             {{ other_user.worker_profile.full_name }}
           {% else %}
-            {{ other_user.username }}
+            {{ other_user.phone_number }}
           {% endif %}
         </h6>
         <small class="text-muted">Re: {{ conversation.job.title }}</small>

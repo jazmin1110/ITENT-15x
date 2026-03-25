@@ -44,39 +44,25 @@
             {% endif %}
           </div>
 
-          {# --- Username --- #}
+          {# --- Phone number (required) --- #}
           <div class="mb-3">
-            <label for="id_username" class="form-label">Username</label>
-            {{ form.username }}
-            {% if form.username.errors %}
-              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>
-            {% endif %}
-            {% if form.username.help_text %}
-              <small class="form-text">{{ form.username.help_text }}</small>
+            <label for="id_phone_number" class="form-label">Phone Number</label>
+            {{ form.phone_number }}
+            <div class="validation-feedback" id="phoneFeedback"></div>
+            {% if form.phone_number.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.phone_number.errors.0 }}</div>
             {% endif %}
           </div>
 
-          {# --- Email --- #}
+          {# --- Email (optional) --- #}
           <div class="mb-3">
             <label for="id_email" class="form-label">
-              Email <span class="text-muted small">(opsyonal kung may phone na)</span>
+              Email <span class="text-muted small">(opsyonal)</span>
             </label>
             {{ form.email }}
             <div class="validation-feedback" id="emailFeedback"></div>
             {% if form.email.errors %}
               <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          {# --- Phone number --- #}
-          <div class="mb-3">
-            <label for="id_phone_number" class="form-label">
-              Phone Number <span class="text-muted small">(opsyonal kung may email na)</span>
-            </label>
-            {{ form.phone_number }}
-            <div class="validation-feedback" id="phoneFeedback"></div>
-            {% if form.phone_number.errors %}
-              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.phone_number.errors.0 }}</div>
             {% endif %}
           </div>
 
@@ -92,9 +78,6 @@
             <div class="validation-feedback" id="pwStrength"></div>
             {% if form.password1.errors %}
               <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>
-            {% endif %}
-            {% if form.password1.help_text %}
-              <small class="form-text">{{ form.password1.help_text }}</small>
             {% endif %}
           </div>
 
@@ -175,10 +158,8 @@
 
     if(v1.length === 0){
       feedback(strengthEl, true, '');
-    } else if(v1.length < 8){
-      feedback(strengthEl, false, 'Masyadong maikli — kailangan ng 8+ characters.');
     } else {
-      feedback(strengthEl, true, 'Pasado ang haba ng password.');
+      feedback(strengthEl, true, '');
     }
 
     if(v2.length === 0){

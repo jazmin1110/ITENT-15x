@@ -19,7 +19,7 @@ class Conversation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Chat: {self.worker.username} & {self.employer.username} - {self.job.title}"
+        return f"Chat: {self.worker.phone_number} & {self.employer.phone_number} - {self.job.title}"
 
     class Meta:
         unique_together = ['job', 'worker', 'employer']
@@ -42,7 +42,7 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.sender.username}: {self.content[:50]}"
+        return f"{self.sender.phone_number}: {self.content[:50]}"
 
     class Meta:
         ordering = ['created_at']

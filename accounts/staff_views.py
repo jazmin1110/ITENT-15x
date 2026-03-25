@@ -99,9 +99,8 @@ def staff_users(request):
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(
-            Q(username__icontains=q)
+            Q(phone_number__icontains=q)
             | Q(email__icontains=q)
-            | Q(phone_number__icontains=q)
         )
 
     page_obj = _paginate(request, qs)
@@ -131,7 +130,7 @@ def _staff_toggle_user_active(request):
     target.save(update_fields=['is_active'])
     messages.success(
         request,
-        f'User {target.username} is now {"active" if new_active else "inactive"}.',
+        f'User {target.phone_number} is now {"active" if new_active else "inactive"}.',
     )
     return redirect('staff_users')
 
@@ -151,8 +150,8 @@ def staff_conversations(request):
     if q:
         qs = qs.filter(
             Q(job__title__icontains=q)
-            | Q(worker__username__icontains=q)
-            | Q(employer__username__icontains=q)
+            | Q(worker__phone_number__icontains=q)
+            | Q(employer__phone_number__icontains=q)
         )
 
     page_obj = _paginate(request, qs)

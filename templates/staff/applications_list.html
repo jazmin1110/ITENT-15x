@@ -30,9 +30,9 @@
       <tbody>
         {% for app in page_obj %}
         <tr>
-          <td>{{ app.worker.username }}</td>
+          <td>{{ app.worker.phone_number }}</td>
           <td>{{ app.job.title }}</td>
-          <td class="text-muted small">{{ app.job.employer.username }}</td>
+          <td class="text-muted small">{{ app.job.employer.phone_number }}</td>
           <td><span class="badge bg-secondary">{{ app.get_status_display }}</span></td>
           <td class="text-muted small">{{ app.created_at|date:"M j, Y H:i" }}</td>
           <td class="text-muted small">{{ app.updated_at|date:"M j, Y H:i" }}</td>

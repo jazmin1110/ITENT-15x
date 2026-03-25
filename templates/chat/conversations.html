@@ -17,13 +17,13 @@
             {% if convo.employer.employer_profile %}
               {{ convo.employer.employer_profile.company_name|make_list|first }}
             {% else %}
-              {{ convo.employer.username|make_list|first }}
+              {{ convo.employer.phone_number|make_list|first }}
             {% endif %}
           {% else %}
             {% if convo.worker.worker_profile %}
               {{ convo.worker.worker_profile.full_name|make_list|first }}
             {% else %}
-              {{ convo.worker.username|make_list|first }}
+              {{ convo.worker.phone_number|make_list|first }}
             {% endif %}
           {% endif %}
         </div>
@@ -34,13 +34,13 @@
                 {% if convo.employer.employer_profile %}
                   {{ convo.employer.employer_profile.company_name }}
                 {% else %}
-                  {{ convo.employer.username }}
+                  {{ convo.employer.phone_number }}
                 {% endif %}
               {% else %}
                 {% if convo.worker.worker_profile %}
                   {{ convo.worker.worker_profile.full_name }}
                 {% else %}
-                  {{ convo.worker.username }}
+                  {{ convo.worker.phone_number }}
                 {% endif %}
               {% endif %}
             </h6>

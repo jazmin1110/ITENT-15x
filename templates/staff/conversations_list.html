@@ -10,7 +10,7 @@
 
 <form method="get" class="row g-2 mb-4">
   <div class="col-md-8">
-    <input type="search" name="q" class="form-control" value="{{ q }}" placeholder="Search job title, worker, or employer username…">
+    <input type="search" name="q" class="form-control" value="{{ q }}" placeholder="Search job title, worker, or employer phone…">
   </div>
   <div class="col-md-4">
     <button type="submit" class="btn btn-success">Search</button>
@@ -35,8 +35,8 @@
         {% for c in page_obj %}
         <tr>
           <td class="fw-semibold">{{ c.job.title }}</td>
-          <td>{{ c.worker.username }}</td>
-          <td>{{ c.employer.username }}</td>
+          <td>{{ c.worker.phone_number }}</td>
+          <td>{{ c.employer.phone_number }}</td>
           <td>{{ c.message_count }}</td>
           <td class="text-muted small">
             {% if c.last_message_at %}

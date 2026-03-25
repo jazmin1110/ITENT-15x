@@ -5,12 +5,12 @@
 {% block staff_content %}
 <div class="page-header mb-4">
   <h2 class="h4 fw-bold"><i class="bi bi-people"></i> Users</h2>
-  <p class="text-muted small mb-0">Search by username, email, or phone. Toggle account active state (cannot deactivate yourself or the last active superuser).</p>
+  <p class="text-muted small mb-0">Search by phone number or email. Toggle account active state (cannot deactivate yourself or the last active superuser).</p>
 </div>
 
 <form method="get" class="row g-2 mb-4">
   <div class="col-md-8">
-    <input type="search" name="q" class="form-control" value="{{ q }}" placeholder="Search username, email, phone…">
+    <input type="search" name="q" class="form-control" value="{{ q }}" placeholder="Search phone number, email…">
   </div>
   <div class="col-md-4">
     <button type="submit" class="btn btn-success">Search</button>
@@ -23,10 +23,9 @@
     <table class="table table-hover mb-0 align-middle">
       <thead class="table-light">
         <tr>
-          <th>Username</th>
+          <th>Phone</th>
           <th>Role</th>
           <th>Email</th>
-          <th>Phone</th>
           <th>Active</th>
           <th>Joined</th>
           <th class="text-end">Action</th>
@@ -36,12 +35,11 @@
         {% for u in page_obj %}
         <tr class="{% if not u.is_active %}table-secondary{% endif %}">
           <td class="fw-semibold">
-            {{ u.username }}
+            {{ u.phone_number }}
             {% if u.is_superuser %}<span class="badge bg-dark ms-1">superuser</span>{% endif %}
           </td>
           <td>{{ u.get_role_display }}</td>
           <td class="small">{{ u.email|default:"—" }}</td>
-          <td class="small">{{ u.phone_number|default:"—" }}</td>
           <td>
             {% if u.is_active %}
               <span class="text-success"><i class="bi bi-check-circle"></i></span>
@@ -70,7 +68,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="7" class="text-center text-muted py-4">No users found.</td>
+          <td colspan="6" class="text-center text-muted py-4">No users found.</td>
         </tr>
         {% endfor %}
       </tbody>

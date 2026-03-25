@@ -11,7 +11,7 @@ class User(AbstractUser):
         ('admin', 'Admin'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='worker')
-    phone_number = models.CharField(max_length=20, blank=True, default='')
+    phone_number = models.CharField(max_length=20, unique=True)
 
     def get_average_rating(self):
         avg = self.ratings_received.aggregate(avg=Avg('score'))['avg']
@@ -21,7 +21,7 @@ class User(AbstractUser):
         return self.ratings_received.count()
 
     def __str__(self):
-        return f"{self.username} ({self.role})"
+        return f"{self.phone_number} ({self.role})"
 
 
 class WorkerProfile(models.Model):

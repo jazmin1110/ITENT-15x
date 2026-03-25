@@ -19,7 +19,7 @@
               {% elif rated_user.role == 'employer' and rated_user.employer_profile %}
                 {{ rated_user.employer_profile.company_name|make_list|first }}
               {% else %}
-                {{ rated_user.username|make_list|first }}
+                {{ rated_user.phone_number|make_list|first }}
               {% endif %}
             </div>
             <div>
@@ -29,7 +29,7 @@
                 {% elif rated_user.role == 'employer' and rated_user.employer_profile %}
                   {{ rated_user.employer_profile.company_name }}
                 {% else %}
-                  {{ rated_user.username }}
+                  {{ rated_user.phone_number }}
                 {% endif %}
               </h2>
               <span class="badge {% if rated_user.role == 'worker' %}bg-info{% else %}bg-success{% endif %}">
@@ -68,7 +68,7 @@
               {% elif rating.rater.role == 'employer' and rating.rater.employer_profile %}
                 {{ rating.rater.employer_profile.company_name|make_list|first }}
               {% else %}
-                {{ rating.rater.username|make_list|first }}
+                {{ rating.rater.phone_number|make_list|first }}
               {% endif %}
             </div>
             <div>
@@ -78,7 +78,7 @@
                 {% elif rating.rater.role == 'employer' and rating.rater.employer_profile %}
                   {{ rating.rater.employer_profile.company_name }}
                 {% else %}
-                  {{ rating.rater.username }}
+                  {{ rating.rater.phone_number }}
                 {% endif %}
               </strong>
               <div class="text-warning" style="font-size:0.85rem;">

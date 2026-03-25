@@ -15,7 +15,7 @@ class SignUpForm(UserCreationForm):
     role = forms.ChoiceField(choices=User.ROLE_CHOICES[:2])
     phone_number = forms.CharField(
         max_length=20,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'placeholder': 'e.g. 09171234567',
             'type': 'tel',
@@ -24,13 +24,12 @@ class SignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'phone_number', 'password1', 'password2', 'role']
+        fields = ['phone_number', 'email', 'password1', 'password2', 'role']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].required = False
         self.fields['email'].widget.input_type = 'email'
-        self.fields['phone_number'].required = False
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
 
@@ -49,27 +48,23 @@ class SignUpForm(UserCreationForm):
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number', '').strip()
         if not phone:
-            return phone
+            raise forms.ValidationError('Kailangan ng phone number.')
         if not PH_PHONE_RE.match(phone):
             raise forms.ValidationError(
                 'Invalid na phone number. Gamitin ang 09XXXXXXXXX o +639XXXXXXXXX format.'
             )
-        # Normalize +639 → 09 for consistent lookups
         if phone.startswith('+63'):
             phone = '0' + phone[3:]
         if User.objects.filter(phone_number=phone).exists():
             raise forms.ValidationError('Ginagamit na ang phone number na ito.')
         return phone
 
-    def clean(self):
-        cleaned_data = super().clean()
-        email = cleaned_data.get('email')
-        phone = cleaned_data.get('phone_number')
-        if not email and not phone:
-            raise forms.ValidationError(
-                'Kailangan ng email o phone number. Maglagay ng kahit isa.'
-            )
-        return cleaned_data
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data['phone_number']
+        if commit:
+            user.save()
+        return user
 
 
 class WorkerProfileForm(forms.ModelForm):

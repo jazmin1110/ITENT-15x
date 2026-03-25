@@ -8,8 +8,8 @@
     <h2 class="h4 fw-bold mb-1"><i class="bi bi-chat-text"></i> Thread</h2>
     <p class="text-muted small mb-0">
       <strong>Job:</strong> {{ conversation.job.title }}
-      &nbsp;·&nbsp; <strong>Worker:</strong> {{ conversation.worker.username }}
-      &nbsp;·&nbsp; <strong>Employer:</strong> {{ conversation.employer.username }}
+      &nbsp;·&nbsp; <strong>Worker:</strong> {{ conversation.worker.phone_number }}
+      &nbsp;·&nbsp; <strong>Employer:</strong> {{ conversation.employer.phone_number }}
     </p>
   </div>
   <a href="{% url 'staff_conversations' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to list</a>
@@ -23,7 +23,7 @@
       <div class="d-flex justify-content-start">
         <div class="staff-thread-bubble">
           <div class="small text-muted mb-1">
-            <strong>{{ m.sender.username }}</strong>
+            <strong>{{ m.sender.phone_number }}</strong>
             · {{ m.created_at|date:"M j, Y H:i" }}
           </div>
           <div class="mb-0" style="white-space: pre-wrap;">{{ m.content }}</div>

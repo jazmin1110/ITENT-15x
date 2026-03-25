@@ -15,15 +15,15 @@
         {% if form.errors %}
           <div class="alert alert-danger d-flex align-items-center" role="alert">
             <i class="bi bi-exclamation-circle me-2"></i>
-            Invalid na username, email, phone number, o password. Subukan ulit.
+            Invalid na email, phone number, o password. Subukan ulit.
           </div>
         {% endif %}
 
         <form method="post">
           {% csrf_token %}
           <div class="mb-3">
-            <label for="username" class="form-label">Username, Email, o Phone Number</label>
-            <input type="text" name="username" id="username" class="form-control" placeholder="Ilagay ang iyong username, email, o phone number" required autofocus>
+            <label for="username" class="form-label">Email o Phone Number</label>
+            <input type="text" name="username" id="username" class="form-control" placeholder="Ilagay ang iyong email o phone number" required autofocus>
           </div>
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>

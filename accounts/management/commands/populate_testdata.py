@@ -128,7 +128,7 @@ class Command(BaseCommand):
         if options['flush']:
             self._clear_test_data()
 
-        existing = User.objects.filter(username__startswith=TEST_PREFIX).count()
+        existing = User.objects.filter(phone_number__startswith=TEST_PREFIX).count()
         if existing and not options['flush']:
             self.stdout.write(self.style.WARNING(
                 f'Found {existing} existing test users. Use --flush to delete and recreate, or --clear to just delete.'
@@ -150,7 +150,7 @@ class Command(BaseCommand):
         self._print_summary()
 
     def _clear_test_data(self):
-        test_users = User.objects.filter(username__startswith=TEST_PREFIX)
+        test_users = User.objects.filter(phone_number__startswith=TEST_PREFIX)
         count = test_users.count()
         if count == 0:
             self.stdout.write(self.style.WARNING('No test data found to delete.'))
@@ -174,17 +174,17 @@ class Command(BaseCommand):
         )
 
         for i in range(1, count + 1):
-            username = f'{TEST_PREFIX}worker_{i:02d}'
+            phone = f'{TEST_PREFIX}09{170000000 + i}'
             first = fake.first_name()
             last = fake.last_name()
             user = User.objects.create_user(
-                username=username,
-                email=f'{username}@test.com',
+                username=phone,
+                email=f'test_worker_{i:02d}@test.com',
                 password=TEST_PASSWORD,
                 first_name=first,
                 last_name=last,
                 role='worker',
-                phone_number=f'09{random.randint(100000000, 999999999)}',
+                phone_number=phone,
             )
             v_status, nid_status = random.choice(verified_statuses)
             nid_number = f'{random.randint(1000,9999)}-{random.randint(1000,9999)}-{random.randint(1000,9999)}-{random.randint(1000,9999)}'
@@ -221,17 +221,17 @@ class Command(BaseCommand):
         ]
 
         for i in range(1, count + 1):
-            username = f'{TEST_PREFIX}employer_{i:02d}'
+            phone = f'{TEST_PREFIX}09{180000000 + i}'
             first = fake.first_name()
             last = fake.last_name()
             user = User.objects.create_user(
-                username=username,
-                email=f'{username}@test.com',
+                username=phone,
+                email=f'test_employer_{i:02d}@test.com',
                 password=TEST_PASSWORD,
                 first_name=first,
                 last_name=last,
                 role='employer',
-                phone_number=f'09{random.randint(100000000, 999999999)}',
+                phone_number=phone,
             )
             surname = random.choice(ph_surnames)
             suffix = random.choice(PH_COMPANY_SUFFIXES)
@@ -391,10 +391,10 @@ class Command(BaseCommand):
 
     def _print_summary(self):
         self.stdout.write('\n--- Summary ---')
-        self.stdout.write(f'  Workers:       {User.objects.filter(username__startswith=TEST_PREFIX, role="worker").count()}')
-        self.stdout.write(f'  Employers:     {User.objects.filter(username__startswith=TEST_PREFIX, role="employer").count()}')
-        self.stdout.write(f'  Jobs:          {Job.objects.filter(employer__username__startswith=TEST_PREFIX).count()}')
-        self.stdout.write(f'  Applications:  {Application.objects.filter(worker__username__startswith=TEST_PREFIX).count()}')
-        self.stdout.write(f'  Ratings:       {Rating.objects.filter(rater__username__startswith=TEST_PREFIX).count()}')
-        self.stdout.write(f'  Conversations: {Conversation.objects.filter(worker__username__startswith=TEST_PREFIX).count()}')
-        self.stdout.write(f'  Messages:      {Message.objects.filter(sender__username__startswith=TEST_PREFIX).count()}')
+        self.stdout.write(f'  Workers:       {User.objects.filter(phone_number__startswith=TEST_PREFIX, role="worker").count()}')
+        self.stdout.write(f'  Employers:     {User.objects.filter(phone_number__startswith=TEST_PREFIX, role="employer").count()}')
+        self.stdout.write(f'  Jobs:          {Job.objects.filter(employer__phone_number__startswith=TEST_PREFIX).count()}')
+        self.stdout.write(f'  Applications:  {Application.objects.filter(worker__phone_number__startswith=TEST_PREFIX).count()}')
+        self.stdout.write(f'  Ratings:       {Rating.objects.filter(rater__phone_number__startswith=TEST_PREFIX).count()}')
+        self.stdout.write(f'  Conversations: {Conversation.objects.filter(worker__phone_number__startswith=TEST_PREFIX).count()}')
+        self.stdout.write(f'  Messages:      {Message.objects.filter(sender__phone_number__startswith=TEST_PREFIX).count()}')
