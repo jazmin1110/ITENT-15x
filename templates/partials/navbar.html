@@ -51,11 +51,13 @@
               </a>
             </li>
           {% endif %}
+          {% if user.role != 'admin' and not user.is_superuser %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'conversations' %}">
               <i class="bi bi-chat-dots"></i> Messages
             </a>
           </li>
+          {% endif %}
         {% endif %}
       </ul>
 

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.utils import timezone
 from .models import Job, Application, Rating
 from .forms import JobForm, RatingForm
 from chat.models import Conversation
@@ -127,6 +128,8 @@ def update_application_status(request, application_id, status):
         messages.error(request, 'Invalid status.')
         return redirect('applicants', job_id=application.job.id)
 
+    if status == 'hired' and application.hired_at is None:
+        application.hired_at = timezone.now()
     application.status = status
     application.save()
 

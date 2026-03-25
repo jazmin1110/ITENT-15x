@@ -17,6 +17,7 @@ urlpatterns = [
     path('submit-verification/', views.submit_verification, name='submit_verification'),
 
     path('staff/', staff_views.staff_home, name='staff_home'),
+    path('staff/export/hires.csv/', staff_views.staff_export_hires, name='staff_export_hires'),
     path('staff/jobs/', staff_views.staff_jobs, name='staff_jobs'),
     path('staff/applications/', staff_views.staff_applications, name='staff_applications'),
     path('staff/users/', staff_views.staff_users, name='staff_users'),
