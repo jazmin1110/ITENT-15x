@@ -7,6 +7,16 @@ urlpatterns = [
     path('<int:job_id>/apply/', views.apply_job, name='apply_job'),
     path('post/', views.post_job, name='post_job'),
     path('my-jobs/', views.employer_jobs, name='employer_jobs'),
+    path(
+        '<int:job_id>/reopen-after-vacancy/',
+        views.reopen_job_after_vacancy,
+        name='reopen_job_after_vacancy',
+    ),
+    path(
+        '<int:job_id>/dismiss-vacancy-prompt/',
+        views.dismiss_vacancy_prompt,
+        name='dismiss_vacancy_prompt',
+    ),
     path('<int:job_id>/applicants/', views.applicants, name='applicants'),
     path('application/<int:application_id>/status/<str:status>/', views.update_application_status, name='update_application_status'),
     path('application/<int:application_id>/contract/upload/', contract_views.contract_employer_upload, name='contract_employer_upload'),

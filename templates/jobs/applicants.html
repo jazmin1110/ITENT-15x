@@ -12,9 +12,14 @@
     <h2 class="mb-0">{{ job.title }}</h2>
     <span class="text-muted" style="font-size:0.9rem;">
       <i class="bi bi-geo-alt"></i> {{ job.city }} &bull; ₱{{ job.daily_rate }}/araw
+      <span class="d-block mt-1 small">
+        Hired: {{ hired_count }} / {{ job.positions_needed }} (employer lang)
+      </span>
     </span>
   </div>
 </div>
+
+{% include 'jobs/partials/vacancy_reopen_banner.html' with job=job %}
 
 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
   <p class="text-muted small mb-0" style="max-width: 42rem;">

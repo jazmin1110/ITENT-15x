@@ -4,8 +4,17 @@ from .models import Job, Application
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ['title', 'city', 'daily_rate', 'status', 'employer', 'created_at']
-    list_filter = ['status', 'city']
+    list_display = [
+        'title',
+        'city',
+        'daily_rate',
+        'positions_needed',
+        'status',
+        'auto_closed_when_filled',
+        'employer',
+        'created_at',
+    ]
+    list_filter = ['status', 'city', 'auto_closed_when_filled']
     search_fields = ['title', 'city']
 
 

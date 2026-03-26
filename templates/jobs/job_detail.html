@@ -58,11 +58,25 @@
           </div>
         </div>
 
+        {% if job.working_hours %}
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Working hours</h6>
+          <p class="mb-0 fw-semibold">{{ job.working_hours }}</p>
+        </div>
+        {% endif %}
+
+        {% if job.short_description %}
+        <div class="mb-4">
+          <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Paglalarawan</h6>
+          <p class="mb-0" style="white-space:pre-line;">{{ job.short_description }}</p>
+        </div>
+        {% endif %}
+
         <div class="mb-4">
           <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Required Skills</h6>
           <div class="d-flex flex-wrap gap-1">
-            {% for skill in job.required_skills %}
-              <span class="skill-tag">{{ skill }}</span>
+            {% for entry in job.skill_entries_normalized %}
+              <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
             {% endfor %}
           </div>
         </div>

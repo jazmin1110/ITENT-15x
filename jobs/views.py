@@ -16,21 +16,35 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from .models import Job, Application, Rating
 from .forms import JobForm, RatingForm
+from .skill_utils import required_skill_names
+from .employer_job_utils import (
+    acknowledge_vacancy_keep_closed,
+    hired_count_for_job,
+    maybe_autoclose_job_when_filled,
+    reopen_job_listing,
+    show_vacancy_reopen_banner,
+)
 from chat.models import Conversation
 
 
 @login_required
 def job_list(request):
     """List available jobs for workers."""
-    jobs = Job.objects.filter(status='open').select_related('employer__employer_profile')
+    jobs_qs = (
+        Job.objects.filter(status='open')
+        .select_related('employer__employer_profile')
+        .order_by('-created_at')
+    )
 
     city = request.GET.get('city', '')
     skill = request.GET.get('skill', '')
 
     if city:
-        jobs = jobs.filter(city__icontains=city)
+        jobs_qs = jobs_qs.filter(city__icontains=city)
+
+    jobs = list(jobs_qs)
     if skill:
-        jobs = jobs.filter(required_skills__contains=skill)
+        jobs = [j for j in jobs if skill in required_skill_names(j.required_skills)]
 
     context = {
         'jobs': jobs,
@@ -73,7 +87,9 @@ def apply_job(request, job_id):
         job=job, worker=request.user
     ).exclude(status='completed').exists()
 
-    if active_application:
+    if job.status != 'open':
+        messages.error(request, 'Sarado na ang job na ito para sa mga bagong aplikante.')
+    elif active_application:
         messages.info(request, 'May active application ka na para sa job na ito.')
     else:
         Application.objects.create(job=job, worker=request.user)
@@ -110,7 +126,10 @@ def employer_jobs(request):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
-    jobs = Job.objects.filter(employer=request.user)
+    jobs = list(Job.objects.filter(employer=request.user).order_by('-created_at'))
+    for j in jobs:
+        j.hired_count = hired_count_for_job(j)
+        j.show_vacancy_banner = show_vacancy_reopen_banner(j)
     return render(request, 'jobs/employer_jobs.html', {'jobs': jobs})
 
 
@@ -177,7 +196,7 @@ def applicants(request, job_id):
     else:
         applications = list(annotated)
 
-    job_skills = set(job.required_skills or [])
+    job_skills = required_skill_names(job.required_skills)
     for app in applications:
         app.employer_has_rated = any(
             r.rater_id == request.user.id for r in app.ratings.all()
@@ -207,10 +226,17 @@ def applicants(request, job_id):
     for app in applications:
         app.chat_thread = convo_map.get((app.job_id, app.worker_id))
 
+    hired_n = hired_count_for_job(job)
+    job.show_vacancy_banner = show_vacancy_reopen_banner(job)
     return render(
         request,
         'jobs/applicants.html',
-        {'job': job, 'applications': applications, 'sort': sort},
+        {
+            'job': job,
+            'applications': applications,
+            'sort': sort,
+            'hired_count': hired_n,
+        },
     )
 
 
@@ -241,6 +267,9 @@ def update_application_status(request, application_id, status):
         application.hired_at = timezone.now()
     application.status = status
     application.save()
+
+    if status == 'hired':
+        maybe_autoclose_job_when_filled(application.job)
 
     if status in ['shortlisted', 'hired']:
         Conversation.objects.get_or_create(
@@ -285,11 +314,52 @@ def worker_applications(request):
 
 @login_required
 def toggle_job_status(request, job_id):
-    """Toggle job open/closed status."""
+    """Toggle job open/closed status (manual)."""
     job = get_object_or_404(Job, id=job_id, employer=request.user)
-    job.status = 'closed' if job.status == 'open' else 'open'
-    job.save()
+    if job.status == 'open':
+        job.status = 'closed'
+        fields = ['status', 'updated_at']
+    else:
+        job.status = 'open'
+        job.auto_closed_when_filled = False
+        job.employer_acknowledged_vacancy_at = None
+        fields = ['status', 'auto_closed_when_filled', 'employer_acknowledged_vacancy_at', 'updated_at']
+    job.save(update_fields=fields)
     messages.success(request, f'Job is now {job.status}.')
+    return redirect('employer_jobs')
+
+
+@login_required
+def reopen_job_after_vacancy(request, job_id):
+    """Reopen listing after auto-close and vacancy (employer-only)."""
+    if request.user.role != 'employer':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    if request.method != 'POST':
+        return redirect('employer_jobs')
+    reopen_job_listing(job)
+    messages.success(request, 'Binuksan ulit ang job listing.')
+    next_url = request.POST.get('next') or ''
+    if next_url.startswith('/') and not next_url.startswith('//'):
+        return redirect(next_url)
+    return redirect('employer_jobs')
+
+
+@login_required
+def dismiss_vacancy_prompt(request, job_id):
+    """Employer chooses to keep listing closed despite vacancy."""
+    if request.user.role != 'employer':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    if request.method != 'POST':
+        return redirect('employer_jobs')
+    acknowledge_vacancy_keep_closed(job)
+    messages.info(request, 'Mananatiling sarado ang listing maliban kung bubuksan mo ito manual.')
+    next_url = request.POST.get('next') or ''
+    if next_url.startswith('/') and not next_url.startswith('//'):
+        return redirect(next_url)
     return redirect('employer_jobs')
 
 

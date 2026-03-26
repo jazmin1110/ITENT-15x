@@ -31,19 +31,55 @@
           </div>
 
           <div class="mb-3">
+            <label for="id_working_hours" class="form-label">Working hours <span class="text-danger">*</span></label>
+            {{ form.working_hours }}
+            {% if form.working_hours.errors %}<div class="invalid-feedback d-block">{{ form.working_hours.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_short_description" class="form-label">Maikling paglalarawan <span class="text-muted">(opsyonal)</span></label>
+            {{ form.short_description }}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_positions_needed" class="form-label">{{ form.positions_needed.label }} <span class="text-danger">*</span></label>
+            {{ form.positions_needed }}
+            <div class="form-text">Para lang sa employer; hindi makikita ng mga worker.</div>
+            {% if form.positions_needed.errors %}<div class="invalid-feedback d-block">{{ form.positions_needed.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
             <label for="id_start_date" class="form-label">Start Date</label>
             {{ form.start_date }}
           </div>
 
           <div class="mb-4">
-            <label class="form-label">Required Skills</label>
-            <div class="d-flex flex-wrap gap-2">
-              {% for checkbox in form.required_skills %}
-                <div class="form-check">
-                  {{ checkbox.tag }}
-                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                    {{ checkbox.choice_label }}
-                  </label>
+            <label class="form-label">Required Skills <span class="text-danger">*</span></label>
+            {% if form.required_skills.errors %}
+              <div class="text-danger small mb-2">{{ form.required_skills.errors|join:", " }}</div>
+            {% endif %}
+            <div class="d-flex flex-column gap-3">
+              {% for code, label, year_field in form.skill_rows %}
+                <div class="border rounded p-3">
+                  <div class="row align-items-end g-2">
+                    <div class="col-md-6">
+                      <div class="form-check mb-0">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          name="required_skills"
+                          value="{{ code }}"
+                          id="id_skill_{{ code }}"
+                          {% if form.required_skills.value and code in form.required_skills.value %}checked{% endif %}
+                        >
+                        <label class="form-check-label fw-semibold" for="id_skill_{{ code }}">{{ label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label small text-muted mb-0" for="{{ year_field.id_for_label }}">{{ year_field.label }}</label>
+                      {{ year_field }}
+                    </div>
+                  </div>
                 </div>
               {% endfor %}
             </div>

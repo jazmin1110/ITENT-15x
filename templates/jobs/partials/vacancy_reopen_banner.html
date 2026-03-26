@@ -1,0 +1,20 @@
+{% if job.show_vacancy_banner %}
+<div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3" role="alert">
+  <div>
+    <strong>May bakanteng puwesto sa listing na ito.</strong>
+    <div class="small">Napuno na dati ang bilang ng hire; maaari mong buksan ulit ang listing para sa mga bagong aplikante, o panatilihing sarado.</div>
+  </div>
+  <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+    <form method="post" action="{% url 'reopen_job_after_vacancy' job.id %}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button type="submit" class="btn btn-success btn-sm">Buksan ulit ang listing</button>
+    </form>
+    <form method="post" action="{% url 'dismiss_vacancy_prompt' job.id %}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button type="submit" class="btn btn-outline-secondary btn-sm">Panatilihing sarado</button>
+    </form>
+  </div>
+</div>
+{% endif %}

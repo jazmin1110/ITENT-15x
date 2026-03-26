@@ -264,12 +264,23 @@ class Command(BaseCommand):
         for i in range(count):
             employer = random.choice(verified_employers)
             title = random.choice(JOB_TITLES)
+            picked = random.sample(SKILLS, k=random.randint(1, 3))
+            required_skills = [
+                {
+                    'skill': s,
+                    'years_experience': random.choice([None, random.randint(0, 10)]),
+                }
+                for s in picked
+            ]
             job = Job.objects.create(
                 employer=employer,
                 title=title,
                 city=random.choice(CITIES),
                 daily_rate=Decimal(random.randrange(500, 1550, 50)),
-                required_skills=random.sample(SKILLS, k=random.randint(1, 3)),
+                working_hours=random.choice(['7am–4pm', '8 oras', '6am–2pm']),
+                short_description='' if random.random() < 0.5 else f'Test work: {title}.',
+                required_skills=required_skills,
+                positions_needed=random.randint(1, 3),
                 start_date=now + timedelta(days=random.randint(1, 30)),
                 status='open' if random.random() < 0.8 else 'closed',
             )
