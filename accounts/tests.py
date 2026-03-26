@@ -9,6 +9,38 @@ from accounts.forms import EmployerProfileForm
 from accounts.models import User, WorkerProfile, EmployerProfile
 
 
+class NavbarProfilePhotoEditLinkTests(TestCase):
+    """Smoke: worker/employer navbar includes edit link to profile photo anchor."""
+
+    def test_worker_job_list_includes_profile_photo_edit_fragment(self):
+        user = User.objects.create_user(
+            username='09170001001',
+            email='',
+            password='secret',
+            phone_number='09170001001',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse('job_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse('worker_profile') + '#profile-photo')
+
+    def test_employer_jobs_includes_profile_photo_edit_fragment(self):
+        user = User.objects.create_user(
+            username='09170001002',
+            email='',
+            password='secret',
+            phone_number='09170001002',
+            role='employer',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse('employer_jobs'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse('employer_profile') + '#profile-photo')
+
+
 class DashboardRedirectTests(TestCase):
     def test_superuser_goes_to_staff_overview_even_if_role_worker(self):
         """createsuperuser defaults leave role=worker; admins should still land on staff home."""

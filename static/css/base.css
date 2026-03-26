@@ -150,6 +150,29 @@ a:hover {
   background: var(--blue-500);
 }
 
+/* Navbar: avatar + edit photo link */
+.navbar-user-stack {
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+.navbar-user-stack__edit {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--color-link);
+  text-decoration: none;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.navbar-user-stack__edit:hover {
+  text-decoration: underline;
+  color: var(--blue-600);
+}
+
+/* Scroll target for #profile-photo (sticky navbar offset) */
+.profile-photo-section {
+  scroll-margin-top: 5.5rem;
+}
+
 /* ---- Cards ---- */
 .card {
   background: var(--color-surface);

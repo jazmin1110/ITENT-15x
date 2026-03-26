@@ -69,7 +69,7 @@
             <small class="form-text text-muted">Opsyonal. Ginamit din ito sa login kung naka-fill in sa signup.</small>
           </div>
 
-          <div class="mb-3">
+          <div id="profile-photo" class="profile-photo-section mb-3">
             <label for="id_avatar" class="form-label">Profile picture</label>
             {{ form.avatar }}
             {% if form.avatar.errors %}<div class="text-danger small mt-1">{{ form.avatar.errors.0 }}</div>{% endif %}
