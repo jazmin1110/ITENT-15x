@@ -116,6 +116,8 @@ def worker_profile(request):
             request.session['profile_saved_cta'] = 'worker'
             return redirect('worker_profile')
     else:
+        if profile is not None:
+            profile.refresh_from_db()
         form = WorkerProfileForm(instance=profile, user=request.user)
 
     show_profile_cta = request.session.pop('profile_saved_cta', None) == 'worker'

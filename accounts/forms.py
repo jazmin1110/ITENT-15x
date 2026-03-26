@@ -239,6 +239,17 @@ class WorkerProfileForm(forms.ModelForm):
             for code, label in self.SKILL_CHOICES
         ]
 
+    @property
+    def predefined_skills_selected_codes(self) -> list[str]:
+        """Checkbox state for templates: always a list (never use `in` on a single string)."""
+        v = self['skills'].value()
+        if v is None:
+            return []
+        if isinstance(v, (list, tuple)):
+            return [str(x) for x in v if x is not None and str(x).strip()]
+        s = str(v).strip()
+        return [s] if s in PREDEFINED_SKILL_CODES else []
+
     def _should_prefill_contact(self):
         if not self.instance or not self.instance.pk:
             return True
