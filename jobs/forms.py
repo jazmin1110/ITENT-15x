@@ -28,7 +28,7 @@ class JobForm(forms.ModelForm):
     """Form for creating/editing a job post (predefined + custom skills)."""
     SKILL_CHOICES = PREDEFINED_SKILL_CHOICES
     city = forms.ChoiceField(
-        choices=CITY_CHOICES,
+        choices=[("", "Select a city")] + CITY_CHOICES,
         required=True,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Lungsod / Bayan',

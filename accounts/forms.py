@@ -121,7 +121,7 @@ class WorkerProfileForm(forms.ModelForm):
     """Form for worker profile details (skills match job post: per-skill years + optional custom)."""
     SKILL_CHOICES = PREDEFINED_SKILL_CHOICES
     city = forms.ChoiceField(
-        choices=CITY_CHOICES,
+        choices=[("", "Select a city")] + CITY_CHOICES,
         required=True,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Lungsod / Bayan',
@@ -430,7 +430,7 @@ class WorkerProfileForm(forms.ModelForm):
 class EmployerProfileForm(forms.ModelForm):
     """Form for employer profile details."""
     city = forms.ChoiceField(
-        choices=CITY_CHOICES,
+        choices=[("", "Select a city")] + CITY_CHOICES,
         required=True,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Lungsod / Bayan',

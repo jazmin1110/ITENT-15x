@@ -16,7 +16,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from .models import Job, Application, Rating
 from .forms import JobForm, RatingForm
-from .skill_utils import required_skill_names
+from .skill_utils import required_skill_names, PREDEFINED_SKILL_CHOICES
 from .employer_job_utils import (
     acknowledge_vacancy_keep_closed,
     hired_count_for_job,
@@ -25,6 +25,8 @@ from .employer_job_utils import (
     show_vacancy_reopen_banner,
 )
 from chat.models import Conversation
+from accounts.models import WorkerProfile
+from itent.choices import METRO_MANILA_CITIES
 
 
 @login_required
@@ -37,20 +39,42 @@ def job_list(request):
     )
 
     city = request.GET.get('city', '')
-    skill = request.GET.get('skill', '')
+    selected_skills = [s for s in request.GET.getlist('skill') if s]
 
     if city:
-        jobs_qs = jobs_qs.filter(city__icontains=city)
+        jobs_qs = jobs_qs.filter(city__iexact=city)
 
     jobs = list(jobs_qs)
-    if skill:
-        jobs = [j for j in jobs if skill in required_skill_names(j.required_skills)]
+    if selected_skills:
+        selected_set = set(selected_skills)
+        jobs = [j for j in jobs if required_skill_names(j.required_skills) & selected_set]
+
+    # Dropdown options: predefined skills + any custom skills already stored (from jobs and current worker).
+    predefined_set = {code for code, _ in PREDEFINED_SKILL_CHOICES}
+    skills_set = set(predefined_set)
+
+    open_job_skill_raws = Job.objects.filter(status='open').values_list('required_skills', flat=True)
+    for raw in open_job_skill_raws:
+        skills_set |= required_skill_names(raw)
+
+    if request.user.role == 'worker':
+        try:
+            wp = request.user.worker_profile  # related_name='worker_profile'
+        except WorkerProfile.DoesNotExist:
+            wp = None
+        if wp:
+            skills_set |= required_skill_names(wp.skills)
+
+    predefined_order = [code for code, _ in PREDEFINED_SKILL_CHOICES]
+    other_skills = sorted([s for s in skills_set if s not in predefined_set], key=str.lower)
+    skills = predefined_order + other_skills
 
     context = {
         'jobs': jobs,
         'city': city,
-        'skill': skill,
-        'skills': ['Masonry', 'Carpentry', 'Helper', 'Painting', 'Driver'],
+        'cities': METRO_MANILA_CITIES,
+        'selected_skills': selected_skills,
+        'skills': skills,
     }
     return render(request, 'jobs/job_list.html', context)
 

@@ -11,16 +11,21 @@
   <form method="get" class="row g-2 align-items-end">
     <div class="col-md-4">
       <label class="form-label">Lungsod</label>
-      <input type="text" name="city" class="form-control" placeholder="Halimbawa: Quezon City" value="{{ city }}">
+      <select name="city" class="form-select">
+        <option value="" {% if not city %}selected{% endif %}>Select</option>
+        {% for c in cities %}
+          <option value="{{ c }}" {% if c == city %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
     </div>
     <div class="col-md-4">
       <label class="form-label">Skill</label>
-      <select name="skill" class="form-select">
-        <option value="">Lahat ng Skills</option>
+      <select name="skill" class="form-select" multiple size="4">
         {% for s in skills %}
-          <option value="{{ s }}" {% if s == skill %}selected{% endif %}>{{ s }}</option>
+          <option value="{{ s }}" {% if s in selected_skills %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
       </select>
+      <div class="form-text">Select multiple</div>
     </div>
     <div class="col-md-4 d-flex gap-2">
       <button type="submit" class="btn btn-primary flex-grow-1">
