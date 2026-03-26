@@ -150,7 +150,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Custom user model
 AUTH_USER_MODEL = "accounts.User"
 
-# Allow login via username, email, or phone number
+# Allow login via phone number (username/phone_number are the same)
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.PhoneEmailBackend",
 ]
