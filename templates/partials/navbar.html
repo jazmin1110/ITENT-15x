@@ -42,25 +42,10 @@
               <i class="bi bi-file-earmark-text"></i> Applications
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link {% if current_url == 'worker_profile' %}active{% endif %}" href="{% url 'worker_profile' %}">
-              <i class="bi bi-person"></i> Profile
-            </a>
-          </li>
         {% elif user.role == 'employer' and not user.is_superuser %}
           <li class="nav-item">
             <a class="nav-link {% if current_url == 'employer_jobs' %}active{% endif %}" href="{% url 'employer_jobs' %}">
               <i class="bi bi-briefcase"></i> My Jobs
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if current_url == 'post_job' %}active{% endif %}" href="{% url 'post_job' %}">
-              <i class="bi bi-plus-circle"></i> Post Job
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if current_url == 'employer_profile' %}active{% endif %}" href="{% url 'employer_profile' %}">
-              <i class="bi bi-building"></i> Profile
             </a>
           </li>
         {% endif %}
@@ -154,11 +139,6 @@
         <li class="nav-item">
           <a class="nav-link {% if current_url == 'employer_jobs' %}active{% endif %}" href="{% url 'employer_jobs' %}">
             <i class="bi bi-briefcase"></i> My Jobs
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if current_url == 'post_job' %}active{% endif %}" href="{% url 'post_job' %}">
-            <i class="bi bi-plus-circle"></i> Post Job
           </a>
         </li>
         <li class="nav-item">
