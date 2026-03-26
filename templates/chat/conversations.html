@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Messages - ITENT{% endblock %}
+{% block title %}Messages - TiwalaPH{% endblock %}
 
 {% block content %}
 <div class="page-header mb-4">
@@ -10,9 +10,9 @@
 <div class="card">
   <div class="list-group list-group-flush">
     {% for convo in conversations %}
-    <a href="{% url 'chat' convo.id %}" class="list-group-item list-group-item-action border-0" style="border-bottom:1px solid var(--color-border) !important;">
+    <a href="{% url 'chat' convo.id %}" class="list-group-item list-group-item-action border-start-0 border-end-0">
       <div class="d-flex align-items-center gap-3 py-1">
-        <div class="user-avatar" style="width:40px;height:40px;font-size:0.9rem;flex-shrink:0;{% if user.role == 'worker' %}background:var(--blue-500);{% endif %}">
+        <div class="user-avatar user-avatar--sm{% if user.role == 'worker' %} user-avatar--employer-fallback{% endif %}">
           {% if user.role == 'worker' %}
             {% if convo.employer.employer_profile %}
               {{ convo.employer.employer_profile.company_name|make_list|first }}
@@ -29,7 +29,7 @@
         </div>
         <div class="flex-grow-1 min-w-0">
           <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-semibold" style="font-size:0.95rem;">
+            <h6 class="mb-0 fw-semibold">
               {% if user.role == 'worker' %}
                 {% if convo.employer.employer_profile %}
                   {{ convo.employer.employer_profile.company_name }}

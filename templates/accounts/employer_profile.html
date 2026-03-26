@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Employer Profile - ITENT{% endblock %}
+{% block title %}Employer Profile - TiwalaPH{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -23,7 +23,7 @@
         </div>
         <div class="flex-grow-1 align-self-center">
           <h2 class="mb-0">Employer Profile</h2>
-          <span class="text-muted" style="font-size:0.85rem;">I-update ang impormasyon ng company at i-upload ang documents</span>
+          <span class="text-muted text-sm">I-update ang impormasyon ng company at i-upload ang documents</span>
         </div>
       </div>
 
@@ -69,12 +69,12 @@
     {% endif %}
 
     <div class="card mb-4">
-      <div class="card-header py-3" style="background:var(--color-surface);border-bottom:1px solid var(--color-border);">
+      <div class="card-header py-3 bg-white border-bottom">
         <h5 class="mb-0"><i class="bi bi-building"></i> Company Information</h5>
       </div>
       <div class="card-body p-4">
 
-          <div id="profile-field-wrap-account_phone" class="mb-3 p-3 rounded profile-field-wrap{% if form.account_phone.errors %} is-invalid border border-danger{% endif %}" style="background:var(--color-surface);border:1px solid var(--color-border);">
+          <div id="profile-field-wrap-account_phone" class="mb-3 p-3 rounded border profile-field-wrap{% if form.account_phone.errors %} is-invalid border-danger{% endif %}">
             {% include 'partials/form_label_required.html' with label='Phone number (para mag-sign in)' field=form.account_phone extra_label_class='fw-semibold' %}
             {{ form.account_phone }}
             {% if form.account_phone.errors %}<div class="text-danger small mt-1">{{ form.account_phone.errors.0 }}</div>{% endif %}
@@ -116,13 +116,13 @@
           <hr class="my-4">
 
           <h5 class="mb-1"><i class="bi bi-file-earmark-arrow-up"></i> Business Documents</h5>
-          <p class="text-muted mb-4" style="font-size:0.85rem;">
+          <p class="text-muted mb-4 text-sm">
             I-upload ang lahat ng documents para ma-verify ang iyong business. Tanggap: PDF, JPG, PNG.
           </p>
 
           {% for field in form %}
             {% if field.name|slice:":4" == "doc_" %}
-              <div id="profile-field-wrap-{{ field.name }}" class="mb-3 p-3 rounded profile-field-wrap{% if field.errors %} is-invalid border border-danger{% endif %}" style="background:var(--color-surface);border:1px solid var(--color-border);">
+              <div id="profile-field-wrap-{{ field.name }}" class="mb-3 p-3 rounded border profile-field-wrap{% if field.errors %} is-invalid border-danger{% endif %}">
                 {% include 'partials/form_label_required.html' with label=field.label field=field extra_label_class='fw-semibold' %}
                 {% if field.value %}
                   <div class="mb-2">
@@ -158,7 +158,7 @@
         <div class="card-body p-4 text-center">
           {% if profile.all_docs_uploaded %}
             <h5 class="mb-2"><i class="bi bi-shield-check"></i> Handa na para sa Verification?</h5>
-            <p class="text-muted mb-3" style="font-size:0.9rem;">
+            <p class="text-muted mb-3 text-sm">
               Kumpleto na ang documents mo. I-submit para ma-review ng admin.
             </p>
             <a href="{% url 'submit_verification' %}" class="btn btn-success btn-lg">
@@ -166,7 +166,7 @@
             </a>
           {% else %}
             <h5 class="mb-2 text-muted"><i class="bi bi-shield-exclamation"></i> Hindi pa kumpleto ang Documents</h5>
-            <p class="text-muted mb-0" style="font-size:0.9rem;">
+            <p class="text-muted mb-0 text-sm">
               I-upload muna ang lahat ng required documents sa itaas bago ka mag-submit para sa verification.
             </p>
           {% endif %}

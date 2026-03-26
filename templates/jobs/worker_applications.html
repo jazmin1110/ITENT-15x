@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}My Applications - ITENT{% endblock %}
+{% block title %}My Applications - TiwalaPH{% endblock %}
 
 {% block content %}
 <div class="page-header mb-4">
@@ -30,10 +30,10 @@
         <div class="job-meta mb-1">
           <i class="bi bi-geo-alt"></i> {{ app.job.city }}
         </div>
-        <div class="job-rate mb-2">₱{{ app.job.daily_rate }}<span class="text-muted fw-normal" style="font-size:0.8rem;">{{ app.job.rate_suffix_tagalog }}</span></div>
+        <div class="job-rate mb-2">₱{{ app.job.daily_rate }}<span class="text-muted fw-normal text-xs">{{ app.job.rate_suffix_tagalog }}</span></div>
 
         {% if app.job.employer.employer_profile %}
-          <div class="job-meta mt-auto pt-2" style="border-top: 1px solid var(--color-border);">
+          <div class="job-meta mt-auto pt-2 border-top">
             <a href="{% url 'view_ratings' app.job.employer.id %}" class="text-decoration-none text-muted">
               <i class="bi bi-building"></i> {{ app.job.employer.employer_profile.company_name }}
               {% if app.job.employer.get_average_rating %}
@@ -49,17 +49,17 @@
         {% if app.chat_thread %}
           <div class="mt-2">
             <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-success btn-sm w-100">
-              <i class="bi bi-chat-dots"></i> Message on ITENT
+              <i class="bi bi-chat-dots"></i> Message
             </a>
           </div>
         {% elif app.status == 'shortlisted' or app.status == 'hired' %}
-          <p class="small text-muted mt-2 mb-0">Mag-message sa ITENT kapag available na ang chat.</p>
+          <p class="small text-muted mt-2 mb-0">Mag-message sa TiwalaPH kapag available na ang chat.</p>
         {% endif %}
 
         {% with c=app.contract_or_none %}
           {% if c %}
-            <div class="mt-3 p-2 rounded small" style="background:var(--color-surface);border:1px solid var(--color-border);">
-              <div class="fw-semibold mb-1" style="font-size:0.75rem;">Kontrata</div>
+            <div class="mt-3 p-2 rounded small border">
+              <div class="fw-semibold mb-1 text-xs">Kontrata</div>
               {% if c.contract_status == 'employer_uploaded' or c.contract_status == 'worker_responded' or c.is_complete %}
                 {% if c.employer_contract_file %}
                   <a href="{% url 'contract_download' app.id 'employer' %}" class="d-block mb-2"><i class="bi bi-download"></i> I-download ang kontrata (PDF)</a>

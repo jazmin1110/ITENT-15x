@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ job.title }} - ITENT{% endblock %}
+{% block title %}{{ job.title }} - TiwalaPH{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -13,7 +13,7 @@
       <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
-            <h2 class="mb-1" style="font-weight:700;">{{ job.title }}</h2>
+            <h2 class="mb-1 fw-bold">{{ job.title }}</h2>
             {% if job.employer.employer_profile %}
               <a href="{% url 'view_ratings' job.employer.id %}" class="text-decoration-none text-muted">
                 <i class="bi bi-building"></i> {{ job.employer.employer_profile.company_name }}
@@ -32,27 +32,27 @@
         <div class="row g-3 mb-4">
           <div class="col-6 col-md-3">
             <div class="section-card text-center p-3">
-              <div class="text-muted" style="font-size:0.75rem;">
+              <div class="text-muted text-xs">
                 {% if job.rate_type == 'monthly' %}Buwanang rate{% else %}Araw-araw na rate{% endif %}
               </div>
-              <div class="job-rate">₱{{ job.daily_rate }}<span class="text-muted fw-normal" style="font-size:0.85rem;">{{ job.rate_suffix_tagalog }}</span></div>
+              <div class="job-rate">₱{{ job.daily_rate }}<span class="text-muted fw-normal text-sm">{{ job.rate_suffix_tagalog }}</span></div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="section-card text-center p-3">
-              <div class="text-muted" style="font-size:0.75rem;">Location</div>
-              <div class="fw-semibold" style="font-size:0.95rem;">{{ job.city }}</div>
+              <div class="text-muted text-xs">Location</div>
+              <div class="fw-semibold">{{ job.city }}</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="section-card text-center p-3">
-              <div class="text-muted" style="font-size:0.75rem;">Start Date</div>
-              <div class="fw-semibold" style="font-size:0.95rem;">{{ job.start_date|date:"M d, Y" }}</div>
+              <div class="text-muted text-xs">Start Date</div>
+              <div class="fw-semibold">{{ job.start_date|date:"M d, Y" }}</div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="section-card text-center p-3">
-              <div class="text-muted" style="font-size:0.75rem;">Status</div>
+              <div class="text-muted text-xs">Status</div>
               <span class="badge {% if job.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
                 {{ job.status|title }}
               </span>
@@ -62,20 +62,20 @@
 
         {% if job.working_hours %}
         <div class="mb-3">
-          <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Working hours</h6>
+          <h6 class="fw-bold text-muted text-xs text-uppercase" style="letter-spacing:0.04em;">Working hours</h6>
           <p class="mb-0 fw-semibold">{{ job.working_hours }}</p>
         </div>
         {% endif %}
 
         {% if job.short_description %}
         <div class="mb-4">
-          <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Paglalarawan</h6>
+          <h6 class="fw-bold text-muted text-xs text-uppercase" style="letter-spacing:0.04em;">Paglalarawan</h6>
           <p class="mb-0" style="white-space:pre-line;">{{ job.short_description }}</p>
         </div>
         {% endif %}
 
         <div class="mb-4">
-          <h6 class="fw-bold text-muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">Required Skills</h6>
+          <h6 class="fw-bold text-muted text-xs text-uppercase" style="letter-spacing:0.04em;">Required Skills</h6>
           <div class="d-flex flex-wrap gap-1">
             {% for entry in job.skill_entries_normalized %}
               <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
@@ -84,7 +84,7 @@
         </div>
 
         {% if user.role == 'worker' %}
-          <div class="pt-3" style="border-top: 1px solid var(--color-border);">
+          <div class="pt-3 border-top">
             {% if has_active_application %}
               <button class="btn btn-outline-secondary btn-lg w-100" disabled>
                 <i class="bi bi-check-circle"></i> Na-apply na
