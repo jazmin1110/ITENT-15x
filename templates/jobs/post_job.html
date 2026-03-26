@@ -93,7 +93,49 @@
                 </div>
               {% endfor %}
             </div>
+
+            <div id="custom-skills-rows" class="d-flex flex-column gap-3 mt-3">
+              {% for row in form.custom_skills_initial %}
+                <div class="border rounded p-3 custom-skill-row">
+                  <div class="row align-items-end g-2">
+                    <div class="col-md-6">
+                      <label class="form-label small text-muted mb-0">Ibang skill</label>
+                      <input type="text" name="custom_skill_name" class="form-control form-control-sm" maxlength="80" value="{{ row.name }}" placeholder="Halimbawa: Welding" autocomplete="off">
+                    </div>
+                    <div class="col-md-5">
+                      <label class="form-label small text-muted mb-0">Taon ng karanasan (opsyonal)</label>
+                      <input type="number" name="custom_skill_years" class="form-control form-control-sm" min="0" max="80" placeholder="—" value="{{ row.years }}">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end pb-1">
+                      <button type="button" class="btn btn-outline-danger btn-sm remove-custom-skill w-100" title="Alisin"><span class="visually-hidden">Alisin</span>&times;</button>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-custom-skill-btn">
+              <i class="bi bi-plus-lg" aria-hidden="true"></i> Magdagdag ng skill
+            </button>
           </div>
+
+          <template id="custom-skill-row-template">
+            <div class="border rounded p-3 custom-skill-row" data-template-clone="1">
+              <div class="row align-items-end g-2">
+                <div class="col-md-6">
+                  <label class="form-label small text-muted mb-0">Ibang skill</label>
+                  <input type="text" name="custom_skill_name" class="form-control form-control-sm" maxlength="80" value="" placeholder="Halimbawa: Welding" autocomplete="off">
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label small text-muted mb-0">Taon ng karanasan (opsyonal)</label>
+                  <input type="number" name="custom_skill_years" class="form-control form-control-sm" min="0" max="80" placeholder="—" value="">
+                </div>
+                <div class="col-md-1 d-flex align-items-end pb-1">
+                  <button type="button" class="btn btn-outline-danger btn-sm remove-custom-skill w-100" title="Alisin"><span class="visually-hidden">Alisin</span>&times;</button>
+                </div>
+              </div>
+            </div>
+          </template>
 
           <button type="submit" class="btn btn-primary btn-lg w-100">
             <i class="bi bi-send"></i> I-post ang Trabaho
@@ -103,4 +145,34 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var container = document.getElementById("custom-skills-rows");
+  var tpl = document.getElementById("custom-skill-row-template");
+  var addBtn = document.getElementById("add-custom-skill-btn");
+  if (!container || !tpl || !addBtn) return;
+
+  function bindRemove(row) {
+    row.querySelectorAll(".remove-custom-skill").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        row.remove();
+      });
+    });
+  }
+
+  container.querySelectorAll(".custom-skill-row").forEach(bindRemove);
+
+  addBtn.addEventListener("click", function () {
+    var node = tpl.content.firstElementChild.cloneNode(true);
+    node.removeAttribute("data-template-clone");
+    bindRemove(node);
+    container.appendChild(node);
+    var inp = node.querySelector('input[name="custom_skill_name"]');
+    if (inp) inp.focus();
+  });
+})();
+</script>
 {% endblock %}
