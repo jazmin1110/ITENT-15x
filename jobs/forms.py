@@ -45,6 +45,7 @@ class JobForm(forms.ModelForm):
             'title',
             'city',
             'daily_rate',
+            'rate_type',
             'working_hours',
             'short_description',
             'positions_needed',
@@ -54,7 +55,15 @@ class JobForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'daily_rate': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'rate_type': forms.Select(attrs={'class': 'form-select'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+        labels = {
+            'title': 'Job Title',
+            'city': 'Lungsod / Bayan',
+            'daily_rate': 'Halaga (₱)',
+            'rate_type': 'Araw-araw o buwan-buwan',
+            'start_date': 'Start Date',
         }
 
     def __init__(self, *args, **kwargs):

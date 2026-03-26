@@ -8,6 +8,7 @@ class JobAdmin(admin.ModelAdmin):
         'title',
         'city',
         'daily_rate',
+        'rate_type',
         'positions_needed',
         'status',
         'auto_closed_when_filled',

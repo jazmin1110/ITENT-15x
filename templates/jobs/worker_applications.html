@@ -30,7 +30,7 @@
         <div class="job-meta mb-1">
           <i class="bi bi-geo-alt"></i> {{ app.job.city }}
         </div>
-        <div class="job-rate mb-2">₱{{ app.job.daily_rate }}<span class="text-muted fw-normal" style="font-size:0.8rem;">/araw</span></div>
+        <div class="job-rate mb-2">₱{{ app.job.daily_rate }}<span class="text-muted fw-normal" style="font-size:0.8rem;">{{ app.job.rate_suffix_tagalog }}</span></div>
 
         {% if app.job.employer.employer_profile %}
           <div class="job-meta mt-auto pt-2" style="border-top: 1px solid var(--color-border);">

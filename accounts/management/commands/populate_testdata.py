@@ -277,6 +277,7 @@ class Command(BaseCommand):
                 title=title,
                 city=random.choice(CITIES),
                 daily_rate=Decimal(random.randrange(500, 1550, 50)),
+                rate_type=random.choice([Job.RATE_TYPE_DAILY, Job.RATE_TYPE_MONTHLY]),
                 working_hours=random.choice(['7am–4pm', '8 oras', '6am–2pm']),
                 short_description='' if random.random() < 0.5 else f'Test work: {title}.',
                 required_skills=required_skills,

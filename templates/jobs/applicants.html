@@ -11,7 +11,7 @@
   <div>
     <h2 class="mb-0">{{ job.title }}</h2>
     <span class="text-muted" style="font-size:0.9rem;">
-      <i class="bi bi-geo-alt"></i> {{ job.city }} &bull; ₱{{ job.daily_rate }}/araw
+      <i class="bi bi-geo-alt"></i> {{ job.city }} &bull; ₱{{ job.daily_rate }}{{ job.rate_suffix_tagalog }}
       <span class="d-block mt-1 small">
         Hired: {{ hired_count }} / {{ job.positions_needed }} (employer lang)
       </span>

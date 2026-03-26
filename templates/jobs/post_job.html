@@ -15,19 +15,29 @@
           {% csrf_token %}
 
           <div class="mb-3">
-            <label for="id_title" class="form-label">Job Title</label>
+            <label for="id_title" class="form-label">Job Title <span class="text-danger">*</span></label>
             {{ form.title }}
+            {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors|join:", " }}</div>{% endif %}
           </div>
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="id_city" class="form-label">Lungsod / Bayan</label>
+              <label for="id_city" class="form-label">Lungsod / Bayan <span class="text-danger">*</span></label>
               {{ form.city }}
+              {% if form.city.errors %}<div class="invalid-feedback d-block">{{ form.city.errors|join:", " }}</div>{% endif %}
             </div>
             <div class="col-md-6 mb-3">
-              <label for="id_daily_rate" class="form-label">Daily Rate (₱)</label>
+              <label for="id_daily_rate" class="form-label">{{ form.daily_rate.label }} <span class="text-danger">*</span></label>
               {{ form.daily_rate }}
+              {% if form.daily_rate.errors %}<div class="invalid-feedback d-block">{{ form.daily_rate.errors|join:", " }}</div>{% endif %}
             </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_rate_type" class="form-label">{{ form.rate_type.label }} <span class="text-danger">*</span></label>
+            {{ form.rate_type }}
+            <div class="form-text">Piliin kung ang halaga sa itaas ay kada araw o kada buwan.</div>
+            {% if form.rate_type.errors %}<div class="invalid-feedback d-block">{{ form.rate_type.errors|join:", " }}</div>{% endif %}
           </div>
 
           <div class="mb-3">

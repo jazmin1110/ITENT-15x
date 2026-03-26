@@ -9,6 +9,12 @@ class Job(models.Model):
         ('open', 'Open'),
         ('closed', 'Closed'),
     ]
+    RATE_TYPE_DAILY = 'daily'
+    RATE_TYPE_MONTHLY = 'monthly'
+    RATE_TYPE_CHOICES = [
+        (RATE_TYPE_DAILY, 'Daily'),
+        (RATE_TYPE_MONTHLY, 'Monthly'),
+    ]
 
     employer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -18,6 +24,11 @@ class Job(models.Model):
     title = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     daily_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    rate_type = models.CharField(
+        max_length=20,
+        choices=RATE_TYPE_CHOICES,
+        default=RATE_TYPE_DAILY,
+    )
     working_hours = models.CharField(max_length=255, blank=True, default='')
     short_description = models.TextField(blank=True)
     required_skills = models.JSONField(default=list)
@@ -36,6 +47,13 @@ class Job(models.Model):
     def skill_entries_normalized(self):
         from .skill_utils import normalize_skill_entries
         return normalize_skill_entries(self.required_skills)
+
+    @property
+    def rate_suffix_tagalog(self) -> str:
+        """Short suffix for listings (e.g. /araw vs /buwan)."""
+        if self.rate_type == self.RATE_TYPE_MONTHLY:
+            return '/buwan'
+        return '/araw'
 
     class Meta:
         ordering = ['-created_at']
