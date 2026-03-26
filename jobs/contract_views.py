@@ -1,5 +1,7 @@
 """Application contract upload, acceptance, download."""
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -11,6 +13,8 @@ from accounts.permissions import is_platform_admin
 
 from .contract_utils import validate_contract_pdf
 from .models import Application, ApplicationContract
+
+logger = logging.getLogger(__name__)
 
 
 def _application_employer(application_id, user):
@@ -59,6 +63,11 @@ def contract_employer_upload(request, application_id):
     contract.contract_status = ApplicationContract.STATUS_EMPLOYER_UPLOADED
     contract.contract_sent_at = timezone.now()
     contract.save()
+    logger.info(
+        'contract employer_upload application_id=%s employer_id=%s',
+        app.id,
+        request.user.id,
+    )
     messages.success(request, 'Na-upload ang kontrata. Hihintayin ang tugon ng worker.')
     return redirect('applicants', job_id=app.job_id)
 
@@ -92,6 +101,11 @@ def contract_worker_accept(request, application_id):
     contract.worker_accepted_at = timezone.now()
     contract.contract_status = ApplicationContract.STATUS_WORKER_RESPONDED
     contract.save()
+    logger.info(
+        'contract worker_respond application_id=%s worker_id=%s',
+        app.id,
+        request.user.id,
+    )
     messages.success(request, 'Na-record ang iyong pagtanggap. Hihintayin ang kumpirmasyon ng employer.')
     return redirect('worker_applications')
 
@@ -118,6 +132,11 @@ def contract_employer_confirm(request, application_id):
     contract.contract_status = ApplicationContract.STATUS_COMPLETE
     contract.employer_confirmed_at = timezone.now()
     contract.save()
+    logger.info(
+        'contract complete application_id=%s employer_id=%s',
+        app.id,
+        request.user.id,
+    )
     messages.success(
         request,
         'Kontrata ay kumpleto na. Maaari mo nang i-hire ang worker.',
@@ -153,6 +172,13 @@ def contract_download(request, application_id, file_kind):
     if not field:
         raise Http404()
 
+    logger.info(
+        'contract download application_id=%s file_kind=%s user_id=%s staff=%s',
+        application_id,
+        file_kind,
+        request.user.id,
+        is_platform_admin(request.user),
+    )
     return FileResponse(
         field.open('rb'),
         as_attachment=True,

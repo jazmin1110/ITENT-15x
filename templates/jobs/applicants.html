@@ -63,7 +63,7 @@
                   {% if app.worker.worker_profile %}
                     {{ app.worker.worker_profile.full_name|make_list|first }}
                   {% else %}
-                    {{ app.worker.phone_number|make_list|first }}
+                    W
                   {% endif %}
                 </div>
                 {% if app.worker.worker_profile %}
@@ -74,7 +74,7 @@
                     <span class="verified-badge" style="font-size:0.7rem;"><i class="bi bi-patch-check-fill"></i></span>
                   {% endif %}
                 {% else %}
-                  {{ app.worker.phone_number }}
+                  <span class="text-muted small">Worker <span class="visually-hidden">(incomplete profile)</span></span>
                 {% endif %}
               </div>
             </td>
