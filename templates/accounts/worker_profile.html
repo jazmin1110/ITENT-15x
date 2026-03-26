@@ -18,7 +18,6 @@
             {{ form.avatar }}
           </div>
           {% if form.avatar.errors %}<div class="text-danger small mt-1 text-center px-1">{{ form.avatar.errors.0 }}</div>{% endif %}
-          <small id="profile-avatar-hint" class="form-text text-muted text-center px-1 mt-2 profile-page-header-avatar__hint{% if not form.avatar.errors %} d-none{% endif %}">JPEG, PNG, GIF, o WebP — hanggang 2MB.</small>
         </div>
         <div class="flex-grow-1 align-self-center">
           <h2 class="mb-0">Worker Profile</h2>
@@ -233,18 +232,4 @@
     {% endif %}
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-(function () {
-  var wrap = document.querySelector('#profile-photo .profile-page-header-avatar__plus-btn');
-  var hint = document.getElementById('profile-avatar-hint');
-  if (wrap && hint) {
-    wrap.addEventListener('click', function () {
-      hint.classList.remove('d-none');
-    });
-  }
-})();
-</script>
 {% endblock %}

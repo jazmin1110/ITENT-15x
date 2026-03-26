@@ -13,5 +13,6 @@ urlpatterns = [
     path('', dashboard, name='home'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# User uploads (avatars, verification docs). Needed whenever DEBUG is False (e.g. Render);
+# use cloud storage + django-storages if you need durable media across deploys.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
