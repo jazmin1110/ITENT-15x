@@ -254,6 +254,20 @@ a:hover {
   color: var(--white);
 }
 
+/* Force Chat/Messages action buttons to stay blue (Message should not look green). */
+a[href*="/chat/"].btn.btn-outline-success,
+a[href*="/chat/"].btn.btn-success {
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+a[href*="/chat/"].btn.btn-outline-success:hover,
+a[href*="/chat/"].btn.btn-success:hover {
+  background: var(--color-primary) !important;
+  color: var(--white) !important;
+  border-color: var(--color-primary) !important;
+}
+
 .btn-outline-secondary {
   color: var(--gray-500);
   border-color: var(--color-border);

@@ -128,7 +128,7 @@
           </a>
         {% endif %}
         {% if app.chat_thread %}
-          <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-success btn-sm text-xs">
+          <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-primary btn-sm text-xs">
             <i class="bi bi-chat-dots"></i> Message
           </a>
         {% endif %}
@@ -277,7 +277,7 @@
 
               {% if app.chat_thread %}
                 <div class="mt-1">
-                  <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-success btn-sm text-xs">
+                  <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-primary btn-sm text-xs">
                     <i class="bi bi-chat-dots"></i> Message
                   </a>
                 </div>
