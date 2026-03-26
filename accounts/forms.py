@@ -112,7 +112,7 @@ class WorkerProfileForm(forms.ModelForm):
     avatar = forms.ImageField(
         required=False,
         widget=forms.FileInput(attrs={
-            'class': 'form-control',
+            'class': 'visually-hidden',
             'accept': 'image/jpeg,image/png,image/gif,image/webp',
         }),
         label='Profile picture',
@@ -176,7 +176,7 @@ class EmployerProfileForm(forms.ModelForm):
     avatar = forms.ImageField(
         required=False,
         widget=forms.FileInput(attrs={
-            'class': 'form-control',
+            'class': 'visually-hidden',
             'accept': 'image/jpeg,image/png,image/gif,image/webp',
         }),
         label='Profile picture',
