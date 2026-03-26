@@ -9,11 +9,16 @@
       {% csrf_token %}
       <div class="page-header d-flex align-items-start gap-3 mb-4">
         <div id="profile-photo" class="profile-photo-section profile-page-header-avatar d-flex flex-column align-items-center flex-shrink-0">
-          {% include 'partials/user_avatar.html' with size='lg' extra_class='user-avatar--employer-fallback' %}
-          <label for="id_avatar" class="profile-page-header-avatar__edit">Baguhin ang larawan</label>
-          {{ form.avatar }}
+          <div class="profile-page-header-avatar__wrap">
+            {% include 'partials/user_avatar.html' with size='lg' extra_class='user-avatar--employer-fallback' %}
+            <label for="id_avatar" class="profile-page-header-avatar__plus-btn" title="Baguhin ang larawan">
+              <span class="visually-hidden">Baguhin ang larawan</span>
+              <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            </label>
+            {{ form.avatar }}
+          </div>
           {% if form.avatar.errors %}<div class="text-danger small mt-1 text-center px-1">{{ form.avatar.errors.0 }}</div>{% endif %}
-          <small class="form-text text-muted text-center px-1 mt-1 profile-page-header-avatar__hint">JPEG, PNG, GIF, o WebP — hanggang 2MB.</small>
+          <small id="profile-avatar-hint" class="form-text text-muted text-center px-1 mt-2 profile-page-header-avatar__hint{% if not form.avatar.errors %} d-none{% endif %}">JPEG, PNG, GIF, o WebP — hanggang 2MB.</small>
         </div>
         <div class="flex-grow-1 align-self-center">
           <h2 class="mb-0">Employer Profile</h2>
@@ -168,4 +173,18 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var wrap = document.querySelector('#profile-photo .profile-page-header-avatar__plus-btn');
+  var hint = document.getElementById('profile-avatar-hint');
+  if (wrap && hint) {
+    wrap.addEventListener('click', function () {
+      hint.classList.remove('d-none');
+    });
+  }
+})();
+</script>
 {% endblock %}

@@ -9,10 +9,10 @@ from accounts.forms import EmployerProfileForm
 from accounts.models import User, WorkerProfile, EmployerProfile
 
 
-class NavbarProfilePhotoEditLinkTests(TestCase):
-    """Smoke: worker/employer navbar includes edit link to profile photo anchor."""
+class ProfileHeaderPhotoSectionTests(TestCase):
+    """Profile photo upload lives in page header with anchor id=profile-photo."""
 
-    def test_worker_job_list_includes_profile_photo_edit_fragment(self):
+    def test_worker_profile_has_header_photo_section(self):
         user = User.objects.create_user(
             username='09170001001',
             email='',
@@ -22,11 +22,12 @@ class NavbarProfilePhotoEditLinkTests(TestCase):
         )
         client = Client()
         client.force_login(user)
-        response = client.get(reverse('job_list'))
+        response = client.get(reverse('worker_profile'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, reverse('worker_profile') + '#profile-photo')
+        self.assertContains(response, 'id="profile-photo"')
+        self.assertContains(response, 'Baguhin ang larawan')
 
-    def test_employer_jobs_includes_profile_photo_edit_fragment(self):
+    def test_employer_profile_has_header_photo_section(self):
         user = User.objects.create_user(
             username='09170001002',
             email='',
@@ -36,9 +37,10 @@ class NavbarProfilePhotoEditLinkTests(TestCase):
         )
         client = Client()
         client.force_login(user)
-        response = client.get(reverse('employer_jobs'))
+        response = client.get(reverse('employer_profile'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, reverse('employer_profile') + '#profile-photo')
+        self.assertContains(response, 'id="profile-photo"')
+        self.assertContains(response, 'Baguhin ang larawan')
 
 
 class DashboardRedirectTests(TestCase):

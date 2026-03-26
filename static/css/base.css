@@ -150,26 +150,50 @@ a:hover {
   background: var(--blue-500);
 }
 
-/* Profile page: large header avatar + edit label */
+/* Profile page: large header avatar + corner + button */
 .profile-page-header-avatar {
   line-height: 1.25;
 }
-.profile-page-header-avatar__edit {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-link);
-  cursor: pointer;
-  text-decoration: none;
-  margin-top: 6px;
-  text-align: center;
+.profile-page-header-avatar__wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
 }
-.profile-page-header-avatar__edit:hover {
-  text-decoration: underline;
-  color: var(--blue-600);
+.profile-page-header-avatar__plus-btn {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.profile-page-header-avatar__plus-btn:hover {
+  background: var(--green-50);
+  border-color: var(--green-500);
+  color: var(--green-700);
+}
+.profile-page-header-avatar__plus-btn:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+.profile-page-header-avatar__plus-btn .bi {
+  font-size: 1.15rem;
+  line-height: 1;
+  font-weight: 700;
 }
 .profile-page-header-avatar__hint {
   font-size: 0.72rem;
-  max-width: 10rem;
+  max-width: 12rem;
   line-height: 1.35;
 }
 
