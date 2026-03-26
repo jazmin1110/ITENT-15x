@@ -739,3 +739,12 @@ a:hover {
   background: var(--green-50);
   border-color: var(--green-100);
 }
+
+/* Profile forms: invalid field groups */
+.profile-field-wrap.is-invalid .form-control,
+.profile-field-wrap.is-invalid .form-select {
+  border-color: var(--bs-danger, #dc3545);
+}
+.profile-field-wrap.is-invalid .form-check-input {
+  border-color: var(--bs-danger, #dc3545);
+}

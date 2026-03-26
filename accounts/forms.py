@@ -236,6 +236,7 @@ class EmployerProfileForm(forms.ModelForm):
         self.user = user
         super().__init__(*args, **kwargs)
         self.fields['contact_number'].label = 'Company contact number'
+        self.fields['contact_number'].required = True
         if user:
             self.fields['email'].initial = user.email or ''
             self.fields['account_phone'].initial = user.phone_number

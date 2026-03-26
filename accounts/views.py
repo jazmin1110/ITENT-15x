@@ -8,6 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.db import transaction
 from .decorators import staff_member_required
+from .form_utils import first_invalid_field_name
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
 from .models import User, WorkerProfile, EmployerProfile
 from .permissions import is_platform_admin
@@ -118,11 +119,13 @@ def worker_profile(request):
         form = WorkerProfileForm(instance=profile, user=request.user)
 
     show_profile_cta = request.session.pop('profile_saved_cta', None) == 'worker'
+    profile_focus_field = first_invalid_field_name(form) if form.errors else None
 
     return render(request, 'accounts/worker_profile.html', {
         'form': form,
         'profile': profile,
         'show_profile_cta': show_profile_cta,
+        'profile_focus_field': profile_focus_field,
     })
 
 
@@ -187,11 +190,13 @@ def employer_profile(request):
         form = EmployerProfileForm(instance=profile, user=request.user)
 
     show_profile_cta = request.session.pop('profile_saved_cta', None) == 'employer'
+    profile_focus_field = first_invalid_field_name(form) if form.errors else None
 
     return render(request, 'accounts/employer_profile.html', {
         'form': form,
         'profile': profile,
         'show_profile_cta': show_profile_cta,
+        'profile_focus_field': profile_focus_field,
     })
 
 

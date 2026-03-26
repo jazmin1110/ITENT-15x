@@ -6,7 +6,8 @@ from django.test import Client, TestCase
 from PIL import Image
 from django.urls import reverse
 
-from accounts.forms import EmployerProfileForm
+from accounts.form_utils import first_invalid_field_name
+from accounts.forms import EmployerProfileForm, WorkerProfileForm
 from accounts.models import User, EmployerProfile
 
 
@@ -356,3 +357,112 @@ class EmployerProfileTests(TestCase):
         self.assertEqual(user.username, '09174000003')
         self.assertIsNone(authenticate(username='09174000002', password='secret'))
         self.assertIsNotNone(authenticate(username='09174000003', password='secret'))
+
+
+class FirstInvalidFieldNameTests(TestCase):
+    def test_returns_first_declared_field_with_error(self):
+        User.objects.create_user(
+            username='09175000003',
+            email='',
+            password='secret',
+            phone_number='09175000003',
+            role='worker',
+        )
+        user = User.objects.create_user(
+            username='09175000001',
+            email='',
+            password='secret',
+            phone_number='09175000001',
+            role='worker',
+        )
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'OK',
+                'city': 'X',
+                'contact_number': '09175000003',
+                'years_experience': 0,
+                'skills': ['Helper'],
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('contact_number', form.errors)
+        self.assertEqual(first_invalid_field_name(form), 'contact_number')
+
+    def test_none_when_valid(self):
+        user = User.objects.create_user(
+            username='09175000002',
+            email='',
+            password='secret',
+            phone_number='09175000002',
+            role='worker',
+        )
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'OK',
+                'city': 'X',
+                'contact_number': '09175000002',
+                'years_experience': 0,
+                'skills': ['Helper'],
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(first_invalid_field_name(form))
+
+
+class ProfileFormFocusUXTests(TestCase):
+    def test_worker_invalid_post_includes_focus_script_for_first_error(self):
+        user = User.objects.create_user(
+            username='09176000001',
+            email='',
+            password='secret',
+            phone_number='09176000001',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.post(
+            reverse('worker_profile'),
+            data={
+                'full_name': '',
+                'city': 'Quezon City',
+                'contact_number': '09176000001',
+                'years_experience': 0,
+                'skills': ['Helper'],
+                'email': '',
+                'national_id_number': '',
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'This field is required')
+        self.assertContains(response, 'var name = "full_name"')
+
+    def test_employer_invalid_post_includes_focus_script_for_first_error(self):
+        user = User.objects.create_user(
+            username='09176000002',
+            email='',
+            password='secret',
+            phone_number='09176000002',
+            role='employer',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.post(
+            reverse('employer_profile'),
+            data={
+                'company_name': '',
+                'city': 'Makati',
+                'contact_person': 'Maria',
+                'contact_number': '0288880000',
+                'account_phone': '09176000002',
+                'email': '',
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'This field is required')
+        self.assertContains(response, 'var name = "company_name"')
