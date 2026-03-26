@@ -20,12 +20,39 @@
     </div>
     <div class="col-md-4">
       <label class="form-label">Skill</label>
-      <select name="skill" class="form-select" multiple size="4">
-        {% for s in skills %}
-          <option value="{{ s }}" {% if s in selected_skills %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
-      <div class="form-text">Select multiple</div>
+      <div class="dropdown w-100">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+          type="button"
+          id="skillDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Select skills
+        </button>
+        <div class="dropdown-menu w-100 p-3" aria-labelledby="skillDropdown" style="max-height: 260px; overflow: auto;">
+          {% if skills %}
+            {% for s in skills %}
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="skill"
+                  value="{{ s }}"
+                  id="skill_filter_{{ forloop.counter }}"
+                  {% if s in selected_skills %}checked{% endif %}
+                >
+                <label class="form-check-label" for="skill_filter_{{ forloop.counter }}">
+                  {{ s }}
+                </label>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted small">No skills available</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-text">Tick to select multiple skills</div>
     </div>
     <div class="col-md-4 d-flex gap-2">
       <button type="submit" class="btn btn-primary flex-grow-1">
