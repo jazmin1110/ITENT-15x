@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.utils import timezone
 
 from chat.models import Conversation
-from jobs.models import Application, Job
+from jobs.models import Application, ApplicationContract, Job
 
 from .decorators import staff_member_required
 from .models import EmployerProfile, WorkerProfile
@@ -216,6 +216,25 @@ def staff_applications(request):
         'page_obj': page_obj,
         'status': status,
         'status_choices': Application.STATUS_CHOICES,
+    })
+
+
+@staff_member_required
+def staff_contracts(request):
+    qs = ApplicationContract.objects.select_related(
+        'application__worker',
+        'application__job',
+        'application__job__employer',
+    ).order_by('-updated_at')
+    status = request.GET.get('status', '').strip()
+    valid = {c[0] for c in ApplicationContract.CONTRACT_STATUS_CHOICES}
+    if status in valid:
+        qs = qs.filter(contract_status=status)
+    page_obj = _paginate(request, qs)
+    return render(request, 'staff/contracts_list.html', {
+        'page_obj': page_obj,
+        'status': status,
+        'status_choices': ApplicationContract.CONTRACT_STATUS_CHOICES,
     })
 
 

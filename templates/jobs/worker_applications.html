@@ -46,12 +46,48 @@
           </div>
         {% endif %}
 
-        {% if app.status == 'hired' and app.job.employer.employer_profile %}
-          <div class="mt-2 p-2 rounded" style="background:var(--green-50);border:1px solid var(--green-100);">
-            <small class="text-muted"><i class="bi bi-phone"></i> Contact:</small>
-            <span class="fw-semibold" style="font-size:0.85rem;">{{ app.job.employer.employer_profile.contact_number }}</span>
+        {% if app.chat_thread %}
+          <div class="mt-2">
+            <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-success btn-sm w-100">
+              <i class="bi bi-chat-dots"></i> Message on ITENT
+            </a>
           </div>
+        {% elif app.status == 'shortlisted' or app.status == 'hired' %}
+          <p class="small text-muted mt-2 mb-0">Mag-message sa ITENT kapag available na ang chat.</p>
         {% endif %}
+
+        {% with c=app.contract_or_none %}
+          {% if c %}
+            <div class="mt-3 p-2 rounded small" style="background:var(--color-surface);border:1px solid var(--color-border);">
+              <div class="fw-semibold mb-1" style="font-size:0.75rem;">Kontrata</div>
+              {% if c.contract_status == 'employer_uploaded' or c.contract_status == 'worker_responded' or c.is_complete %}
+                {% if c.employer_contract_file %}
+                  <a href="{% url 'contract_download' app.id 'employer' %}" class="d-block mb-2"><i class="bi bi-download"></i> I-download ang kontrata (PDF)</a>
+                {% endif %}
+              {% endif %}
+              {% if c.can_worker_respond %}
+                <form method="post" action="{% url 'contract_worker_accept' app.id %}" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="accept_terms" value="1" id="accept-{{ app.id }}" required>
+                    <label class="form-check-label" for="accept-{{ app.id }}">Tinatanggap ko ang terms sa PDF.</label>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small mb-0">Signed PDF (opsyonal)</label>
+                    <input type="file" name="worker_signed" class="form-control form-control-sm" accept="application/pdf">
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-sm w-100">Isumite ang tugon</button>
+                </form>
+              {% elif c.is_complete %}
+                <span class="badge bg-success">Kontrata kumpleto</span>
+              {% elif c.contract_status == 'worker_responded' %}
+                <span class="badge bg-warning text-dark">Hinihintay ang kumpirmasyon ng employer</span>
+              {% elif c.contract_status == 'employer_uploaded' %}
+                <span class="badge bg-info text-dark">May bagong kontrata — tingnan ang PDF</span>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
         {% if app.status == 'completed' or app.status == 'hired' %}
           <div class="mt-2">

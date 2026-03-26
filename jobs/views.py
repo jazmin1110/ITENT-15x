@@ -153,7 +153,7 @@ def applicants(request, job_id):
     )
 
     annotated = (
-        job.applications.select_related('worker__worker_profile')
+        job.applications.select_related('worker__worker_profile', 'contract')
         .prefetch_related('ratings')
         .annotate(
             sort_status_priority=status_priority,
@@ -200,6 +200,13 @@ def applicants(request, job_id):
             )
         )
 
+    convo_map = {
+        (c.job_id, c.worker_id): c
+        for c in Conversation.objects.filter(job=job, employer=request.user)
+    }
+    for app in applications:
+        app.chat_thread = convo_map.get((app.job_id, app.worker_id))
+
     return render(
         request,
         'jobs/applicants.html',
@@ -210,7 +217,10 @@ def applicants(request, job_id):
 @login_required
 def update_application_status(request, application_id, status):
     """Update application status (viewed, shortlisted, hired, completed)."""
-    application = get_object_or_404(Application, id=application_id)
+    application = get_object_or_404(
+        Application.objects.select_related('job', 'contract'),
+        id=application_id,
+    )
 
     if application.job.employer != request.user:
         messages.error(request, 'Access denied.')
@@ -218,6 +228,13 @@ def update_application_status(request, application_id, status):
 
     if status not in ['viewed', 'shortlisted', 'hired', 'completed']:
         messages.error(request, 'Invalid status.')
+        return redirect('applicants', job_id=application.job.id)
+
+    if status == 'hired' and not application.hire_allowed_by_contract:
+        messages.error(
+            request,
+            'Kumpletuhin muna ang kontrata (upload → tugon ng worker → kumpirma) bago mag-hire.',
+        )
         return redirect('applicants', job_id=application.job.id)
 
     if status == 'hired' and application.hired_at is None:
@@ -247,14 +264,21 @@ def worker_applications(request):
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
-    applications = Application.objects.filter(
-        worker=request.user
-    ).select_related(
-        'job__employer__employer_profile'
-    ).prefetch_related('ratings')
-
+    applications = list(
+        Application.objects.filter(worker=request.user)
+        .select_related('job__employer__employer_profile', 'contract')
+        .prefetch_related('ratings')
+    )
+    convo_map = {
+        c.job_id: c
+        for c in Conversation.objects.filter(
+            worker=request.user,
+            job_id__in=[a.job_id for a in applications],
+        )
+    }
     for app in applications:
         app.worker_has_rated = app.ratings.filter(rater=request.user).exists()
+        app.chat_thread = convo_map.get(app.job_id)
 
     return render(request, 'jobs/worker_applications.html', {'applications': applications})
 

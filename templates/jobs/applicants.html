@@ -133,9 +133,15 @@
                   </a>
                 {% endif %}
                 {% if app.status != 'hired' and app.status != 'completed' %}
-                  <a href="{% url 'update_application_status' app.id 'hired' %}" class="btn btn-primary btn-sm" style="font-size:0.75rem;">
-                    <i class="bi bi-check-lg"></i> Hire
-                  </a>
+                  {% if app.hire_allowed_by_contract %}
+                    <a href="{% url 'update_application_status' app.id 'hired' %}" class="btn btn-primary btn-sm" style="font-size:0.75rem;">
+                      <i class="bi bi-check-lg"></i> Hire
+                    </a>
+                  {% else %}
+                    <span class="btn btn-outline-secondary btn-sm disabled" style="font-size:0.75rem;cursor:not-allowed;" title="Kumpletuhin ang kontrata bago mag-hire.">
+                      <i class="bi bi-check-lg"></i> Hire
+                    </span>
+                  {% endif %}
                 {% endif %}
                 {% if app.status == 'hired' %}
                   <a href="{% url 'update_application_status' app.id 'completed' %}" class="btn btn-outline-secondary btn-sm" style="font-size:0.75rem;">
@@ -144,9 +150,11 @@
                 {% endif %}
               </div>
 
-              {% if app.status == 'hired' and app.worker.worker_profile %}
+              {% if app.chat_thread %}
                 <div class="mt-1">
-                  <small class="text-muted"><i class="bi bi-phone"></i> {{ app.worker.worker_profile.contact_number }}</small>
+                  <a href="{% url 'chat' app.chat_thread.id %}" class="btn btn-outline-success btn-sm" style="font-size:0.75rem;">
+                    <i class="bi bi-chat-dots"></i> Message on ITENT
+                  </a>
                 </div>
               {% endif %}
 
@@ -161,6 +169,74 @@
                   {% endif %}
                 </div>
               {% endif %}
+            </td>
+          </tr>
+          <tr class="table-light border-bottom">
+            <td colspan="7" class="py-3">
+              {% with c=app.contract_or_none %}
+                <div class="small fw-semibold text-uppercase text-muted mb-2" style="font-size:0.7rem;">Kontrata</div>
+                {% if app.status != 'shortlisted' and app.status != 'hired' and app.status != 'completed' %}
+                  <p class="text-muted small mb-0">I-shortlist muna para ma-upload ang PDF at mag-chat sa ITENT.</p>
+                {% elif app.status == 'shortlisted' %}
+                  {% if not c %}
+                    <form method="post" action="{% url 'contract_employer_upload' app.id %}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                      {% csrf_token %}
+                      <div class="col-auto">
+                        <label class="form-label small mb-0">PDF kontrata</label>
+                        <input type="file" name="employer_contract" class="form-control form-control-sm" accept="application/pdf" required>
+                      </div>
+                      <div class="col-auto">
+                        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-upload"></i> I-upload</button>
+                      </div>
+                    </form>
+                  {% else %}
+                    {% if c.can_employer_upload %}
+                      <form method="post" action="{% url 'contract_employer_upload' app.id %}" enctype="multipart/form-data" class="row g-2 align-items-end mb-2">
+                        {% csrf_token %}
+                        <div class="col-auto">
+                          <label class="form-label small mb-0">{% if c.contract_status == 'none' %}PDF kontrata{% else %}Palitan ang PDF{% endif %}</label>
+                          <input type="file" name="employer_contract" class="form-control form-control-sm" accept="application/pdf" required>
+                        </div>
+                        <div class="col-auto">
+                          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-upload"></i> I-upload</button>
+                        </div>
+                      </form>
+                    {% endif %}
+                    {% if c.contract_status == 'employer_uploaded' %}
+                      <p class="small mb-1"><span class="badge bg-info text-dark">Naipadala</span> Hinihintay ang tugon ng worker.</p>
+                      {% if c.employer_contract_file %}
+                        <a href="{% url 'contract_download' app.id 'employer' %}" class="small"><i class="bi bi-download"></i> I-download ang PDF</a>
+                      {% endif %}
+                    {% elif c.contract_status == 'worker_responded' %}
+                      <p class="small mb-1"><span class="badge bg-warning text-dark">Tumugon na ang worker</span></p>
+                      {% if c.employer_contract_file %}
+                        <a href="{% url 'contract_download' app.id 'employer' %}" class="small me-2"><i class="bi bi-download"></i> PDF ng employer</a>
+                      {% endif %}
+                      {% if c.worker_signed_file %}
+                        <a href="{% url 'contract_download' app.id 'worker' %}" class="small"><i class="bi bi-download"></i> Signed PDF ng worker</a>
+                      {% endif %}
+                      <form method="post" action="{% url 'contract_employer_confirm' app.id %}" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-shield-check"></i> Kumpirmahin ang kontrata</button>
+                      </form>
+                    {% elif c.is_complete %}
+                      <p class="small mb-0"><span class="badge bg-success">Kontrata kumpleto</span> Puwede nang i-hire.</p>
+                      {% if c.employer_contract_file %}
+                        <a href="{% url 'contract_download' app.id 'employer' %}" class="small"><i class="bi bi-download"></i> PDF</a>
+                      {% endif %}
+                    {% elif c.contract_status == 'none' %}
+                      <p class="text-muted small mb-0">Mag-upload ng PDF sa itaas.</p>
+                    {% endif %}
+                  {% endif %}
+                {% elif app.status == 'hired' or app.status == 'completed' %}
+                  {% if c and c.is_complete %}
+                    <span class="badge bg-success">Kontrata</span>
+                    {% if c.employer_contract_file %}
+                      <a href="{% url 'contract_download' app.id 'employer' %}" class="small ms-2"><i class="bi bi-download"></i> PDF</a>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endwith %}
             </td>
           </tr>
           {% empty %}

@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, contract_views
 
 urlpatterns = [
     path('', views.job_list, name='job_list'),
@@ -9,6 +9,10 @@ urlpatterns = [
     path('my-jobs/', views.employer_jobs, name='employer_jobs'),
     path('<int:job_id>/applicants/', views.applicants, name='applicants'),
     path('application/<int:application_id>/status/<str:status>/', views.update_application_status, name='update_application_status'),
+    path('application/<int:application_id>/contract/upload/', contract_views.contract_employer_upload, name='contract_employer_upload'),
+    path('application/<int:application_id>/contract/worker-accept/', contract_views.contract_worker_accept, name='contract_worker_accept'),
+    path('application/<int:application_id>/contract/confirm/', contract_views.contract_employer_confirm, name='contract_employer_confirm'),
+    path('application/<int:application_id>/contract/download/<str:file_kind>/', contract_views.contract_download, name='contract_download'),
     path('my-applications/', views.worker_applications, name='worker_applications'),
     path('<int:job_id>/toggle-status/', views.toggle_job_status, name='toggle_job_status'),
     # Rating URLs

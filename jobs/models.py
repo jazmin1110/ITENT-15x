@@ -58,6 +58,91 @@ class Application(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    @property
+    def hire_allowed_by_contract(self) -> bool:
+        """True if employer may set status to hired (contract workflow complete)."""
+        try:
+            return self.contract.is_complete
+        except ApplicationContract.DoesNotExist:
+            return False
+
+    @property
+    def contract_or_none(self):
+        try:
+            return self.contract
+        except ApplicationContract.DoesNotExist:
+            return None
+
+
+class ApplicationContract(models.Model):
+    """Contract PDF + acceptance workflow before hire."""
+
+    STATUS_NONE = 'none'
+    STATUS_EMPLOYER_UPLOADED = 'employer_uploaded'
+    STATUS_WORKER_RESPONDED = 'worker_responded'
+    STATUS_COMPLETE = 'complete'
+
+    CONTRACT_STATUS_CHOICES = [
+        (STATUS_NONE, 'None'),
+        (STATUS_EMPLOYER_UPLOADED, 'Employer uploaded'),
+        (STATUS_WORKER_RESPONDED, 'Worker responded'),
+        (STATUS_COMPLETE, 'Complete'),
+    ]
+
+    application = models.OneToOneField(
+        Application,
+        on_delete=models.CASCADE,
+        related_name='contract',
+    )
+    contract_status = models.CharField(
+        max_length=30,
+        choices=CONTRACT_STATUS_CHOICES,
+        default=STATUS_NONE,
+    )
+    employer_contract_file = models.FileField(
+        upload_to='application_contracts/employer/',
+        blank=True,
+        null=True,
+    )
+    worker_signed_file = models.FileField(
+        upload_to='application_contracts/worker/',
+        blank=True,
+        null=True,
+    )
+    worker_accepted_terms = models.BooleanField(default=False)
+    worker_accepted_at = models.DateTimeField(null=True, blank=True)
+    employer_confirmed_at = models.DateTimeField(null=True, blank=True)
+    contract_sent_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'Contract for application {self.application_id} ({self.contract_status})'
+
+    @property
+    def is_complete(self) -> bool:
+        return self.contract_status == self.STATUS_COMPLETE
+
+    @property
+    def can_employer_upload(self) -> bool:
+        app = self.application
+        if app.status in ('hired', 'completed'):
+            return False
+        return app.status == 'shortlisted' and self.contract_status in (
+            self.STATUS_NONE,
+            self.STATUS_EMPLOYER_UPLOADED,
+        )
+
+    @property
+    def can_worker_respond(self) -> bool:
+        return self.contract_status == self.STATUS_EMPLOYER_UPLOADED
+
+    @property
+    def can_employer_confirm(self) -> bool:
+        return self.contract_status == self.STATUS_WORKER_RESPONDED
+
 
 class Rating(models.Model):
     """Rating given after job completion."""

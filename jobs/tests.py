@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import EmployerProfile, User, WorkerProfile
-from jobs.models import Application, Job
+from jobs.models import Application, ApplicationContract, Job
 
 
 class ApplicationHiredAtTests(TestCase):
@@ -53,6 +53,13 @@ class ApplicationHiredAtTests(TestCase):
 
     def test_hired_sets_hired_at_once(self):
         self.client.force_login(self.employer)
+        ApplicationContract.objects.create(
+            application=self.application,
+            contract_status=ApplicationContract.STATUS_COMPLETE,
+            worker_accepted_terms=True,
+            worker_accepted_at=timezone.now(),
+            employer_confirmed_at=timezone.now(),
+        )
         self.client.get(
             reverse('update_application_status', args=[self.application.pk, 'hired'])
         )
@@ -129,3 +136,58 @@ class StaffExportHiresTests(TestCase):
         self.client.force_login(self.worker)
         response = self.client.get(reverse('staff_export_hires'))
         self.assertEqual(response.status_code, 302)
+
+class ContractHireGateTests(TestCase):
+    """Hire requires completed contract workflow."""
+
+    def setUp(self):
+        self.employer = User.objects.create_user(
+            username='09991234510',
+            email='e10@test.com',
+            password='pass',
+            role='employer',
+            phone_number='09991234510',
+        )
+        self.worker = User.objects.create_user(
+            username='09991234511',
+            email='w11@test.com',
+            password='pass',
+            role='worker',
+            phone_number='09991234511',
+        )
+        EmployerProfile.objects.create(
+            user=self.employer,
+            company_name='Gate Co',
+            city='Manila',
+            contact_person='G',
+            contact_number='09991234510',
+        )
+        WorkerProfile.objects.create(
+            user=self.worker,
+            full_name='Gate Worker',
+            city='Manila',
+            contact_number='09991234511',
+            years_experience=0,
+            skills=[],
+        )
+        self.job = Job.objects.create(
+            employer=self.employer,
+            title='Gate Job',
+            city='Manila',
+            daily_rate=400,
+            required_skills=[],
+            start_date=date.today(),
+            status='open',
+        )
+        self.application = Application.objects.create(job=self.job, worker=self.worker)
+        self.client = Client()
+
+    def test_hire_blocked_without_complete_contract(self):
+        self.client.force_login(self.employer)
+        response = self.client.get(
+            reverse('update_application_status', args=[self.application.pk, 'hired']),
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.application.refresh_from_db()
+        self.assertNotEqual(self.application.status, 'hired')

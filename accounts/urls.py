@@ -20,6 +20,7 @@ urlpatterns = [
     path('staff/export/hires.csv/', staff_views.staff_export_hires, name='staff_export_hires'),
     path('staff/jobs/', staff_views.staff_jobs, name='staff_jobs'),
     path('staff/applications/', staff_views.staff_applications, name='staff_applications'),
+    path('staff/contracts/', staff_views.staff_contracts, name='staff_contracts'),
     path('staff/users/', staff_views.staff_users, name='staff_users'),
     path('staff/conversations/', staff_views.staff_conversations, name='staff_conversations'),
     path('staff/conversations/<int:pk>/', staff_views.staff_conversation_detail, name='staff_conversation_detail'),
