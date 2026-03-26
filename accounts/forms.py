@@ -13,6 +13,7 @@ from jobs.skill_utils import (
 )
 
 from .models import User, WorkerProfile, EmployerProfile
+from itent.choices import CITY_CHOICES
 
 WORKER_MAX_CUSTOM_SKILLS = 10
 WORKER_CUSTOM_SKILL_NAME_MAX_LEN = 80
@@ -119,6 +120,12 @@ class SignUpForm(UserCreationForm):
 class WorkerProfileForm(forms.ModelForm):
     """Form for worker profile details (skills match job post: per-skill years + optional custom)."""
     SKILL_CHOICES = PREDEFINED_SKILL_CHOICES
+    city = forms.ChoiceField(
+        choices=CITY_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Lungsod / Bayan',
+    )
     skills = forms.MultipleChoiceField(
         choices=PREDEFINED_SKILL_CHOICES,
         required=False,
@@ -150,7 +157,6 @@ class WorkerProfileForm(forms.ModelForm):
         ]
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'city': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'tel'}),
             'doc_nbi_clearance': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'national_id_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. XXXX-XXXX-XXXX-XXXX'}),
@@ -423,6 +429,12 @@ class WorkerProfileForm(forms.ModelForm):
 
 class EmployerProfileForm(forms.ModelForm):
     """Form for employer profile details."""
+    city = forms.ChoiceField(
+        choices=CITY_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Lungsod / Bayan',
+    )
     email = forms.EmailField(
         required=False,
         widget=forms.EmailInput(attrs={
@@ -460,7 +472,6 @@ class EmployerProfileForm(forms.ModelForm):
         ]
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'city': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'tel'}),
             'doc_sec_dti': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),

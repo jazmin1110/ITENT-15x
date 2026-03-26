@@ -1,5 +1,6 @@
 from django import forms
 from .models import Job, Rating
+from itent.choices import CITY_CHOICES
 from .skill_utils import (
     PREDEFINED_SKILL_CHOICES,
     PREDEFINED_SKILL_CODES,
@@ -26,6 +27,12 @@ def _multi_get(data, key: str) -> list:
 class JobForm(forms.ModelForm):
     """Form for creating/editing a job post (predefined + custom skills)."""
     SKILL_CHOICES = PREDEFINED_SKILL_CHOICES
+    city = forms.ChoiceField(
+        choices=CITY_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Lungsod / Bayan',
+    )
     required_skills = forms.MultipleChoiceField(
         choices=SKILL_CHOICES,
         widget=forms.CheckboxSelectMultiple,
@@ -68,14 +75,12 @@ class JobForm(forms.ModelForm):
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'city': forms.TextInput(attrs={'class': 'form-control'}),
             'daily_rate': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'rate_type': forms.Select(attrs={'class': 'form-select'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
         labels = {
             'title': 'Job Title',
-            'city': 'Lungsod / Bayan',
             'daily_rate': 'Halaga (₱)',
             'rate_type': 'Araw-araw o buwan-buwan',
             'start_date': 'Start Date',
