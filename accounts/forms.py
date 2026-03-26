@@ -121,6 +121,7 @@ class WorkerProfileForm(forms.ModelForm):
     skills = forms.MultipleChoiceField(
         choices=PREDEFINED_SKILL_CHOICES,
         required=False,
+        widget=forms.CheckboxSelectMultiple,
     )
     email = forms.EmailField(
         required=False,
@@ -265,7 +266,24 @@ class WorkerProfileForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        selected = cleaned.get('skills') or []
+        # Read checkbox values from POST so manual template markup always matches.
+        post_skill_vals = [
+            str(s).strip()
+            for s in _multi_get(self.data, 'skills')
+            if str(s).strip()
+        ]
+        selected = []
+        seen_sel: set[str] = set()
+        for s in post_skill_vals:
+            if s not in PREDEFINED_SKILL_CODES:
+                self.add_error('skills', 'Pumili ng wastong skill sa listahan.')
+                return cleaned
+            key = s.lower()
+            if key in seen_sel:
+                continue
+            seen_sel.add(key)
+            selected.append(s)
+        cleaned['skills'] = selected
         predefined_lower = {c.lower() for c in PREDEFINED_SKILL_CODES}
 
         names = _multi_get(self.data, 'custom_skill_name')
