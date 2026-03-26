@@ -150,22 +150,27 @@ a:hover {
   background: var(--blue-500);
 }
 
-/* Navbar: avatar + edit photo link */
-.navbar-user-stack {
-  line-height: 1.2;
-  flex-shrink: 0;
+/* Profile page: large header avatar + edit label */
+.profile-page-header-avatar {
+  line-height: 1.25;
 }
-.navbar-user-stack__edit {
-  font-size: 0.65rem;
-  font-weight: 500;
+.profile-page-header-avatar__edit {
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--color-link);
+  cursor: pointer;
   text-decoration: none;
-  margin-top: 2px;
-  white-space: nowrap;
+  margin-top: 6px;
+  text-align: center;
 }
-.navbar-user-stack__edit:hover {
+.profile-page-header-avatar__edit:hover {
   text-decoration: underline;
   color: var(--blue-600);
+}
+.profile-page-header-avatar__hint {
+  font-size: 0.72rem;
+  max-width: 10rem;
+  line-height: 1.35;
 }
 
 /* Scroll target for #profile-photo (sticky navbar offset) */

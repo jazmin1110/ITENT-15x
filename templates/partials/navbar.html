@@ -64,21 +64,9 @@
       <ul class="navbar-nav align-items-center">
         {% if user.is_authenticated %}
           <li class="nav-item d-flex align-items-center me-2">
-            {% if user.role == 'worker' and not user.is_superuser %}
-              <div class="navbar-user-stack d-flex flex-column align-items-center me-2">
-                {% include 'partials/user_avatar.html' %}
-                <a href="{% url 'worker_profile' %}#profile-photo" class="navbar-user-stack__edit">Baguhin ang larawan</a>
-              </div>
-            {% elif user.role == 'employer' and not user.is_superuser %}
-              <div class="navbar-user-stack d-flex flex-column align-items-center me-2">
-                {% include 'partials/user_avatar.html' %}
-                <a href="{% url 'employer_profile' %}#profile-photo" class="navbar-user-stack__edit">Baguhin ang larawan</a>
-              </div>
-            {% else %}
-              <div class="me-2">
-                {% include 'partials/user_avatar.html' %}
-              </div>
-            {% endif %}
+            <div class="me-2">
+              {% include 'partials/user_avatar.html' %}
+            </div>
             <span class="nav-link pe-0 ps-2">{{ user.phone_number }}</span>
           </li>
           <li class="nav-item">
