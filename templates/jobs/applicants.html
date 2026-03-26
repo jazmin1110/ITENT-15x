@@ -16,6 +16,29 @@
   </div>
 </div>
 
+<div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+  <p class="text-muted small mb-0" style="max-width: 42rem;">
+    {% if sort == 'recommended' %}
+      <strong>Recommended</strong> order: hired and shortlisted applicants first, then verified profiles, stronger ratings, same city and skill overlap with this job, then newest.
+    {% elif sort == 'newest' %}
+      Newest applications first.
+    {% else %}
+      Highest average rating and review count first, then newest.
+    {% endif %}
+  </p>
+  <div class="btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Sort applicants">
+    <a href="?sort=recommended" class="btn btn-outline-secondary{% if sort == 'recommended' %} active{% endif %}">
+      Recommended
+    </a>
+    <a href="?sort=rating" class="btn btn-outline-secondary{% if sort == 'rating' %} active{% endif %}">
+      Rating
+    </a>
+    <a href="?sort=newest" class="btn btn-outline-secondary{% if sort == 'newest' %} active{% endif %}">
+      Newest
+    </a>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-body p-0">
     <div class="table-responsive">

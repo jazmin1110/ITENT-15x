@@ -1,7 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import (
+    Avg,
+    Case,
+    Count,
+    FloatField,
+    IntegerField,
+    OuterRef,
+    Subquery,
+    Value,
+    When,
+)
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from .models import Job, Application, Rating
 from .forms import JobForm, RatingForm
@@ -107,12 +118,93 @@ def employer_jobs(request):
 def applicants(request, job_id):
     """View applicants for a job."""
     job = get_object_or_404(Job, id=job_id, employer=request.user)
-    applications = job.applications.select_related('worker__worker_profile').prefetch_related('ratings')
+    sort = request.GET.get('sort', 'recommended')
+    if sort not in ('recommended', 'newest', 'rating'):
+        sort = 'recommended'
 
+    worker_avg_sub = Subquery(
+        Rating.objects.filter(ratee_id=OuterRef('worker_id'))
+        .values('ratee')
+        .annotate(a=Avg('score'))
+        .values('a')[:1],
+        output_field=FloatField(),
+    )
+    status_priority = Case(
+        When(status='hired', then=Value(5)),
+        When(status='shortlisted', then=Value(4)),
+        When(status='viewed', then=Value(3)),
+        When(status='sent', then=Value(2)),
+        When(status='completed', then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+    is_worker_verified = Case(
+        When(
+            worker__worker_profile__verification_status='verified',
+            then=Value(1),
+        ),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+    city_match = Case(
+        When(worker__worker_profile__city__iexact=job.city, then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+    annotated = (
+        job.applications.select_related('worker__worker_profile')
+        .prefetch_related('ratings')
+        .annotate(
+            sort_status_priority=status_priority,
+            sort_is_verified=is_worker_verified,
+            sort_worker_avg=Coalesce(worker_avg_sub, Value(0.0)),
+            sort_worker_rating_count=Count('worker__ratings_received', distinct=True),
+            sort_city_match=city_match,
+        )
+    )
+
+    if sort == 'newest':
+        applications = list(annotated.order_by('-created_at'))
+    elif sort == 'rating':
+        applications = list(
+            annotated.order_by(
+                '-sort_worker_avg',
+                '-sort_worker_rating_count',
+                '-created_at',
+            )
+        )
+    else:
+        applications = list(annotated)
+
+    job_skills = set(job.required_skills or [])
     for app in applications:
-        app.employer_has_rated = app.ratings.filter(rater=request.user).exists()
+        app.employer_has_rated = any(
+            r.rater_id == request.user.id for r in app.ratings.all()
+        )
+        skills = (
+            app.worker.worker_profile.skills if app.worker.worker_profile else None
+        )
+        app.sort_skills_overlap = len(job_skills & set(skills or []))
 
-    return render(request, 'jobs/applicants.html', {'job': job, 'applications': applications})
+    if sort == 'recommended':
+        applications.sort(
+            key=lambda a: (
+                -a.sort_status_priority,
+                -a.sort_is_verified,
+                -float(a.sort_worker_avg),
+                -a.sort_worker_rating_count,
+                -a.sort_city_match,
+                -a.sort_skills_overlap,
+                -a.created_at.timestamp(),
+            )
+        )
+
+    return render(
+        request,
+        'jobs/applicants.html',
+        {'job': job, 'applications': applications, 'sort': sort},
+    )
 
 
 @login_required
