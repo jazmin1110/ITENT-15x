@@ -92,6 +92,8 @@
             <div class="col-md-6 mb-3">
               <label for="id_contact_number" class="form-label">Contact Number</label>
               {{ form.contact_number }}
+              {% if form.contact_number.errors %}<div class="text-danger small mt-1">{{ form.contact_number.errors.0 }}</div>{% endif %}
+              <small class="form-text text-muted">Ito ang numero mo para sa trabaho at ginagamit din para mag-sign in. Kapag binago mo ito, kailangan mong mag-sign in ulit gamit ang bagong numero.</small>
             </div>
           </div>
 

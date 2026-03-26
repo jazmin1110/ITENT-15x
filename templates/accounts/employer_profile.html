@@ -73,9 +73,10 @@
       <div class="card-body p-4">
 
           <div class="mb-3 p-3 rounded" style="background:var(--color-surface);border:1px solid var(--color-border);">
-            <label class="form-label text-muted mb-1" style="font-size:0.85rem;">Numero sa account (login)</label>
-            <div class="form-control-plaintext fw-semibold py-0">{{ user.phone_number }}</div>
-            <small class="form-text text-muted">Hindi maaaring baguhin dito; ito ang ginamit mo sa sign up.</small>
+            <label for="id_account_phone" class="form-label fw-semibold">Phone number (para mag-sign in)</label>
+            {{ form.account_phone }}
+            {% if form.account_phone.errors %}<div class="text-danger small mt-1">{{ form.account_phone.errors.0 }}</div>{% endif %}
+            <small class="form-text text-muted">Hiwalay ito sa company contact. Kapag binago mo ito, magka-log out ang account at mag-sign in ulit gamit ang bagong numero.</small>
           </div>
 
           <div class="mb-3">

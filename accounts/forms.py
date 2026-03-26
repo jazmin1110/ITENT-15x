@@ -12,6 +12,25 @@ PH_PHONE_RE = re.compile(r'^(09\d{9}|\+639\d{9})$')
 AVATAR_MAX_BYTES = 2 * 1024 * 1024
 
 
+def validate_ph_phone_number_unique(phone: str, *, exclude_user: User | None = None) -> str:
+    """Validate Philippine mobile format, normalize to 09…, enforce uniqueness."""
+    phone = (phone or '').strip()
+    if not phone:
+        raise forms.ValidationError('Kailangan ng phone number.')
+    if not PH_PHONE_RE.match(phone):
+        raise forms.ValidationError(
+            'Invalid na phone number. Gamitin ang 09XXXXXXXXX o +639XXXXXXXXX format.'
+        )
+    if phone.startswith('+63'):
+        phone = '0' + phone[3:]
+    qs = User.objects.filter(phone_number=phone)
+    if exclude_user and exclude_user.pk:
+        qs = qs.exclude(pk=exclude_user.pk)
+    if qs.exists():
+        raise forms.ValidationError('Ginagamit na ang phone number na ito.')
+    return phone
+
+
 def clean_profile_email(email: str, user: User | None) -> str:
     """Validate optional profile email; enforce uniqueness excluding current user."""
     email = (email or '').strip()
@@ -65,18 +84,7 @@ class SignUpForm(UserCreationForm):
         return email
 
     def clean_phone_number(self):
-        phone = self.cleaned_data.get('phone_number', '').strip()
-        if not phone:
-            raise forms.ValidationError('Kailangan ng phone number.')
-        if not PH_PHONE_RE.match(phone):
-            raise forms.ValidationError(
-                'Invalid na phone number. Gamitin ang 09XXXXXXXXX o +639XXXXXXXXX format.'
-            )
-        if phone.startswith('+63'):
-            phone = '0' + phone[3:]
-        if User.objects.filter(phone_number=phone).exists():
-            raise forms.ValidationError('Ginagamit na ang phone number na ito.')
-        return phone
+        return validate_ph_phone_number_unique(self.cleaned_data.get('phone_number', ''))
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -153,6 +161,12 @@ class WorkerProfileForm(forms.ModelForm):
     def clean_email(self):
         return clean_profile_email(self.cleaned_data.get('email', ''), self.user)
 
+    def clean_contact_number(self):
+        return validate_ph_phone_number_unique(
+            self.cleaned_data.get('contact_number', ''),
+            exclude_user=self.user,
+        )
+
     def clean_avatar(self):
         f = self.cleaned_data.get('avatar')
         if not f:
@@ -180,6 +194,16 @@ class EmployerProfileForm(forms.ModelForm):
             'accept': 'image/jpeg,image/png,image/gif,image/webp',
         }),
         label='Profile picture',
+    )
+    account_phone = forms.CharField(
+        max_length=20,
+        label='Phone number (para mag-sign in)',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'tel',
+            'placeholder': 'e.g. 09171234567',
+            'autocomplete': 'tel',
+        }),
     )
 
     class Meta:
@@ -214,6 +238,13 @@ class EmployerProfileForm(forms.ModelForm):
         self.fields['contact_number'].label = 'Company contact number'
         if user:
             self.fields['email'].initial = user.email or ''
+            self.fields['account_phone'].initial = user.phone_number
+
+    def clean_account_phone(self):
+        return validate_ph_phone_number_unique(
+            self.cleaned_data.get('account_phone', ''),
+            exclude_user=self.user,
+        )
 
     def clean_email(self):
         return clean_profile_email(self.cleaned_data.get('email', ''), self.user)

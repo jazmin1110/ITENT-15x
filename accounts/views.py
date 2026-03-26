@@ -2,7 +2,7 @@ import os
 
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
@@ -74,6 +74,8 @@ def worker_profile(request):
             request.POST, request.FILES, instance=profile, user=request.user,
         )
         if form.is_valid():
+            new_phone = form.cleaned_data['contact_number']
+            phone_changed = new_phone != request.user.phone_number
             with transaction.atomic():
                 profile = form.save(commit=False)
                 profile.user = request.user
@@ -81,7 +83,7 @@ def worker_profile(request):
                     profile.verification_status = 'not_submitted'
                     profile.rejection_reason = ''
                 profile.save()
-                user = User.objects.get(pk=request.user.pk)
+                user = User.objects.select_for_update().get(pk=request.user.pk)
                 user.email = form.cleaned_data.get('email') or ''
                 avatar_flag = form.cleaned_data.get('avatar')
                 upload = request.FILES.get('avatar')
@@ -97,7 +99,18 @@ def worker_profile(request):
                         ContentFile(upload.read()),
                         save=False,
                     )
+                if phone_changed:
+                    user.phone_number = new_phone
+                    user.username = new_phone
                 user.save()
+            if phone_changed:
+                logout(request)
+                messages.success(
+                    request,
+                    f'Na-update ang iyong phone number. Mag-sign in ulit gamit ang {new_phone} '
+                    'at iyong password (pareho pa rin). Puwede mo ring gamitin ang email mo kung naka-set.',
+                )
+                return redirect('login')
             messages.success(request, 'Na-save ang profile!')
             request.session['profile_saved_cta'] = 'worker'
             return redirect('worker_profile')
@@ -130,6 +143,8 @@ def employer_profile(request):
             request.POST, request.FILES, instance=profile, user=request.user,
         )
         if form.is_valid():
+            new_phone = form.cleaned_data['account_phone']
+            phone_changed = new_phone != request.user.phone_number
             with transaction.atomic():
                 profile = form.save(commit=False)
                 profile.user = request.user
@@ -137,7 +152,7 @@ def employer_profile(request):
                     profile.verification_status = 'not_submitted'
                     profile.rejection_reason = ''
                 profile.save()
-                user = User.objects.get(pk=request.user.pk)
+                user = User.objects.select_for_update().get(pk=request.user.pk)
                 user.email = form.cleaned_data.get('email') or ''
                 avatar_flag = form.cleaned_data.get('avatar')
                 upload = request.FILES.get('avatar')
@@ -153,7 +168,18 @@ def employer_profile(request):
                         ContentFile(upload.read()),
                         save=False,
                     )
+                if phone_changed:
+                    user.phone_number = new_phone
+                    user.username = new_phone
                 user.save()
+            if phone_changed:
+                logout(request)
+                messages.success(
+                    request,
+                    f'Na-update ang iyong phone number. Mag-sign in ulit gamit ang {new_phone} '
+                    'at iyong password (pareho pa rin). Puwede mo ring gamitin ang email mo kung naka-set.',
+                )
+                return redirect('login')
             messages.success(request, 'Na-save ang profile!')
             request.session['profile_saved_cta'] = 'employer'
             return redirect('employer_profile')
