@@ -8,7 +8,7 @@ class CustomUserAdmin(UserAdmin):
     list_display = ['phone_number', 'email', 'role', 'is_active', 'username']
     list_filter = ['role', 'is_active']
     fieldsets = UserAdmin.fieldsets + (
-        ('Role & Phone', {'fields': ('role', 'phone_number')}),
+        ('Role & Phone', {'fields': ('role', 'phone_number', 'avatar')}),
     )
 
 

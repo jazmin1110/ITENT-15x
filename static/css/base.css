@@ -121,8 +121,6 @@ a:hover {
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
   border-radius: 50%;
   background: var(--green-500);
   color: var(--white);
@@ -130,8 +128,26 @@ a:hover {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.8rem;
   text-transform: uppercase;
+  flex-shrink: 0;
+}
+.user-avatar--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.8rem;
+}
+.user-avatar--lg {
+  width: 48px;
+  height: 48px;
+  font-size: 1.2rem;
+}
+.user-avatar--photo {
+  object-fit: cover;
+  padding: 0;
+  border: 2px solid var(--color-border);
+}
+.user-avatar--employer-fallback {
+  background: var(--blue-500);
 }
 
 /* ---- Cards ---- */

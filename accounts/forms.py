@@ -9,6 +9,25 @@ from .models import User, WorkerProfile, EmployerProfile
 
 PH_PHONE_RE = re.compile(r'^(09\d{9}|\+639\d{9})$')
 
+AVATAR_MAX_BYTES = 2 * 1024 * 1024
+
+
+def clean_profile_email(email: str, user: User | None) -> str:
+    """Validate optional profile email; enforce uniqueness excluding current user."""
+    email = (email or '').strip()
+    if not email:
+        return ''
+    try:
+        validate_email(email)
+    except DjangoValidationError:
+        raise forms.ValidationError('Invalid na email address. Suriin at subukan ulit.')
+    qs = User.objects.filter(email=email)
+    if user and user.pk:
+        qs = qs.exclude(pk=user.pk)
+    if qs.exists():
+        raise forms.ValidationError('Ginagamit na ang email na ito.')
+    return email
+
 
 class SignUpForm(UserCreationForm):
     """Registration form with role selection."""
@@ -81,6 +100,23 @@ class WorkerProfileForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         required=True
     )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'optional@email.com',
+            'autocomplete': 'email',
+        }),
+        label='Email',
+    )
+    avatar = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/jpeg,image/png,image/gif,image/webp',
+        }),
+        label='Profile picture',
+    )
 
     class Meta:
         model = WorkerProfile
@@ -91,7 +127,7 @@ class WorkerProfileForm(forms.ModelForm):
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'tel'}),
             'years_experience': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'doc_nbi_clearance': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'national_id_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. XXXX-XXXX-XXXX-XXXX'}),
@@ -101,9 +137,51 @@ class WorkerProfileForm(forms.ModelForm):
             'national_id_number': 'Philippine National ID (PhilSys) Number',
         }
 
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['email'].initial = user.email or ''
+            if self._should_prefill_contact():
+                self.fields['contact_number'].initial = user.phone_number
+
+    def _should_prefill_contact(self):
+        if not self.instance or not self.instance.pk:
+            return True
+        return not (self.instance.contact_number or '').strip()
+
+    def clean_email(self):
+        return clean_profile_email(self.cleaned_data.get('email', ''), self.user)
+
+    def clean_avatar(self):
+        f = self.cleaned_data.get('avatar')
+        if not f:
+            return f
+        if f.size > AVATAR_MAX_BYTES:
+            raise forms.ValidationError('Masyadong malaki ang larawan (max 2MB).')
+        return f
+
 
 class EmployerProfileForm(forms.ModelForm):
     """Form for employer profile details."""
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'optional@email.com',
+            'autocomplete': 'email',
+        }),
+        label='Email',
+    )
+    avatar = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/jpeg,image/png,image/gif,image/webp',
+        }),
+        label='Profile picture',
+    )
+
     class Meta:
         model = EmployerProfile
         fields = [
@@ -115,7 +193,7 @@ class EmployerProfileForm(forms.ModelForm):
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'tel'}),
             'doc_sec_dti': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'doc_barangay_clearance': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'doc_mayors_permit': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
@@ -129,3 +207,21 @@ class EmployerProfileForm(forms.ModelForm):
             'doc_bir': 'BIR Registration',
             'doc_employer_registrations': 'Employer Registrations (SSS, PhilHealth, Pag-IBIG)',
         }
+
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        self.fields['contact_number'].label = 'Company contact number'
+        if user:
+            self.fields['email'].initial = user.email or ''
+
+    def clean_email(self):
+        return clean_profile_email(self.cleaned_data.get('email', ''), self.user)
+
+    def clean_avatar(self):
+        f = self.cleaned_data.get('avatar')
+        if not f:
+            return f
+        if f.size > AVATAR_MAX_BYTES:
+            raise forms.ValidationError('Masyadong malaki ang larawan (max 2MB).')
+        return f

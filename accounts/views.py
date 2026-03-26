@@ -1,11 +1,15 @@
+import os
+
+from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
+from django.db import transaction
 from .decorators import staff_member_required
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
-from .models import WorkerProfile, EmployerProfile
+from .models import User, WorkerProfile, EmployerProfile
 from .permissions import is_platform_admin
 
 
@@ -66,22 +70,46 @@ def worker_profile(request):
         profile = None
 
     if request.method == 'POST':
-        form = WorkerProfileForm(request.POST, request.FILES, instance=profile)
+        form = WorkerProfileForm(
+            request.POST, request.FILES, instance=profile, user=request.user,
+        )
         if form.is_valid():
-            profile = form.save(commit=False)
-            profile.user = request.user
-            if profile.verification_status == 'rejected':
-                profile.verification_status = 'not_submitted'
-                profile.rejection_reason = ''
-            profile.save()
-            messages.success(request, 'Profile updated!')
+            with transaction.atomic():
+                profile = form.save(commit=False)
+                profile.user = request.user
+                if profile.verification_status == 'rejected':
+                    profile.verification_status = 'not_submitted'
+                    profile.rejection_reason = ''
+                profile.save()
+                user = User.objects.get(pk=request.user.pk)
+                user.email = form.cleaned_data.get('email') or ''
+                avatar_flag = form.cleaned_data.get('avatar')
+                upload = request.FILES.get('avatar')
+                if avatar_flag is False:
+                    if user.avatar:
+                        user.avatar.delete(save=False)
+                    user.avatar = ''
+                elif upload:
+                    if hasattr(upload, 'seek'):
+                        upload.seek(0)
+                    user.avatar.save(
+                        os.path.basename(upload.name or 'avatar.jpg'),
+                        ContentFile(upload.read()),
+                        save=False,
+                    )
+                user.save()
+            messages.success(request, 'Na-save ang profile!')
+            request.session['profile_saved_cta'] = 'worker'
             return redirect('worker_profile')
     else:
-        form = WorkerProfileForm(instance=profile)
+        form = WorkerProfileForm(instance=profile, user=request.user)
+
+    show_profile_cta = request.session.pop('profile_saved_cta', None) == 'worker'
 
     return render(request, 'accounts/worker_profile.html', {
         'form': form,
         'profile': profile,
+        'show_profile_cta': show_profile_cta,
     })
 
 
@@ -98,22 +126,46 @@ def employer_profile(request):
         profile = None
 
     if request.method == 'POST':
-        form = EmployerProfileForm(request.POST, request.FILES, instance=profile)
+        form = EmployerProfileForm(
+            request.POST, request.FILES, instance=profile, user=request.user,
+        )
         if form.is_valid():
-            profile = form.save(commit=False)
-            profile.user = request.user
-            if profile.verification_status == 'rejected':
-                profile.verification_status = 'not_submitted'
-                profile.rejection_reason = ''
-            profile.save()
-            messages.success(request, 'Profile updated!')
+            with transaction.atomic():
+                profile = form.save(commit=False)
+                profile.user = request.user
+                if profile.verification_status == 'rejected':
+                    profile.verification_status = 'not_submitted'
+                    profile.rejection_reason = ''
+                profile.save()
+                user = User.objects.get(pk=request.user.pk)
+                user.email = form.cleaned_data.get('email') or ''
+                avatar_flag = form.cleaned_data.get('avatar')
+                upload = request.FILES.get('avatar')
+                if avatar_flag is False:
+                    if user.avatar:
+                        user.avatar.delete(save=False)
+                    user.avatar = ''
+                elif upload:
+                    if hasattr(upload, 'seek'):
+                        upload.seek(0)
+                    user.avatar.save(
+                        os.path.basename(upload.name or 'avatar.jpg'),
+                        ContentFile(upload.read()),
+                        save=False,
+                    )
+                user.save()
+            messages.success(request, 'Na-save ang profile!')
+            request.session['profile_saved_cta'] = 'employer'
             return redirect('employer_profile')
     else:
-        form = EmployerProfileForm(instance=profile)
+        form = EmployerProfileForm(instance=profile, user=request.user)
+
+    show_profile_cta = request.session.pop('profile_saved_cta', None) == 'employer'
 
     return render(request, 'accounts/employer_profile.html', {
         'form': form,
         'profile': profile,
+        'show_profile_cta': show_profile_cta,
     })
 
 

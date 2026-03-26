@@ -12,6 +12,7 @@ class User(AbstractUser):
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='worker')
     phone_number = models.CharField(max_length=20, unique=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True)
 
     def get_average_rating(self):
         avg = self.ratings_received.aggregate(avg=Avg('score'))['avg']
