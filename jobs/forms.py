@@ -1,16 +1,11 @@
 from django import forms
 from .models import Job, Rating
+from .skill_utils import PREDEFINED_SKILL_CHOICES
 
 
 class JobForm(forms.ModelForm):
     """Form for creating/editing a job post."""
-    SKILL_CHOICES = [
-        ('Masonry', 'Masonry'),
-        ('Carpentry', 'Carpentry'),
-        ('Helper', 'Helper'),
-        ('Painting', 'Painting'),
-        ('Driver', 'Driver'),
-    ]
+    SKILL_CHOICES = PREDEFINED_SKILL_CHOICES
     required_skills = forms.MultipleChoiceField(
         choices=SKILL_CHOICES,
         widget=forms.CheckboxSelectMultiple,

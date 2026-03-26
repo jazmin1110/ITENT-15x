@@ -108,8 +108,8 @@ def worker_profile(request):
                 logout(request)
                 messages.success(
                     request,
-                    f'Na-update ang iyong phone number. Mag-sign in ulit gamit ang {new_phone} '
-                    'at iyong password (pareho pa rin). Puwede mo ring gamitin ang email mo kung naka-set.',
+                    f'Na-save ang bagong phone number. Gamitin ang {new_phone} para mag-sign in sa susunod '
+                    '(pareho pa ang password). Puwede mo ring gamitin ang email mo kung naka-set.',
                 )
                 return redirect('login')
             messages.success(request, 'Na-save ang profile!')
@@ -179,8 +179,8 @@ def employer_profile(request):
                 logout(request)
                 messages.success(
                     request,
-                    f'Na-update ang iyong phone number. Mag-sign in ulit gamit ang {new_phone} '
-                    'at iyong password (pareho pa rin). Puwede mo ring gamitin ang email mo kung naka-set.',
+                    f'Na-save ang bagong phone number. Gamitin ang {new_phone} para mag-sign in sa susunod '
+                    '(pareho pa ang password). Puwede mo ring gamitin ang email mo kung naka-set.',
                 )
                 return redirect('login')
             messages.success(request, 'Na-save ang profile!')

@@ -69,6 +69,12 @@ class WorkerProfile(models.Model):
     def __str__(self):
         return self.full_name
 
+    @property
+    def skill_entries_normalized(self):
+        from jobs.skill_utils import normalize_skill_entries
+
+        return normalize_skill_entries(self.skills)
+
     class Meta:
         verbose_name = "Worker Profile"
         verbose_name_plural = "Worker Profiles"

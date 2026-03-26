@@ -107,8 +107,8 @@
     {% if worker.skills %}
       <div class="mb-3">
         <small class="text-muted fw-bold" style="font-size:0.75rem;text-transform:uppercase;">Skills:</small>
-        {% for skill in worker.skills %}
-          <span class="skill-tag">{{ skill }}</span>
+        {% for entry in worker.skill_entries_normalized %}
+          <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
         {% endfor %}
       </div>
     {% endif %}

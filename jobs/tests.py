@@ -219,6 +219,19 @@ class SkillUtilsTests(TestCase):
             ],
         )
 
+    def test_overlap_with_dict_shaped_worker_skills_matches_legacy_strings(self):
+        job_skills = required_skill_names(
+            [{'skill': 'Helper', 'years_experience': None}]
+        )
+        worker_dicts = [
+            {'skill': 'Helper', 'years_experience': 5},
+            {'skill': 'Masonry', 'years_experience': 1},
+        ]
+        self.assertEqual(
+            len(job_skills & required_skill_names(worker_dicts)),
+            len(job_skills & required_skill_names(['Helper', 'Masonry'])),
+        )
+
 
 class JobAutoCloseVacancyTests(TestCase):
     """Auto-close when hired >= positions_needed; vacancy banner after completion."""

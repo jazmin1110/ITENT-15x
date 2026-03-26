@@ -96,7 +96,6 @@ class WorkerProfileTests(TestCase):
                 'full_name': 'Juan Worker',
                 'city': 'Quezon City',
                 'contact_number': '09179876543',
-                'years_experience': 2,
                 'skills': ['Helper'],
                 'email': 'w2@test.com',
                 'national_id_number': '',
@@ -122,7 +121,6 @@ class WorkerProfileTests(TestCase):
                 'full_name': 'Worker Three',
                 'city': 'Manila',
                 'contact_number': '09171111111',
-                'years_experience': 0,
                 'skills': ['Driver'],
                 'email': 'newmail@test.com',
                 'national_id_number': '',
@@ -147,7 +145,6 @@ class WorkerProfileTests(TestCase):
                 'full_name': 'Flow Worker',
                 'city': 'Cebu',
                 'contact_number': '09172000002',
-                'years_experience': 1,
                 'skills': ['Helper'],
                 'email': 'flow@test.com',
                 'national_id_number': '',
@@ -188,7 +185,6 @@ class WorkerProfileTests(TestCase):
                 'full_name': 'B Worker',
                 'city': 'Davao',
                 'contact_number': '09173000001',
-                'years_experience': 0,
                 'skills': ['Driver'],
                 'email': 'b@test.com',
                 'national_id_number': '',
@@ -198,6 +194,72 @@ class WorkerProfileTests(TestCase):
         self.assertContains(response, 'Ginagamit na ang phone number')
         user_b.refresh_from_db()
         self.assertEqual(user_b.phone_number, '09173000002')
+
+    def test_skills_saved_as_dicts_and_aggregate_years_is_max(self):
+        user = User.objects.create_user(
+            username='09177000001',
+            email='',
+            password='secret',
+            phone_number='09177000001',
+            role='worker',
+        )
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'Skill Max',
+                'city': 'Manila',
+                'contact_number': '09177000001',
+                'skills': ['Helper', 'Masonry'],
+                'years_Helper': 2,
+                'years_Masonry': 7,
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        profile = form.save(commit=False)
+        profile.user = user
+        profile.save()
+        profile.refresh_from_db()
+        self.assertEqual(profile.years_experience, 7)
+        self.assertEqual(
+            profile.skills,
+            [
+                {'skill': 'Helper', 'years_experience': 2},
+                {'skill': 'Masonry', 'years_experience': 7},
+            ],
+        )
+
+    def test_custom_skill_only_valid(self):
+        user = User.objects.create_user(
+            username='09177000002',
+            email='',
+            password='secret',
+            phone_number='09177000002',
+            role='worker',
+        )
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'Custom Only',
+                'city': 'Cebu',
+                'contact_number': '09177000002',
+                'skills': [],
+                'custom_skill_name': ['Welding'],
+                'custom_skill_years': ['4'],
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        profile = form.save(commit=False)
+        profile.user = user
+        profile.save()
+        self.assertEqual(
+            profile.skills,
+            [{'skill': 'Welding', 'years_experience': 4}],
+        )
+        self.assertEqual(profile.years_experience, 4)
 
 
 class EmployerProfileTests(TestCase):
@@ -380,7 +442,6 @@ class FirstInvalidFieldNameTests(TestCase):
                 'full_name': 'OK',
                 'city': 'X',
                 'contact_number': '09175000003',
-                'years_experience': 0,
                 'skills': ['Helper'],
                 'email': '',
                 'national_id_number': '',
@@ -404,7 +465,6 @@ class FirstInvalidFieldNameTests(TestCase):
                 'full_name': 'OK',
                 'city': 'X',
                 'contact_number': '09175000002',
-                'years_experience': 0,
                 'skills': ['Helper'],
                 'email': '',
                 'national_id_number': '',
@@ -432,7 +492,6 @@ class ProfileFormFocusUXTests(TestCase):
                 'full_name': '',
                 'city': 'Quezon City',
                 'contact_number': '09176000001',
-                'years_experience': 0,
                 'skills': ['Helper'],
                 'email': '',
                 'national_id_number': '',

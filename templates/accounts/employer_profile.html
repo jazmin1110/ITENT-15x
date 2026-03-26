@@ -20,9 +20,6 @@
             </div>
             {% if form.avatar.errors %}<div class="text-danger small mt-1 text-center px-1">{{ form.avatar.errors.0 }}</div>{% endif %}
           </div>
-          <div class="text-center w-100 mt-1">
-            {% include 'partials/form_label_required.html' with label='Larawan sa profile' field=form.avatar use_div=1 extra_label_class='small text-muted mb-0' %}
-          </div>
         </div>
         <div class="flex-grow-1 align-self-center">
           <h2 class="mb-0">Employer Profile</h2>
@@ -81,7 +78,6 @@
             {% include 'partials/form_label_required.html' with label='Phone number (para mag-sign in)' field=form.account_phone extra_label_class='fw-semibold' %}
             {{ form.account_phone }}
             {% if form.account_phone.errors %}<div class="text-danger small mt-1">{{ form.account_phone.errors.0 }}</div>{% endif %}
-            <small class="form-text text-muted">Hiwalay ito sa company contact. Kapag binago mo ito, magka-log out ang account at mag-sign in ulit gamit ang bagong numero.</small>
           </div>
 
           <div id="profile-field-wrap-email" class="mb-3 profile-field-wrap{% if form.email.errors %} is-invalid border border-danger rounded p-3{% endif %}">

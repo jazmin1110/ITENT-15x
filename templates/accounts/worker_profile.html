@@ -20,9 +20,6 @@
             </div>
             {% if form.avatar.errors %}<div class="text-danger small mt-1 text-center px-1">{{ form.avatar.errors.0 }}</div>{% endif %}
           </div>
-          <div class="text-center w-100 mt-1">
-            {% include 'partials/form_label_required.html' with label='Larawan sa profile' field=form.avatar use_div=1 extra_label_class='small text-muted mb-0' %}
-          </div>
         </div>
         <div class="flex-grow-1 align-self-center">
           <h2 class="mb-0">Worker Profile</h2>
@@ -100,30 +97,81 @@
               {% include 'partials/form_label_required.html' with label='Contact Number' field=form.contact_number %}
               {{ form.contact_number }}
               {% if form.contact_number.errors %}<div class="text-danger small mt-1">{{ form.contact_number.errors.0 }}</div>{% endif %}
-              <small class="form-text text-muted">Ito ang numero mo para sa trabaho at ginagamit din para mag-sign in. Kapag binago mo ito, kailangan mong mag-sign in ulit gamit ang bagong numero.</small>
             </div>
-          </div>
-
-          <div id="profile-field-wrap-years_experience" class="mb-3 profile-field-wrap{% if form.years_experience.errors %} is-invalid border border-danger rounded p-3{% endif %}">
-            {% include 'partials/form_label_required.html' with label='Taon ng Karanasan' field=form.years_experience %}
-            {{ form.years_experience }}
-            {% if form.years_experience.errors %}<div class="text-danger small mt-1">{{ form.years_experience.errors.0 }}</div>{% endif %}
           </div>
 
           <div id="profile-field-wrap-skills" class="mb-4 profile-field-wrap{% if form.skills.errors %} is-invalid border border-danger rounded p-3{% endif %}">
             {% include 'partials/form_label_required.html' with label='Mga Skills' field=form.skills use_div=1 %}
-            <div class="d-flex flex-wrap gap-2">
-              {% for checkbox in form.skills %}
-                <div class="form-check">
-                  {{ checkbox.tag }}
-                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                    {{ checkbox.choice_label }}
-                  </label>
+            {% if form.skills.errors %}<div class="text-danger small mb-2">{{ form.skills.errors.0 }}</div>{% endif %}
+            <div class="d-flex flex-column gap-3">
+              {% for code, label, year_field in form.skill_rows %}
+                <div class="border rounded p-3">
+                  <div class="row align-items-end g-2">
+                    <div class="col-md-6">
+                      <div class="form-check mb-0">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          name="skills"
+                          value="{{ code }}"
+                          id="id_skill_{{ code }}"
+                          {% if form.skills.value and code in form.skills.value %}checked{% endif %}
+                        >
+                        <label class="form-check-label fw-semibold" for="id_skill_{{ code }}">{{ label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label small text-muted mb-0" for="{{ year_field.id_for_label }}">{{ year_field.label }}</label>
+                      {{ year_field }}
+                      {% if year_field.errors %}<div class="text-danger small mt-1">{{ year_field.errors.0 }}</div>{% endif %}
+                    </div>
+                  </div>
                 </div>
               {% endfor %}
             </div>
-            {% if form.skills.errors %}<div class="text-danger small mt-2">{{ form.skills.errors.0 }}</div>{% endif %}
+
+            <div id="custom-skills-rows" class="d-flex flex-column gap-3 mt-3">
+              {% for row in form.custom_skills_initial %}
+                <div class="border rounded p-3 custom-skill-row">
+                  <div class="row align-items-end g-2">
+                    <div class="col-md-6">
+                      <label class="form-label small text-muted mb-0">Ibang skill</label>
+                      <input type="text" name="custom_skill_name" class="form-control form-control-sm" maxlength="80" value="{{ row.name }}" placeholder="Halimbawa: Welding" autocomplete="off">
+                    </div>
+                    <div class="col-md-5">
+                      <label class="form-label small text-muted mb-0">Taon ng karanasan (opsyonal)</label>
+                      <input type="number" name="custom_skill_years" class="form-control form-control-sm" min="0" max="80" placeholder="—" value="{{ row.years }}">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end pb-1">
+                      <button type="button" class="btn btn-outline-danger btn-sm remove-custom-skill w-100" title="Alisin"><span class="visually-hidden">Alisin</span>×</button>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-custom-skill-btn">
+              <i class="bi bi-plus-lg" aria-hidden="true"></i> Magdagdag ng skill
+            </button>
           </div>
+
+          <template id="custom-skill-row-template">
+            <div class="border rounded p-3 custom-skill-row" data-template-clone="1">
+              <div class="row align-items-end g-2">
+                <div class="col-md-6">
+                  <label class="form-label small text-muted mb-0">Ibang skill</label>
+                  <input type="text" name="custom_skill_name" class="form-control form-control-sm" maxlength="80" value="" placeholder="Halimbawa: Welding" autocomplete="off">
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label small text-muted mb-0">Taon ng karanasan (opsyonal)</label>
+                  <input type="number" name="custom_skill_years" class="form-control form-control-sm" min="0" max="80" placeholder="—" value="">
+                </div>
+                <div class="col-md-1 d-flex align-items-end pb-1">
+                  <button type="button" class="btn btn-outline-danger btn-sm remove-custom-skill w-100" title="Alisin"><span class="visually-hidden">Alisin</span>×</button>
+                </div>
+              </div>
+            </div>
+          </template>
 
           <hr class="my-4">
 
@@ -244,6 +292,33 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+(function () {
+  var container = document.getElementById("custom-skills-rows");
+  var tpl = document.getElementById("custom-skill-row-template");
+  var addBtn = document.getElementById("add-custom-skill-btn");
+  if (!container || !tpl || !addBtn) return;
+
+  function bindRemove(row) {
+    row.querySelectorAll(".remove-custom-skill").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        row.remove();
+      });
+    });
+  }
+
+  container.querySelectorAll(".custom-skill-row").forEach(bindRemove);
+
+  addBtn.addEventListener("click", function () {
+    var node = tpl.content.firstElementChild.cloneNode(true);
+    node.removeAttribute("data-template-clone");
+    bindRemove(node);
+    container.appendChild(node);
+    var inp = node.querySelector('input[name="custom_skill_name"]');
+    if (inp) inp.focus();
+  });
+})();
+</script>
 {% if profile_focus_field %}
 <script>
 (function () {

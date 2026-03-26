@@ -107,8 +107,8 @@
             </td>
             <td>
               {% if app.worker.worker_profile %}
-                {% for skill in app.worker.worker_profile.skills %}
-                  <span class="skill-tag">{{ skill }}</span>
+                {% for entry in app.worker.worker_profile.skill_entries_normalized %}
+                  <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
                 {% endfor %}
               {% endif %}
             </td>

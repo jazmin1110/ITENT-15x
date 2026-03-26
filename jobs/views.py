@@ -204,7 +204,7 @@ def applicants(request, job_id):
         skills = (
             app.worker.worker_profile.skills if app.worker.worker_profile else None
         )
-        app.sort_skills_overlap = len(job_skills & set(skills or []))
+        app.sort_skills_overlap = len(job_skills & required_skill_names(skills or []))
 
     if sort == 'recommended':
         applications.sort(

@@ -5,7 +5,28 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError as DjangoValidationError
 
+from jobs.skill_utils import (
+    PREDEFINED_SKILL_CHOICES,
+    PREDEFINED_SKILL_CODES,
+    normalize_skill_entries,
+)
+
 from .models import User, WorkerProfile, EmployerProfile
+
+WORKER_MAX_CUSTOM_SKILLS = 10
+WORKER_CUSTOM_SKILL_NAME_MAX_LEN = 80
+
+
+def _multi_get(data, key: str) -> list:
+    """Like QueryDict.getlist — supports dict POST data in tests."""
+    if hasattr(data, 'getlist'):
+        return data.getlist(key)
+    v = data.get(key)
+    if v is None:
+        return []
+    if isinstance(v, (list, tuple)):
+        return list(v)
+    return [v]
 
 PH_PHONE_RE = re.compile(r'^(09\d{9}|\+639\d{9})$')
 
@@ -95,18 +116,11 @@ class SignUpForm(UserCreationForm):
 
 
 class WorkerProfileForm(forms.ModelForm):
-    """Form for worker profile details."""
-    SKILL_CHOICES = [
-        ('Masonry', 'Masonry'),
-        ('Carpentry', 'Carpentry'),
-        ('Helper', 'Helper'),
-        ('Painting', 'Painting'),
-        ('Driver', 'Driver'),
-    ]
+    """Form for worker profile details (skills match job post: per-skill years + optional custom)."""
+    SKILL_CHOICES = PREDEFINED_SKILL_CHOICES
     skills = forms.MultipleChoiceField(
-        choices=SKILL_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
-        required=True
+        choices=PREDEFINED_SKILL_CHOICES,
+        required=False,
     )
     email = forms.EmailField(
         required=False,
@@ -129,14 +143,13 @@ class WorkerProfileForm(forms.ModelForm):
     class Meta:
         model = WorkerProfile
         fields = [
-            'full_name', 'city', 'contact_number', 'years_experience', 'skills',
+            'full_name', 'city', 'contact_number',
             'doc_nbi_clearance', 'national_id_number',
         ]
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'tel'}),
-            'years_experience': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'doc_nbi_clearance': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'national_id_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. XXXX-XXXX-XXXX-XXXX'}),
         }
@@ -148,10 +161,82 @@ class WorkerProfileForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        for code, label in self.SKILL_CHOICES:
+            self.fields[f'years_{code}'] = forms.IntegerField(
+                required=False,
+                min_value=0,
+                max_value=80,
+                label=f'{label} — taon ng karanasan (opsyonal)',
+                widget=forms.NumberInput(attrs={
+                    'class': 'form-control form-control-sm',
+                    'min': 0,
+                    'placeholder': '—',
+                }),
+            )
+
+        if self.data is not None:
+            self.custom_skills_initial = self._custom_rows_from_data(self.data)
+        else:
+            self.custom_skills_initial = self._custom_rows_from_instance()
+
+        self._apply_skill_initial_from_instance()
+
         if user:
             self.fields['email'].initial = user.email or ''
             if self._should_prefill_contact():
                 self.fields['contact_number'].initial = user.phone_number
+
+    def _custom_rows_from_data(self, data) -> list[dict]:
+        names = _multi_get(data, 'custom_skill_name')
+        years = _multi_get(data, 'custom_skill_years')
+        n = max(len(names), len(years))
+        rows = []
+        for i in range(n):
+            name = (names[i] if i < len(names) else '') or ''
+            yraw = years[i] if i < len(years) else ''
+            name = name.strip()
+            ystr = (str(yraw).strip() if yraw is not None else '')
+            if name or ystr:
+                rows.append({'name': name, 'years': yraw if yraw is not None else ''})
+        return rows
+
+    def _custom_rows_from_instance(self) -> list[dict]:
+        if not self.instance or not self.instance.pk or not self.instance.skills:
+            return []
+        rows = []
+        for entry in normalize_skill_entries(self.instance.skills):
+            name = entry['skill']
+            if name in PREDEFINED_SKILL_CODES:
+                continue
+            y = entry['years_experience']
+            rows.append({
+                'name': name,
+                'years': '' if y is None else y,
+            })
+        return rows
+
+    def _apply_skill_initial_from_instance(self):
+        if self.data is not None:
+            return
+        if not self.instance or not self.instance.pk or not self.instance.skills:
+            return
+        selected = []
+        for entry in normalize_skill_entries(self.instance.skills):
+            name = entry['skill']
+            y = entry['years_experience']
+            if name in PREDEFINED_SKILL_CODES:
+                selected.append(name)
+                yfield = f'years_{name}'
+                if y is not None and yfield in self.fields:
+                    self.fields[yfield].initial = y
+        self.fields['skills'].initial = selected
+
+    @property
+    def skill_rows(self):
+        return [
+            (code, label, self[f'years_{code}'])
+            for code, label in self.SKILL_CHOICES
+        ]
 
     def _should_prefill_contact(self):
         if not self.instance or not self.instance.pk:
@@ -167,6 +252,99 @@ class WorkerProfileForm(forms.ModelForm):
             exclude_user=self.user,
         )
 
+    def _coerce_custom_skill_years(self, raw) -> int | None:
+        if raw is None or raw == '':
+            return None
+        try:
+            y = int(raw)
+        except (TypeError, ValueError):
+            raise forms.ValidationError('Ilagay ang tamang bilang ng taon sa custom skill.')
+        if y < 0 or y > 80:
+            raise forms.ValidationError('Dapat 0–80 na taon ang karanasan sa bawat skill.')
+        return y
+
+    def clean(self):
+        cleaned = super().clean()
+        selected = cleaned.get('skills') or []
+        predefined_lower = {c.lower() for c in PREDEFINED_SKILL_CODES}
+
+        names = _multi_get(self.data, 'custom_skill_name')
+        years = _multi_get(self.data, 'custom_skill_years')
+        custom_out: list[tuple[str, int | None]] = []
+        seen_custom: set[str] = set()
+
+        for i, raw_name in enumerate(names):
+            name = (raw_name or '').strip()
+            y_raw = years[i] if i < len(years) else ''
+            if not name:
+                if y_raw not in (None, ''):
+                    self.add_error(
+                        'skills',
+                        'May taon ng karanasan na nakalagay nang walang pangalan ng skill sa isa sa mga karagdagang row.',
+                    )
+                    return cleaned
+                continue
+
+            if len(name) > WORKER_CUSTOM_SKILL_NAME_MAX_LEN:
+                self.add_error(
+                    'skills',
+                    f'Masyado ang haba ng pangalan ng skill (max {WORKER_CUSTOM_SKILL_NAME_MAX_LEN} na karakter).',
+                )
+                return cleaned
+            key = name.lower()
+            if key in predefined_lower:
+                self.add_error(
+                    'skills',
+                    f'Ang "{name}" ay nasa listahan na — piliin ang checkbox sa itaas imbes na ilagay bilang custom skill.',
+                )
+                return cleaned
+            if key in seen_custom:
+                self.add_error('skills', f'May duplicate na custom skill: "{name}".')
+                return cleaned
+            seen_custom.add(key)
+
+            try:
+                y_val = self._coerce_custom_skill_years(y_raw)
+            except forms.ValidationError as exc:
+                self.add_error(
+                    'skills',
+                    exc.messages[0] if getattr(exc, 'messages', None) else str(exc),
+                )
+                return cleaned
+            custom_out.append((name, y_val))
+
+        if len(custom_out) > WORKER_MAX_CUSTOM_SKILLS:
+            self.add_error(
+                'skills',
+                f'Masyadong maraming custom skill (max {WORKER_MAX_CUSTOM_SKILLS}).',
+            )
+            return cleaned
+
+        if not selected and not custom_out:
+            self.add_error(
+                'skills',
+                'Pumili ng kahit isang skill sa listahan o magdagdag ng custom skill.',
+            )
+            return cleaned
+
+        payload: list[dict] = []
+        year_values: list[int] = []
+
+        for code in selected:
+            y = cleaned.get(f'years_{code}')
+            payload.append({'skill': code, 'years_experience': y})
+            if y is not None:
+                year_values.append(y)
+
+        for name, y in custom_out:
+            payload.append({'skill': name, 'years_experience': y})
+            if y is not None:
+                year_values.append(y)
+
+        self._skills_payload = payload
+        self._years_experience_agg = max(year_values) if year_values else 0
+        return cleaned
+
     def clean_avatar(self):
         f = self.cleaned_data.get('avatar')
         if not f:
@@ -174,6 +352,14 @@ class WorkerProfileForm(forms.ModelForm):
         if f.size > AVATAR_MAX_BYTES:
             raise forms.ValidationError('Masyadong malaki ang larawan (max 2MB).')
         return f
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.skills = self._skills_payload
+        instance.years_experience = self._years_experience_agg
+        if commit:
+            instance.save()
+        return instance
 
 
 class EmployerProfileForm(forms.ModelForm):

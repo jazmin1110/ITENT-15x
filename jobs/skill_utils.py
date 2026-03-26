@@ -1,6 +1,16 @@
 """Normalize job required_skills JSON (legacy list of str or list of objects)."""
 from __future__ import annotations
 
+# Shared with JobForm and WorkerProfileForm — keep in sync across the app.
+PREDEFINED_SKILL_CHOICES = [
+    ('Masonry', 'Masonry'),
+    ('Carpentry', 'Carpentry'),
+    ('Helper', 'Helper'),
+    ('Painting', 'Painting'),
+    ('Driver', 'Driver'),
+]
+PREDEFINED_SKILL_CODES = frozenset(code for code, _ in PREDEFINED_SKILL_CHOICES)
+
 
 def required_skill_names(raw) -> set[str]:
     """Return the set of skill names required for a job."""
