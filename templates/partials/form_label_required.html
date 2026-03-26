@@ -2,11 +2,12 @@
   label: visible text; field: BoundField (required for use_div=False).
   use_div: set true for checkbox groups where a single label[for] would be wrong.
   extra_label_class: e.g. fw-semibold
+  force_required: show required marker when true even if field.required is false (e.g. cleaned in clean()).
 {% endcomment %}
 {% if use_div %}
 <div class="form-label{% if extra_label_class %} {{ extra_label_class }}{% endif %}">
   {{ label }}
-  {% if field.field.required %}
+  {% if field.field.required or force_required %}
     <span class="text-danger" aria-hidden="true">*</span>
     <span class="visually-hidden">(required)</span>
   {% else %}
@@ -16,7 +17,7 @@
 {% else %}
 <label for="{{ field.id_for_label }}" class="form-label{% if extra_label_class %} {{ extra_label_class }}{% endif %}">
   {{ label }}
-  {% if field.field.required %}
+  {% if field.field.required or force_required %}
     <span class="text-danger" aria-hidden="true">*</span>
     <span class="visually-hidden">(required)</span>
   {% else %}

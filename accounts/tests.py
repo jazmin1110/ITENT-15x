@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from accounts.form_utils import first_invalid_field_name
 from accounts.forms import EmployerProfileForm, WorkerProfileForm
-from accounts.models import User, EmployerProfile
+from accounts.models import User, WorkerProfile, EmployerProfile
 
 
 class ProfileHeaderPhotoSectionTests(TestCase):
@@ -260,6 +260,199 @@ class WorkerProfileTests(TestCase):
             [{'skill': 'Welding', 'years_experience': 4}],
         )
         self.assertEqual(profile.years_experience, 4)
+
+    def test_invalid_post_no_skills_shows_top_alert_and_skill_error(self):
+        user = User.objects.create_user(
+            username='09178000001',
+            email='',
+            password='secret',
+            phone_number='09178000001',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.post(
+            reverse('worker_profile'),
+            data={
+                'full_name': 'No Skills User',
+                'city': 'Manila',
+                'contact_number': '09178000001',
+                'email': '',
+                'national_id_number': '',
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Hindi na-save ang profile')
+        self.assertContains(response, 'Pumili ng kahit isang skill')
+
+    def test_invalid_post_logs_warning_with_form_errors_json(self):
+        user = User.objects.create_user(
+            username='09178000002',
+            email='',
+            password='secret',
+            phone_number='09178000002',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        with self.assertLogs('accounts.views', level='WARNING') as cm:
+            response = client.post(
+                reverse('worker_profile'),
+                data={
+                    'full_name': 'X',
+                    'city': 'Y',
+                    'contact_number': '09178000002',
+                    'email': '',
+                    'national_id_number': '',
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            any('worker_profile validation failed' in line for line in cm.output),
+            cm.output,
+        )
+        self.assertTrue(
+            any('skills' in line for line in cm.output),
+            cm.output,
+        )
+
+    def test_post_saves_when_post_mirrors_browser_multivalue_skills_and_custom_rows(self):
+        user = User.objects.create_user(
+            username='09178000003',
+            email='',
+            password='secret',
+            phone_number='09178000003',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.post(
+            reverse('worker_profile'),
+            data={
+                'full_name': 'Multi POST',
+                'city': 'Cebu',
+                'contact_number': '09178000003',
+                'skills': ['Masonry', 'Helper'],
+                'years_Masonry': '3',
+                'years_Helper': '1',
+                'custom_skill_name': ['Pipefitting', ''],
+                'custom_skill_years': ['5', ''],
+                'email': '',
+                'national_id_number': '',
+            },
+        )
+        self.assertRedirects(response, reverse('worker_profile'))
+        profile = WorkerProfile.objects.get(user=user)
+        profile.refresh_from_db()
+        self.assertEqual(len(profile.skills), 3)
+        codes = {entry['skill']: entry.get('years_experience') for entry in profile.skills}
+        self.assertEqual(codes.get('Masonry'), 3)
+        self.assertEqual(codes.get('Helper'), 1)
+        self.assertEqual(codes.get('Pipefitting'), 5)
+
+    def test_invalid_per_skill_years_shows_alert_and_focuses_year_wrap(self):
+        user = User.objects.create_user(
+            username='09178000004',
+            email='',
+            password='secret',
+            phone_number='09178000004',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        response = client.post(
+            reverse('worker_profile'),
+            data={
+                'full_name': 'Bad Years',
+                'city': 'Davao',
+                'contact_number': '09178000004',
+                'skills': ['Helper'],
+                'years_Helper': '99',
+                'email': '',
+                'national_id_number': '',
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Hindi na-save ang profile')
+        self.assertContains(response, 'id="profile-field-wrap-years_Helper"')
+        self.assertContains(response, 'var name = "years_Helper"')
+
+    def test_legacy_lowercase_predefined_skill_loads_canonical_checkbox_and_years(self):
+        user = User.objects.create_user(
+            username='09178000005',
+            email='',
+            password='secret',
+            phone_number='09178000005',
+            role='worker',
+        )
+        WorkerProfile.objects.create(
+            user=user,
+            full_name='Legacy Skills',
+            city='X',
+            contact_number='09178000005',
+            skills=[{'skill': 'masonry', 'years_experience': 5}],
+            years_experience=5,
+        )
+        form = WorkerProfileForm(instance=user.worker_profile, user=user)
+        self.assertIn('Masonry', form.predefined_skills_selected_codes)
+        self.assertEqual(form.fields['years_Masonry'].initial, 5)
+        self.assertEqual(form.custom_skills_initial, [])
+
+    def test_save_canonicalizes_predefined_skill_casing_in_db(self):
+        user = User.objects.create_user(
+            username='09178000006',
+            email='',
+            password='secret',
+            phone_number='09178000006',
+            role='worker',
+        )
+        WorkerProfile.objects.create(
+            user=user,
+            full_name='Norm Save',
+            city='Y',
+            contact_number='09178000006',
+            skills=[{'skill': 'HELPER', 'years_experience': 2}],
+            years_experience=2,
+        )
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'Norm Save',
+                'city': 'Y',
+                'contact_number': '09178000006',
+                'skills': ['Helper'],
+                'years_Helper': 3,
+                'email': '',
+                'national_id_number': '',
+            },
+            instance=user.worker_profile,
+            user=user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        profile = form.save(commit=False)
+        profile.save()
+        profile.refresh_from_db()
+        self.assertEqual(profile.skills, [{'skill': 'Helper', 'years_experience': 3}])
+
+    def test_unbound_form_loads_custom_skills_from_instance(self):
+        user = User.objects.create_user(
+            username='09178000007',
+            email='',
+            password='secret',
+            phone_number='09178000007',
+            role='worker',
+        )
+        WorkerProfile.objects.create(
+            user=user,
+            full_name='Custom Rows',
+            city='Z',
+            contact_number='09178000007',
+            skills=[{'skill': 'Welding', 'years_experience': 6}],
+            years_experience=6,
+        )
+        form = WorkerProfileForm(instance=user.worker_profile, user=user)
+        self.assertEqual(len(form.custom_skills_initial), 1)
+        self.assertEqual(form.custom_skills_initial[0]['name'], 'Welding')
+        self.assertEqual(form.custom_skills_initial[0]['years'], 6)
 
 
 class EmployerProfileTests(TestCase):

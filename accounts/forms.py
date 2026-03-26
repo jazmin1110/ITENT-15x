@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from jobs.skill_utils import (
     PREDEFINED_SKILL_CHOICES,
     PREDEFINED_SKILL_CODES,
+    canonical_predefined_skill,
     normalize_skill_entries,
 )
 
@@ -175,7 +176,7 @@ class WorkerProfileForm(forms.ModelForm):
                 }),
             )
 
-        if self.data is not None:
+        if self.is_bound:
             self.custom_skills_initial = self._custom_rows_from_data(self.data)
         else:
             self.custom_skills_initial = self._custom_rows_from_instance()
@@ -207,7 +208,7 @@ class WorkerProfileForm(forms.ModelForm):
         rows = []
         for entry in normalize_skill_entries(self.instance.skills):
             name = entry['skill']
-            if name in PREDEFINED_SKILL_CODES:
+            if canonical_predefined_skill(name) is not None:
                 continue
             y = entry['years_experience']
             rows.append({
@@ -217,20 +218,30 @@ class WorkerProfileForm(forms.ModelForm):
         return rows
 
     def _apply_skill_initial_from_instance(self):
-        if self.data is not None:
+        if self.is_bound:
             return
         if not self.instance or not self.instance.pk or not self.instance.skills:
             return
-        selected = []
+        per_code_years: dict[str, int | None] = {}
         for entry in normalize_skill_entries(self.instance.skills):
             name = entry['skill']
             y = entry['years_experience']
-            if name in PREDEFINED_SKILL_CODES:
-                selected.append(name)
-                yfield = f'years_{name}'
-                if y is not None and yfield in self.fields:
-                    self.fields[yfield].initial = y
-        self.fields['skills'].initial = selected
+            code = canonical_predefined_skill(name)
+            if code is None:
+                continue
+            if code not in per_code_years:
+                per_code_years[code] = y
+            elif y is not None:
+                prev = per_code_years[code]
+                if prev is None or y > prev:
+                    per_code_years[code] = y
+        ordered = [c for c, _ in self.SKILL_CHOICES if c in per_code_years]
+        self.fields['skills'].initial = ordered
+        for code in ordered:
+            y = per_code_years[code]
+            yfield = f'years_{code}'
+            if y is not None and yfield in self.fields:
+                self.fields[yfield].initial = y
 
     @property
     def skill_rows(self):
@@ -246,9 +257,20 @@ class WorkerProfileForm(forms.ModelForm):
         if v is None:
             return []
         if isinstance(v, (list, tuple)):
-            return [str(x) for x in v if x is not None and str(x).strip()]
+            out: list[str] = []
+            for x in v:
+                if x is None or not str(x).strip():
+                    continue
+                s = str(x).strip()
+                code = canonical_predefined_skill(s)
+                if code is not None:
+                    out.append(code)
+                elif s in PREDEFINED_SKILL_CODES:
+                    out.append(s)
+            return out
         s = str(v).strip()
-        return [s] if s in PREDEFINED_SKILL_CODES else []
+        code = canonical_predefined_skill(s)
+        return [code] if code is not None else []
 
     def _should_prefill_contact(self):
         if not self.instance or not self.instance.pk:
@@ -384,7 +406,15 @@ class WorkerProfileForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        instance.skills = self._skills_payload
+        normalized = []
+        for item in self._skills_payload:
+            raw_name = item['skill']
+            canon = canonical_predefined_skill(raw_name)
+            normalized.append({
+                'skill': canon if canon is not None else raw_name,
+                'years_experience': item['years_experience'],
+            })
+        instance.skills = normalized
         instance.years_experience = self._years_experience_agg
         if commit:
             instance.save()

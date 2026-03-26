@@ -1,3 +1,4 @@
+import logging
 import os
 
 from django.core.files.base import ContentFile
@@ -12,6 +13,8 @@ from .form_utils import first_invalid_field_name
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
 from .models import User, WorkerProfile, EmployerProfile
 from .permissions import is_platform_admin
+
+logger = logging.getLogger(__name__)
 
 
 class CustomLoginView(LoginView):
@@ -115,6 +118,11 @@ def worker_profile(request):
             messages.success(request, 'Na-save ang profile!')
             request.session['profile_saved_cta'] = 'worker'
             return redirect('worker_profile')
+        logger.warning(
+            'worker_profile validation failed user_id=%s errors=%s',
+            request.user.pk,
+            form.errors.as_json(),
+        )
     else:
         if profile is not None:
             profile.refresh_from_db()

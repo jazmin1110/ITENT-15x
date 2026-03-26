@@ -11,6 +11,18 @@ PREDEFINED_SKILL_CHOICES = [
 ]
 PREDEFINED_SKILL_CODES = frozenset(code for code, _ in PREDEFINED_SKILL_CHOICES)
 
+_PREDEFINED_BY_LOWER: dict[str, str] = {code.lower(): code for code in PREDEFINED_SKILL_CODES}
+
+
+def canonical_predefined_skill(name: str | None) -> str | None:
+    """Return the canonical predefined code if name matches case-insensitively, else None."""
+    if name is None:
+        return None
+    key = str(name).strip().lower()
+    if not key:
+        return None
+    return _PREDEFINED_BY_LOWER.get(key)
+
 
 def required_skill_names(raw) -> set[str]:
     """Return the set of skill names required for a job."""
