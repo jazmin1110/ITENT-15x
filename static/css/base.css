@@ -165,9 +165,11 @@ a:hover {
 }
 .page-header--profile-hero {
   padding-top: 0.35rem;
+  overflow-x: visible;
+  max-width: 100%;
 }
 .page-header--profile-hero .profile-page-header-avatar__wrap {
-  margin: 2px 4px 4px 2px;
+  margin: 4px 6px 6px 6px;
 }
 .page-header--profile-hero .profile-page-header-avatar__plus-btn {
   width: 28px;
@@ -213,6 +215,16 @@ a:hover {
 
 .profile-photo-section {
   scroll-margin-top: 5.5rem;
+}
+
+/* Skill cards: keep checkbox row aligned; extra horizontal room on small screens */
+#profile-field-wrap-skills .profile-skill-card {
+  overflow-x: hidden;
+}
+@media (max-width: 767.98px) {
+  #profile-field-wrap-skills .profile-skill-card .row.mx-0 > [class*="col-"] {
+    max-width: 100%;
+  }
 }
 
 /* ---- Cards ---- */
@@ -442,6 +454,16 @@ a[href*="/chat/"].btn.btn-success:hover {
   box-shadow: var(--shadow-sm);
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
+}
+/* Full-width filter dropdowns: avoid Popper transforms skewing the panel on mobile */
+.filter-bar .dropdown {
+  position: relative;
+}
+.filter-bar .dropdown-menu {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* ---- Job card ---- */
@@ -744,22 +766,35 @@ a[href*="/chat/"].btn.btn-success:hover {
   .btn, .form-control, .form-select {
     min-height: 44px;
   }
+  /* Flex check rows: cancel Bootstrap float + negative margin or the box shifts past the card edge */
   .form-check {
     min-height: 44px;
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     padding: 0.2rem 0;
+    padding-left: 0;
   }
-  .form-check-input {
+  .form-check .form-check-input {
+    float: none;
+    margin-left: 0;
     margin-top: 0;
     flex-shrink: 0;
+    position: relative;
   }
   .star-rating .form-check {
     min-height: unset;
     display: inline-block;
     padding: 0;
+    padding-left: 1.5em;
     margin-right: 0.25rem;
+  }
+  .star-rating .form-check .form-check-input {
+    float: left;
+    margin-left: -1.5em;
+    margin-top: 0.25em;
+    flex-shrink: unset;
   }
   .form-check-label {
     padding: 0.25rem 0;

@@ -16,7 +16,7 @@
         {% endif %}
       </div>
     {% endif %}
-      <div class="page-header page-header--profile-hero d-flex align-items-start gap-3 mb-4">
+      <div class="page-header page-header--profile-hero d-flex flex-column flex-sm-row align-items-center align-items-sm-start text-center text-sm-start gap-3 mb-4 px-1">
         <div id="profile-field-wrap-avatar" class="profile-field-wrap d-flex flex-column align-items-center flex-shrink-0{% if form.avatar.errors %} is-invalid border border-danger rounded p-2{% endif %}">
           <div id="profile-photo" class="profile-photo-section profile-page-header-avatar d-flex flex-column align-items-center">
             <div class="profile-page-header-avatar__wrap">
@@ -30,7 +30,7 @@
             {% if form.avatar.errors %}<div class="text-danger small mt-1 text-center px-1">{{ form.avatar.errors.0 }}</div>{% endif %}
           </div>
         </div>
-        <div class="flex-grow-1 align-self-center">
+        <div class="flex-grow-1 align-self-center w-100 min-w-0">
           <h2 class="mb-0">Worker Profile</h2>
           <span class="text-muted text-sm">I-update ang iyong impormasyon at i-verify ang account mo</span>
         </div>
@@ -170,10 +170,10 @@
             {% if form.skills.errors %}<div class="text-danger small mb-2">{{ form.skills.errors.0 }}</div>{% endif %}
             <div class="d-flex flex-column gap-3">
               {% for code, label, year_field in form.skill_rows %}
-                <div class="border rounded p-3 profile-field-wrap{% if year_field.errors %} is-invalid{% endif %}" id="profile-field-wrap-{{ year_field.name }}">
-                  <div class="row align-items-end g-2">
-                    <div class="col-md-6">
-                      <div class="form-check mb-0">
+                <div class="border rounded py-3 px-3 px-sm-4 profile-skill-card profile-field-wrap{% if year_field.errors %} is-invalid{% endif %}" id="profile-field-wrap-{{ year_field.name }}">
+                  <div class="row align-items-end g-2 gx-md-3 mx-0">
+                    <div class="col-md-6 ps-0 pe-md-3">
+                      <div class="form-check mb-0 ps-1">
                         <input
                           class="form-check-input"
                           type="checkbox"
@@ -185,7 +185,7 @@
                         <label class="form-check-label fw-semibold" for="id_skill_{{ code }}">{{ label }}</label>
                       </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 ps-0 ps-md-3 pe-0">
                       <label class="form-label small text-muted mb-0" for="{{ year_field.id_for_label }}">{{ year_field.label }}</label>
                       {{ year_field }}
                       {% if year_field.errors %}<div class="text-danger small mt-1">{{ year_field.errors.0 }}</div>{% endif %}
