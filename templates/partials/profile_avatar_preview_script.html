@@ -1,0 +1,33 @@
+<script>
+(function () {
+  var input = document.getElementById("id_avatar");
+  var wrap = document.querySelector("#profile-photo .profile-page-header-avatar__wrap");
+  if (!input || !wrap) return;
+  var blobUrl = null;
+  function revokeBlob() {
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      blobUrl = null;
+    }
+  }
+  function ensureImg() {
+    var img = wrap.querySelector("img.user-avatar");
+    if (img) return img;
+    var span = wrap.querySelector("span.user-avatar");
+    if (!span) return null;
+    img = document.createElement("img");
+    img.className = "user-avatar user-avatar--photo user-avatar--profile-header";
+    img.alt = "";
+    span.replaceWith(img);
+    return img;
+  }
+  input.addEventListener("change", function () {
+    var file = input.files && input.files[0];
+    revokeBlob();
+    if (!file || !/^image\//i.test(file.type)) return;
+    blobUrl = URL.createObjectURL(file);
+    var img = ensureImg();
+    if (img) img.src = blobUrl;
+  });
+})();
+</script>
