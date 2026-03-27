@@ -8,6 +8,7 @@ from django.db.models import (
     FloatField,
     IntegerField,
     OuterRef,
+    Q,
     Subquery,
     Value,
     When,
@@ -38,11 +39,15 @@ def job_list(request):
         .order_by('-created_at')
     )
 
-    city = request.GET.get('city', '')
+    city_set = frozenset(METRO_MANILA_CITIES)
+    selected_cities = [c for c in request.GET.getlist('city') if c in city_set]
     selected_skills = [s for s in request.GET.getlist('skill') if s]
 
-    if city:
-        jobs_qs = jobs_qs.filter(city__iexact=city)
+    if selected_cities:
+        city_q = Q()
+        for c in selected_cities:
+            city_q |= Q(city__iexact=c)
+        jobs_qs = jobs_qs.filter(city_q)
 
     jobs = list(jobs_qs)
     if selected_skills:
@@ -71,7 +76,7 @@ def job_list(request):
 
     context = {
         'jobs': jobs,
-        'city': city,
+        'selected_cities': selected_cities,
         'cities': METRO_MANILA_CITIES,
         'selected_skills': selected_skills,
         'skills': skills,

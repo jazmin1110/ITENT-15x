@@ -16,11 +16,11 @@
         {% endif %}
       </div>
     {% endif %}
-      <div class="page-header d-flex align-items-start gap-3 mb-4">
+      <div class="page-header page-header--profile-hero d-flex align-items-start gap-3 mb-4">
         <div id="profile-field-wrap-avatar" class="profile-field-wrap d-flex flex-column align-items-center flex-shrink-0{% if form.avatar.errors %} is-invalid border border-danger rounded p-2{% endif %}">
           <div id="profile-photo" class="profile-photo-section profile-page-header-avatar d-flex flex-column align-items-center">
             <div class="profile-page-header-avatar__wrap">
-              {% include 'partials/user_avatar.html' with size='lg' %}
+              {% include 'partials/user_avatar.html' with profile_header=1 %}
               <label for="id_avatar" class="profile-page-header-avatar__plus-btn" title="Baguhin ang larawan">
                 <span class="visually-hidden">Baguhin ang larawan</span>
                 <i class="bi bi-plus-lg" aria-hidden="true"></i>

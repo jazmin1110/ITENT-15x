@@ -140,6 +140,11 @@ a:hover {
   height: 48px;
   font-size: 1.2rem;
 }
+.user-avatar--profile-header {
+  width: 88px;
+  height: 88px;
+  font-size: 1.75rem;
+}
 .user-avatar--photo {
   object-fit: cover;
   padding: 0;
@@ -157,6 +162,18 @@ a:hover {
   position: relative;
   display: inline-block;
   line-height: 0;
+}
+.page-header--profile-hero {
+  padding-top: 0.35rem;
+}
+.page-header--profile-hero .profile-page-header-avatar__wrap {
+  margin: 2px 4px 4px 2px;
+}
+.page-header--profile-hero .profile-page-header-avatar__plus-btn {
+  width: 28px;
+  height: 28px;
+  right: 2px;
+  bottom: 2px;
 }
 .profile-page-header-avatar__plus-btn {
   position: absolute;
@@ -189,6 +206,9 @@ a:hover {
   font-size: 0.85rem;
   line-height: 1;
   font-weight: 700;
+}
+.page-header--profile-hero .profile-page-header-avatar__plus-btn .bi {
+  font-size: 1rem;
 }
 
 .profile-photo-section {
@@ -464,6 +484,35 @@ a[href*="/chat/"].btn.btn-success:hover {
   margin-right: 0.25rem;
   margin-bottom: 0.25rem;
 }
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--blue-50);
+  color: var(--blue-700);
+  border: 1px solid var(--blue-100);
+  border-radius: var(--radius-pill);
+  padding: 0.25em 0.65em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+.filter-chip__remove {
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+  font-size: 1.1em;
+  opacity: 0.75;
+}
+.filter-chip__remove:hover {
+  opacity: 1;
+}
+.filter-save-toast {
+  font-size: 0.8rem;
+  color: var(--gray-700);
+  min-height: 1.25rem;
+}
 
 /* ---- Verified badge ---- */
 .verified-badge {
@@ -692,11 +741,28 @@ a[href*="/chat/"].btn.btn-success:hover {
 
 /* ---- Touch targets (mobile) ---- */
 @media (pointer: coarse) {
-  .btn, .form-control, .form-select, .form-check-input {
+  .btn, .form-control, .form-select {
     min-height: 44px;
   }
+  .form-check {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+  }
+  .form-check-input {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+  .star-rating .form-check {
+    min-height: unset;
+    display: inline-block;
+    padding: 0;
+    margin-right: 0.25rem;
+  }
   .form-check-label {
-    padding: 0.5rem 0;
+    padding: 0.25rem 0;
   }
   .card .btn-lg {
     min-height: 48px;

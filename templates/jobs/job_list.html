@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load query_string %}
 
 {% block title %}Jobs - TiwalaPH{% endblock %}
 
@@ -8,17 +9,48 @@
 </div>
 
 <div class="filter-bar">
-  <form method="get" class="row g-2 align-items-end">
-    <div class="col-md-4">
+  <form method="get" id="job-filter-form" class="row g-3 align-items-end">
+    <div class="col-lg-5 col-md-6">
       <label class="form-label">Lungsod</label>
-      <select name="city" class="form-select">
-        <option value="" {% if not city %}selected{% endif %}>Select</option>
-        {% for c in cities %}
-          <option value="{{ c }}" {% if c == city %}selected{% endif %}>{{ c }}</option>
-        {% endfor %}
-      </select>
+      <div class="dropdown w-100">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+          type="button"
+          id="cityDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          data-default-label="Pumili ng lungsod"
+        >
+          {% if selected_cities %}{{ selected_cities|length }} napiling lungsod{% else %}Pumili ng lungsod{% endif %}
+        </button>
+        <div class="dropdown-menu w-100 p-3" aria-labelledby="cityDropdown" style="max-height: 260px; overflow: auto;">
+          {% for c in cities %}
+            <div class="form-check">
+              <input
+                class="form-check-input js-filter-cb"
+                type="checkbox"
+                name="city"
+                value="{{ c }}"
+                id="city_filter_{{ forloop.counter }}"
+                {% if c in selected_cities %}checked{% endif %}
+              >
+              <label class="form-check-label" for="city_filter_{{ forloop.counter }}">{{ c }}</label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% if selected_cities %}
+        <div class="mt-2">
+          {% for c in selected_cities %}
+            <span class="filter-chip">
+              {{ c }}
+              <a href="{% url 'job_list' %}?{% qs_drop request 'city' c %}" class="filter-chip__remove" title="Alisin">×</a>
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
-    <div class="col-md-4">
+    <div class="col-lg-5 col-md-6">
       <label class="form-label">Skill</label>
       <div class="dropdown w-100">
         <button
@@ -27,24 +59,23 @@
           id="skillDropdown"
           data-bs-toggle="dropdown"
           aria-expanded="false"
+          data-default-label="Pumili ng skills"
         >
-          Select skills
+          {% if selected_skills %}{{ selected_skills|length }} napiling skill{% else %}Pumili ng skills{% endif %}
         </button>
         <div class="dropdown-menu w-100 p-3" aria-labelledby="skillDropdown" style="max-height: 260px; overflow: auto;">
           {% if skills %}
             {% for s in skills %}
               <div class="form-check">
                 <input
-                  class="form-check-input"
+                  class="form-check-input js-filter-cb"
                   type="checkbox"
                   name="skill"
                   value="{{ s }}"
                   id="skill_filter_{{ forloop.counter }}"
                   {% if s in selected_skills %}checked{% endif %}
                 >
-                <label class="form-check-label" for="skill_filter_{{ forloop.counter }}">
-                  {{ s }}
-                </label>
+                <label class="form-check-label" for="skill_filter_{{ forloop.counter }}">{{ s }}</label>
               </div>
             {% endfor %}
           {% else %}
@@ -52,12 +83,25 @@
           {% endif %}
         </div>
       </div>
+      {% if selected_skills %}
+        <div class="mt-2">
+          {% for s in selected_skills %}
+            <span class="filter-chip">
+              {{ s }}
+              <a href="{% url 'job_list' %}?{% qs_drop request 'skill' s %}" class="filter-chip__remove" title="Alisin">×</a>
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
-    <div class="col-md-4 d-flex gap-2">
-      <button type="submit" class="btn btn-primary flex-grow-1">
-        <i class="bi bi-funnel"></i> Filter
-      </button>
-      <a href="{% url 'job_list' %}" class="btn btn-outline-secondary">Clear</a>
+    <div class="col-lg-2 col-md-12 d-flex flex-column gap-2">
+      <p class="filter-save-toast mb-0" id="filter-save-feedback" aria-live="polite"></p>
+      <div class="d-flex gap-2 flex-md-column flex-lg-row flex-wrap">
+        <button type="submit" class="btn btn-primary flex-grow-1">
+          <i class="bi bi-funnel"></i> Filter
+        </button>
+        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary">Clear</a>
+      </div>
     </div>
   </form>
 </div>
@@ -129,4 +173,50 @@
   </div>
   {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var form = document.getElementById("job-filter-form");
+  if (!form) return;
+  var feedback = document.getElementById("filter-save-feedback");
+  var cityBtn = document.getElementById("cityDropdown");
+  var skillBtn = document.getElementById("skillDropdown");
+  var toastTimer;
+
+  function cityLabel(n) {
+    var d = cityBtn && cityBtn.getAttribute("data-default-label");
+    return n ? (n + " napiling lungsod") : (d || "Pumili ng lungsod");
+  }
+  function skillLabel(n) {
+    var d = skillBtn && skillBtn.getAttribute("data-default-label");
+    return n ? (n + " napiling skill") : (d || "Pumili ng skills");
+  }
+  function syncButtonLabels() {
+    if (cityBtn) {
+      cityBtn.textContent = cityLabel(form.querySelectorAll('input[name="city"]:checked').length);
+    }
+    if (skillBtn) {
+      skillBtn.textContent = skillLabel(form.querySelectorAll('input[name="skill"]:checked').length);
+    }
+  }
+  function flashSaved() {
+    if (!feedback) return;
+    feedback.textContent = "Nai-save sa filter — pindutin ang Filter upang ilapat.";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      feedback.textContent = "";
+    }, 2000);
+  }
+
+  syncButtonLabels();
+  form.querySelectorAll(".js-filter-cb").forEach(function (el) {
+    el.addEventListener("change", function () {
+      syncButtonLabels();
+      flashSaved();
+    });
+  });
+})();
+</script>
 {% endblock %}

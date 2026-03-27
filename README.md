@@ -24,6 +24,10 @@
 
 5. **Django site admin** (`/admin/`): full model access and editing—use alongside the staff console when you need raw rows or fields not exposed in the custom UI.
 
+### User uploads (avatars, verification documents)
+
+With `DEBUG=False`, `/media/` is served from `MEDIA_ROOT` via URL routing in `itent/urls.py`. On hosts such as **Render (free web service)**, the filesystem is **ephemeral**: redeploys can delete uploaded files even though database rows still reference them. For a public launch where files must survive deploys, use **durable object storage** (for example Cloudinary’s free tier or S3-compatible storage with `django-storages`) and point `DEFAULT_FILE_STORAGE` at that backend.
+
 ## Supabase `profiles` setup
 
 For sign-up/login to save roles, you need a `profiles` table and RLS policies.
