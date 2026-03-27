@@ -1,5 +1,7 @@
 {% if user.avatar %}
   <img src="{{ user.avatar.url }}" alt="" class="user-avatar user-avatar--photo{% if profile_header %} user-avatar--profile-header{% elif size == 'lg' %} user-avatar--lg{% else %} user-avatar--sm{% endif %}">
 {% else %}
-  <span class="user-avatar{% if profile_header %} user-avatar--profile-header{% elif size == 'lg' %} user-avatar--lg{% else %} user-avatar--sm{% endif %}{% if extra_class %} {{ extra_class }}{% endif %}">{{ user.display_name|make_list|first }}</span>
+  {% with dn=user.display_name|default_if_none:'' %}
+  <span class="user-avatar{% if profile_header %} user-avatar--profile-header{% elif size == 'lg' %} user-avatar--lg{% else %} user-avatar--sm{% endif %}{% if extra_class %} {{ extra_class }}{% endif %}" aria-hidden="true">{% if dn %}{{ dn|make_list|first }}{% elif user.phone_number %}{{ user.phone_number|slice:":1" }}{% else %}?{% endif %}</span>
+  {% endwith %}
 {% endif %}

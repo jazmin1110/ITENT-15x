@@ -144,6 +144,8 @@ a:hover {
   width: 88px;
   height: 88px;
   font-size: 1.75rem;
+  box-sizing: border-box;
+  border: 2px solid var(--color-border);
 }
 .user-avatar--photo {
   object-fit: cover;
@@ -158,10 +160,18 @@ a:hover {
 .profile-page-header-avatar {
   line-height: 1.25;
 }
+/* inline-block + line-height:0 removes img strut but breaks inline-flex fallback initials */
 .profile-page-header-avatar__wrap {
   position: relative;
-  display: inline-block;
-  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
+  vertical-align: top;
+  flex-shrink: 0;
+}
+.profile-page-header-avatar__wrap > .user-avatar--photo {
+  display: block;
 }
 .page-header--profile-hero {
   padding-top: 0.35rem;
@@ -170,6 +180,10 @@ a:hover {
 }
 .page-header--profile-hero .profile-page-header-avatar__wrap {
   margin: 4px 6px 6px 6px;
+  width: 88px;
+  min-width: 88px;
+  height: 88px;
+  min-height: 88px;
 }
 .page-header--profile-hero .profile-page-header-avatar__plus-btn {
   width: 28px;
