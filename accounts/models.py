@@ -21,6 +21,30 @@ class User(AbstractUser):
     def get_rating_count(self):
         return self.ratings_received.count()
 
+    @property
+    def display_name(self) -> str:
+        """Navbar / UI label: profile name when available, else full name, else phone."""
+        if self.role == 'worker':
+            try:
+                n = (self.worker_profile.full_name or '').strip()
+                if n:
+                    return n
+            except WorkerProfile.DoesNotExist:
+                pass
+        elif self.role == 'employer':
+            try:
+                n = (self.employer_profile.company_name or '').strip()
+                if n:
+                    return n
+            except EmployerProfile.DoesNotExist:
+                pass
+        full = (self.get_full_name() or '').strip()
+        if full:
+            return full
+        if self.phone_number:
+            return self.phone_number
+        return (self.username or '')
+
     def __str__(self):
         return f"{self.phone_number} ({self.role})"
 
