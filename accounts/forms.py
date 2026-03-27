@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -13,7 +14,7 @@ from jobs.skill_utils import (
 )
 
 from .models import User, WorkerProfile, EmployerProfile
-from itent.choices import CITY_CHOICES
+from itent.choices import CITY_CHOICES, GENDER_CHOICES, MARITAL_STATUS_CHOICES
 
 WORKER_MAX_CUSTOM_SKILLS = 10
 WORKER_CUSTOM_SKILL_NAME_MAX_LEN = 80
@@ -152,16 +153,39 @@ class WorkerProfileForm(forms.ModelForm):
     class Meta:
         model = WorkerProfile
         fields = [
-            'full_name', 'city', 'contact_number',
+            'full_name',
+            'date_of_birth', 'gender', 'marital_status', 'nationality', 'religion', 'languages_known',
+            'city', 'contact_number',
             'doc_nbi_clearance', 'national_id_number',
         ]
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'date_of_birth': forms.DateInput(
+                attrs={'class': 'form-control', 'type': 'date', 'autocomplete': 'bday'},
+            ),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'marital_status': forms.Select(attrs={'class': 'form-select'}),
+            'nationality': forms.TextInput(attrs={
+                'class': 'form-control',
+                'autocomplete': 'country-name',
+            }),
+            'religion': forms.TextInput(attrs={'class': 'form-control'}),
+            'languages_known': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'hal. Tagalog, English',
+            }),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'tel'}),
             'doc_nbi_clearance': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'national_id_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. XXXX-XXXX-XXXX-XXXX'}),
         }
         labels = {
+            'date_of_birth': 'Petsa ng kapanganakan',
+            'gender': 'Kasarian',
+            'marital_status': 'Katayuang sibil',
+            'nationality': 'Nasyonalidad',
+            'religion': 'Relihiyon',
+            'languages_known': 'Mga wikang alam',
             'doc_nbi_clearance': 'NBI Clearance',
             'national_id_number': 'Philippine National ID (PhilSys) Number',
         }
@@ -169,6 +193,11 @@ class WorkerProfileForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        self.fields['date_of_birth'].required = True
+        self.fields['gender'].required = True
+        self.fields['gender'].choices = GENDER_CHOICES
+        self.fields['marital_status'].required = False
+        self.fields['marital_status'].choices = MARITAL_STATUS_CHOICES
         for code, label in self.SKILL_CHOICES:
             self.fields[f'years_{code}'] = forms.IntegerField(
                 required=False,
@@ -291,6 +320,21 @@ class WorkerProfileForm(forms.ModelForm):
             self.cleaned_data.get('contact_number', ''),
             exclude_user=self.user,
         )
+
+    def clean_date_of_birth(self):
+        dob = self.cleaned_data.get('date_of_birth')
+        if dob is None:
+            return dob
+        today = date.today()
+        if dob > today:
+            raise forms.ValidationError('Hindi puwedeng future ang petsa ng kapanganakan.')
+        # Workers must be at least 18 (employment context).
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        if age < 18:
+            raise forms.ValidationError('Dapat hindi bababa sa 18 taong gulang.')
+        if age > 120:
+            raise forms.ValidationError('Suriin ang petsa ng kapanganakan.')
+        return dob
 
     def _coerce_custom_skill_years(self, raw) -> int | None:
         if raw is None or raw == '':

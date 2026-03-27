@@ -1,6 +1,10 @@
+from datetime import date
+
 from django.db import models
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
+
+from itent.choices import GENDER_CHOICES, MARITAL_STATUS_CHOICES
 
 
 class User(AbstractUser):
@@ -71,6 +75,15 @@ class WorkerProfile(models.Model):
     years_experience = models.IntegerField(default=0)
     skills = models.JSONField(default=list)
 
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True)
+    marital_status = models.CharField(
+        max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, default='',
+    )
+    nationality = models.CharField(max_length=100, blank=True, default='')
+    religion = models.CharField(max_length=100, blank=True, default='')
+    languages_known = models.TextField(blank=True, default='')
+
     doc_nbi_clearance = models.FileField(upload_to='worker_docs/', blank=True)
     national_id_number = models.CharField(max_length=30, blank=True, default='')
     national_id_status = models.CharField(
@@ -85,6 +98,18 @@ class WorkerProfile(models.Model):
     @property
     def verified(self):
         return self.verification_status == 'verified'
+
+    @property
+    def age(self):
+        """Whole years since date_of_birth; None if DOB not set."""
+        if not self.date_of_birth:
+            return None
+        today = date.today()
+        born = self.date_of_birth
+        years = today.year - born.year - (
+            (today.month, today.day) < (born.month, born.day)
+        )
+        return max(0, years)
 
     @property
     def all_requirements_met(self):

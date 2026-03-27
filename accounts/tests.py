@@ -1,4 +1,6 @@
 import io
+from datetime import date
+from unittest.mock import patch
 
 from django.contrib.auth import authenticate
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -9,6 +11,9 @@ from django.urls import reverse
 from accounts.form_utils import first_invalid_field_name
 from accounts.forms import EmployerProfileForm, WorkerProfileForm
 from accounts.models import User, WorkerProfile, EmployerProfile
+
+# Valid biodata for worker profile POSTs / WorkerProfileForm (18+ DOB).
+_WORKER_BIODATA_VALID = {'date_of_birth': '1990-05-15', 'gender': 'male'}
 
 
 class ProfileHeaderPhotoSectionTests(TestCase):
@@ -94,6 +99,7 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'Juan Worker',
+                **_WORKER_BIODATA_VALID,
                 'city': 'Quezon City',
                 'contact_number': '09179876543',
                 'skills': ['Helper'],
@@ -104,6 +110,9 @@ class WorkerProfileTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Tingnan ang mga trabaho')
+        profile = WorkerProfile.objects.get(user=user)
+        self.assertEqual(str(profile.date_of_birth), '1990-05-15')
+        self.assertEqual(profile.gender, 'male')
 
     def test_email_saved_to_user(self):
         user = User.objects.create_user(
@@ -119,6 +128,7 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'Worker Three',
+                **_WORKER_BIODATA_VALID,
                 'city': 'Manila',
                 'contact_number': '09171111111',
                 'skills': ['Driver'],
@@ -143,7 +153,8 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'Flow Worker',
-                'city': 'Cebu',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Makati',
                 'contact_number': '09172000002',
                 'skills': ['Helper'],
                 'email': 'flow@test.com',
@@ -183,7 +194,8 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'B Worker',
-                'city': 'Davao',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Pasig',
                 'contact_number': '09173000001',
                 'skills': ['Driver'],
                 'email': 'b@test.com',
@@ -206,6 +218,7 @@ class WorkerProfileTests(TestCase):
         form = WorkerProfileForm(
             data={
                 'full_name': 'Skill Max',
+                **_WORKER_BIODATA_VALID,
                 'city': 'Manila',
                 'contact_number': '09177000001',
                 'skills': ['Helper', 'Masonry'],
@@ -241,7 +254,8 @@ class WorkerProfileTests(TestCase):
         form = WorkerProfileForm(
             data={
                 'full_name': 'Custom Only',
-                'city': 'Cebu',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Taguig',
                 'contact_number': '09177000002',
                 'skills': [],
                 'custom_skill_name': ['Welding'],
@@ -275,6 +289,7 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'No Skills User',
+                **_WORKER_BIODATA_VALID,
                 'city': 'Manila',
                 'contact_number': '09178000001',
                 'email': '',
@@ -300,7 +315,8 @@ class WorkerProfileTests(TestCase):
                 reverse('worker_profile'),
                 data={
                     'full_name': 'X',
-                    'city': 'Y',
+                    **_WORKER_BIODATA_VALID,
+                    'city': 'Manila',
                     'contact_number': '09178000002',
                     'email': '',
                     'national_id_number': '',
@@ -330,7 +346,8 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'Multi POST',
-                'city': 'Cebu',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Makati',
                 'contact_number': '09178000003',
                 'skills': ['Masonry', 'Helper'],
                 'years_Masonry': '3',
@@ -364,7 +381,8 @@ class WorkerProfileTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': 'Bad Years',
-                'city': 'Davao',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Pasig',
                 'contact_number': '09178000004',
                 'skills': ['Helper'],
                 'years_Helper': '99',
@@ -409,7 +427,7 @@ class WorkerProfileTests(TestCase):
         WorkerProfile.objects.create(
             user=user,
             full_name='Norm Save',
-            city='Y',
+            city='Quezon City',
             contact_number='09178000006',
             skills=[{'skill': 'HELPER', 'years_experience': 2}],
             years_experience=2,
@@ -417,7 +435,8 @@ class WorkerProfileTests(TestCase):
         form = WorkerProfileForm(
             data={
                 'full_name': 'Norm Save',
-                'city': 'Y',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Quezon City',
                 'contact_number': '09178000006',
                 'skills': ['Helper'],
                 'years_Helper': 3,
@@ -454,6 +473,114 @@ class WorkerProfileTests(TestCase):
         self.assertEqual(form.custom_skills_initial[0]['name'], 'Welding')
         self.assertEqual(form.custom_skills_initial[0]['years'], 6)
 
+    def test_age_property_from_date_of_birth(self):
+        user = User.objects.create_user(
+            username='09178000008',
+            email='',
+            password='secret',
+            phone_number='09178000008',
+            role='worker',
+        )
+        profile = WorkerProfile.objects.create(
+            user=user,
+            full_name='Age Test',
+            city='Manila',
+            contact_number='09178000008',
+            skills=[{'skill': 'Helper', 'years_experience': 1}],
+            years_experience=1,
+            date_of_birth=date(2000, 6, 10),
+            gender='female',
+        )
+
+        class EveBirthday(date):
+            @classmethod
+            def today(cls):
+                return cls(2026, 6, 9)
+
+        with patch('accounts.models.date', EveBirthday):
+            self.assertEqual(profile.age, 25)
+
+        class OnBirthday(date):
+            @classmethod
+            def today(cls):
+                return cls(2026, 6, 10)
+
+        with patch('accounts.models.date', OnBirthday):
+            self.assertEqual(profile.age, 26)
+
+    def test_clean_date_of_birth_rejects_future_and_under_18(self):
+        user = User.objects.create_user(
+            username='09178000009',
+            email='',
+            password='secret',
+            phone_number='09178000009',
+            role='worker',
+        )
+        future = date.today().replace(year=date.today().year + 1)
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'Dob Test',
+                'date_of_birth': future.isoformat(),
+                'gender': 'male',
+                'city': 'Manila',
+                'contact_number': '09178000009',
+                'skills': ['Helper'],
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('date_of_birth', form.errors)
+        young = date(date.today().year - 10, 6, 15)
+        form2 = WorkerProfileForm(
+            data={
+                'full_name': 'Dob Test',
+                'date_of_birth': young.isoformat(),
+                'gender': 'male',
+                'city': 'Manila',
+                'contact_number': '09178000009',
+                'skills': ['Helper'],
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertFalse(form2.is_valid())
+        self.assertIn('date_of_birth', form2.errors)
+
+    def test_optional_biodata_fields_round_trip(self):
+        user = User.objects.create_user(
+            username='09178000010',
+            email='',
+            password='secret',
+            phone_number='09178000010',
+            role='worker',
+        )
+        client = Client()
+        client.force_login(user)
+        client.post(
+            reverse('worker_profile'),
+            data={
+                'full_name': 'Extras',
+                **_WORKER_BIODATA_VALID,
+                'marital_status': 'single',
+                'nationality': 'Filipino',
+                'religion': 'None',
+                'languages_known': 'Tagalog, English',
+                'city': 'Manila',
+                'contact_number': '09178000010',
+                'skills': ['Helper'],
+                'email': '',
+                'national_id_number': '',
+            },
+        )
+        profile = WorkerProfile.objects.get(user=user)
+        self.assertEqual(profile.marital_status, 'single')
+        self.assertEqual(profile.nationality, 'Filipino')
+        self.assertEqual(profile.religion, 'None')
+        self.assertEqual(profile.languages_known, 'Tagalog, English')
+
 
 class EmployerProfileTests(TestCase):
     def test_employer_form_includes_uploaded_avatar_in_cleaned_data(self):
@@ -471,7 +598,7 @@ class EmployerProfileTests(TestCase):
         form = EmployerProfileForm(
             data={
                 'company_name': 'Co',
-                'city': 'X',
+                'city': 'Manila',
                 'contact_person': 'Y',
                 'contact_number': '021',
                 'account_phone': '09170000005',
@@ -633,7 +760,8 @@ class FirstInvalidFieldNameTests(TestCase):
         form = WorkerProfileForm(
             data={
                 'full_name': 'OK',
-                'city': 'X',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Manila',
                 'contact_number': '09175000003',
                 'skills': ['Helper'],
                 'email': '',
@@ -656,7 +784,8 @@ class FirstInvalidFieldNameTests(TestCase):
         form = WorkerProfileForm(
             data={
                 'full_name': 'OK',
-                'city': 'X',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Manila',
                 'contact_number': '09175000002',
                 'skills': ['Helper'],
                 'email': '',
@@ -683,6 +812,7 @@ class ProfileFormFocusUXTests(TestCase):
             reverse('worker_profile'),
             data={
                 'full_name': '',
+                **_WORKER_BIODATA_VALID,
                 'city': 'Quezon City',
                 'contact_number': '09176000001',
                 'skills': ['Helper'],

@@ -79,6 +79,67 @@
 
     <div class="card mb-4">
       <div class="card-header py-3 bg-white border-bottom">
+        <h5 class="mb-0"><i class="bi bi-person-vcard"></i> Biodata</h5>
+      </div>
+      <div class="card-body p-4">
+
+          <div id="profile-field-wrap-full_name" class="mb-3 profile-field-wrap{% if form.full_name.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+            {% include 'partials/form_label_required.html' with label='Buong pangalan' field=form.full_name %}
+            {{ form.full_name }}
+            {% if form.full_name.errors %}<div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="row">
+            <div id="profile-field-wrap-date_of_birth" class="col-md-6 mb-3 profile-field-wrap{% if form.date_of_birth.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+              {% include 'partials/form_label_required.html' with label=form.date_of_birth.label field=form.date_of_birth %}
+              {{ form.date_of_birth }}
+              {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Edad</label>
+              <div id="worker-profile-age-display" class="form-control bg-light" style="cursor: default;" aria-live="polite">
+                {% if profile and profile.age is not None %}{{ profile.age }}{% else %}—{% endif %}
+              </div>
+              <small class="form-text text-muted">Kusang kinakalkula mula sa petsa ng kapanganakan.</small>
+            </div>
+          </div>
+
+          <div class="row">
+            <div id="profile-field-wrap-gender" class="col-md-6 mb-3 profile-field-wrap{% if form.gender.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+              {% include 'partials/form_label_required.html' with label=form.gender.label field=form.gender %}
+              {{ form.gender }}
+              {% if form.gender.errors %}<div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>{% endif %}
+            </div>
+            <div id="profile-field-wrap-marital_status" class="col-md-6 mb-3 profile-field-wrap{% if form.marital_status.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+              {% include 'partials/form_label_required.html' with label=form.marital_status.label field=form.marital_status %}
+              {{ form.marital_status }}
+              {% if form.marital_status.errors %}<div class="text-danger small mt-1">{{ form.marital_status.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div id="profile-field-wrap-nationality" class="mb-3 profile-field-wrap{% if form.nationality.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+            {% include 'partials/form_label_required.html' with label=form.nationality.label field=form.nationality %}
+            {{ form.nationality }}
+            {% if form.nationality.errors %}<div class="text-danger small mt-1">{{ form.nationality.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div id="profile-field-wrap-religion" class="mb-3 profile-field-wrap{% if form.religion.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+            {% include 'partials/form_label_required.html' with label=form.religion.label field=form.religion %}
+            {{ form.religion }}
+            {% if form.religion.errors %}<div class="text-danger small mt-1">{{ form.religion.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div id="profile-field-wrap-languages_known" class="mb-3 profile-field-wrap{% if form.languages_known.errors %} is-invalid border border-danger rounded p-3{% endif %}">
+            {% include 'partials/form_label_required.html' with label=form.languages_known.label field=form.languages_known %}
+            {{ form.languages_known }}
+            {% if form.languages_known.errors %}<div class="text-danger small mt-1">{{ form.languages_known.errors.0 }}</div>{% endif %}
+          </div>
+
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header py-3 bg-white border-bottom">
         <h5 class="mb-0"><i class="bi bi-person"></i> Personal Information</h5>
       </div>
       <div class="card-body p-4">
@@ -88,12 +149,6 @@
             {{ form.email }}
             {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
             <small class="form-text text-muted">Ginamit din ito sa login kung naka-fill in sa signup.</small>
-          </div>
-
-          <div id="profile-field-wrap-full_name" class="mb-3 profile-field-wrap{% if form.full_name.errors %} is-invalid border border-danger rounded p-3{% endif %}">
-            {% include 'partials/form_label_required.html' with label='Buong Pangalan' field=form.full_name %}
-            {{ form.full_name }}
-            {% if form.full_name.errors %}<div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>{% endif %}
           </div>
 
           <div class="row">
@@ -327,6 +382,42 @@
     var inp = node.querySelector('input[name="custom_skill_name"]');
     if (inp) inp.focus();
   });
+})();
+
+(function () {
+  var dob = document.getElementById("id_date_of_birth");
+  var ageEl = document.getElementById("worker-profile-age-display");
+  if (!dob || !ageEl) return;
+  function ageFromParts(y, m, d) {
+    var today = new Date();
+    var years = today.getFullYear() - y;
+    if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) years--;
+    return years;
+  }
+  function sync() {
+    var v = (dob.value || "").trim();
+    if (!v) {
+      ageEl.textContent = "—";
+      return;
+    }
+    var parts = v.split("-");
+    if (parts.length !== 3) {
+      ageEl.textContent = "—";
+      return;
+    }
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    var d = parseInt(parts[2], 10);
+    if (!y || !m || !d) {
+      ageEl.textContent = "—";
+      return;
+    }
+    var a = ageFromParts(y, m, d);
+    ageEl.textContent = a >= 0 ? String(a) : "—";
+  }
+  dob.addEventListener("input", sync);
+  dob.addEventListener("change", sync);
+  sync();
 })();
 </script>
 {% if profile_focus_field %}

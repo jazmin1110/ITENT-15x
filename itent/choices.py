@@ -21,3 +21,20 @@ METRO_MANILA_CITIES = [
 ]
 
 CITY_CHOICES = [(c, c) for c in METRO_MANILA_CITIES]
+
+GENDER_CHOICES = [
+    ('female', 'Female'),
+    ('male', 'Male'),
+    ('non_binary', 'Non-binary'),
+    ('prefer_not_to_say', 'Prefer not to say'),
+    ('self_describe', 'Self-describe'),
+]
+
+MARITAL_STATUS_CHOICES = [
+    ('', '—'),
+    ('single', 'Single'),
+    ('married', 'Married'),
+    ('divorced', 'Divorced'),
+    ('widowed', 'Widowed'),
+    ('separated', 'Separated'),
+]

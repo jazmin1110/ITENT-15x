@@ -14,7 +14,9 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(WorkerProfile)
 class WorkerProfileAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'city', 'years_experience', 'verification_status', 'user']
+    list_display = [
+        'full_name', 'date_of_birth', 'city', 'years_experience', 'verification_status', 'user',
+    ]
     list_filter = ['verification_status', 'national_id_status']
     search_fields = ['full_name', 'city']
 
