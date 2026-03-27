@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load query_string %}
 
 {% block title %}Jobs - TiwalaPH{% endblock %}
 
@@ -39,16 +38,7 @@
           {% endfor %}
         </div>
       </div>
-      {% if selected_cities %}
-        <div class="mt-2">
-          {% for c in selected_cities %}
-            <span class="filter-chip">
-              {{ c }}
-              <a href="{% url 'job_list' %}?{% qs_drop request 'city' c %}" class="filter-chip__remove" title="Alisin">×</a>
-            </span>
-          {% endfor %}
-        </div>
-      {% endif %}
+      <div class="mt-2 job-filter-tags" id="job-filter-city-tags" aria-live="polite"></div>
     </div>
     <div class="col-lg-5 col-md-6">
       <label class="form-label">Skill</label>
@@ -83,24 +73,15 @@
           {% endif %}
         </div>
       </div>
-      {% if selected_skills %}
-        <div class="mt-2">
-          {% for s in selected_skills %}
-            <span class="filter-chip">
-              {{ s }}
-              <a href="{% url 'job_list' %}?{% qs_drop request 'skill' s %}" class="filter-chip__remove" title="Alisin">×</a>
-            </span>
-          {% endfor %}
-        </div>
-      {% endif %}
+      <div class="mt-2 job-filter-tags" id="job-filter-skill-tags" aria-live="polite"></div>
     </div>
-    <div class="col-lg-2 col-md-12 d-flex flex-column gap-2">
+    <div class="col-lg-2 col-md-12 d-flex flex-column gap-2 align-items-stretch">
       <p class="filter-save-toast mb-0" id="filter-save-feedback" aria-live="polite"></p>
-      <div class="d-flex gap-2 flex-md-column flex-lg-row flex-wrap">
-        <button type="submit" class="btn btn-primary flex-grow-1">
+      <div class="d-flex gap-2 align-items-stretch justify-content-center justify-content-lg-start flex-lg-column">
+        <button type="submit" class="btn btn-primary flex-fill text-center">
           <i class="bi bi-funnel"></i> Filter
         </button>
-        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary">Clear</a>
+        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary flex-fill text-center flex-lg-grow-0">Clear</a>
       </div>
     </div>
   </form>
@@ -183,6 +164,8 @@
   var feedback = document.getElementById("filter-save-feedback");
   var cityBtn = document.getElementById("cityDropdown");
   var skillBtn = document.getElementById("skillDropdown");
+  var cityTagsEl = document.getElementById("job-filter-city-tags");
+  var skillTagsEl = document.getElementById("job-filter-skill-tags");
   var toastTimer;
 
   function cityLabel(n) {
@@ -201,21 +184,51 @@
       skillBtn.textContent = skillLabel(form.querySelectorAll('input[name="skill"]:checked').length);
     }
   }
+  function renderDismissibleTags(container, inputsNamed) {
+    if (!container) return;
+    container.innerHTML = "";
+    var checked = form.querySelectorAll('input[name="' + inputsNamed + '"]:checked');
+    checked.forEach(function (inp) {
+      var value = inp.value;
+      var span = document.createElement("span");
+      span.className = "skill-tag skill-tag--dismissible";
+      span.appendChild(document.createTextNode(value));
+      var rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "skill-tag__remove";
+      rm.setAttribute("aria-label", "Alisin ang " + value);
+      rm.textContent = "×";
+      rm.addEventListener("click", function () {
+        inp.checked = false;
+        onFilterChange();
+      });
+      span.appendChild(rm);
+      container.appendChild(span);
+    });
+  }
+  function syncTagRows() {
+    renderDismissibleTags(cityTagsEl, "city");
+    renderDismissibleTags(skillTagsEl, "skill");
+  }
   function flashSaved() {
     if (!feedback) return;
-    feedback.textContent = "Nai-save sa filter — pindutin ang Filter upang ilapat.";
+    feedback.textContent = "Pindutin ang Filter upang ilapat sa resulta.";
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
       feedback.textContent = "";
     }, 2000);
   }
 
+  function onFilterChange() {
+    syncButtonLabels();
+    syncTagRows();
+    flashSaved();
+  }
+
   syncButtonLabels();
+  syncTagRows();
   form.querySelectorAll(".js-filter-cb").forEach(function (el) {
-    el.addEventListener("change", function () {
-      syncButtonLabels();
-      flashSaved();
-    });
+    el.addEventListener("change", onFilterChange);
   });
 })();
 </script>

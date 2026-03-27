@@ -484,28 +484,28 @@ a[href*="/chat/"].btn.btn-success:hover {
   margin-right: 0.25rem;
   margin-bottom: 0.25rem;
 }
-.filter-chip {
+.skill-tag--dismissible {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  background: var(--blue-50);
-  color: var(--blue-700);
-  border: 1px solid var(--blue-100);
-  border-radius: var(--radius-pill);
-  padding: 0.25em 0.65em;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-right: 0.35rem;
-  margin-bottom: 0.35rem;
+  gap: 0.3rem;
+  padding-right: 0.35em;
 }
-.filter-chip__remove {
-  color: inherit;
-  text-decoration: none;
+.skill-tag__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 0.1em;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 1.15em;
   line-height: 1;
-  font-size: 1.1em;
-  opacity: 0.75;
+  color: inherit;
+  opacity: 0.65;
+  cursor: pointer;
 }
-.filter-chip__remove:hover {
+.skill-tag__remove:hover {
   opacity: 1;
 }
 .filter-save-toast {
