@@ -13,7 +13,7 @@
    - **Keeps** phone numbers: `09173010251`, `09177988286`, `09778137452`, and any user with `is_superuser=True`.
    - **Password** for all newly created demo accounts (employers + workers): `ProfDemo2026!`
    - **Employer logins:** `09178153228` (Jolly), `09178332328` (FourAces)
-   - **Workers:** `09178501001` … `09178501007`
+   - **Workers:** run the command once and read the printed list (non-consecutive demo mobiles).
 
    **Automatic on deploy (Render):** the web service sets `SEED_PROFESSOR_DEMO=1` in [`render.yaml`](render.yaml). Each build runs `seed_professor_demo --force` after migrate (destructive). Remove that env var or set `SEED_PROFESSOR_DEMO=0` when you no longer want every deploy to reset demo users.
 

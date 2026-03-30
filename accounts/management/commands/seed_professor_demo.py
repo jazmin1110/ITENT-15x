@@ -35,7 +35,7 @@ WORKER_SEEDS = [
     # (phone, full_name, city, skills_json, apply_job_key or None, app_status or None)
     # apply_job_key: jolly_td, jolly_janitor, jolly_sewer, fouraces_td
     (
-        '09178501001',
+        '09175648291',
         'Rommel Bautista',
         'Quezon City',
         [{'skill': 'Masonry', 'years_experience': 4}, {'skill': 'Helper', 'years_experience': 2}],
@@ -43,7 +43,7 @@ WORKER_SEEDS = [
         None,
     ),
     (
-        '09178501002',
+        '09267318402',
         'Angeline Mercado',
         'Makati',
         [{'skill': 'Painting', 'years_experience': 3}],
@@ -51,7 +51,7 @@ WORKER_SEEDS = [
         None,
     ),
     (
-        '09178501003',
+        '09055481297',
         'Joseph Dela Cruz',
         'Pasig',
         [{'skill': 'Carpentry', 'years_experience': 6}],
@@ -59,7 +59,7 @@ WORKER_SEEDS = [
         None,
     ),
     (
-        '09178501004',
+        '09358172946',
         'Mario Reyes',
         'Valenzuela',
         [{'skill': 'Driver', 'years_experience': 8}],
@@ -67,7 +67,7 @@ WORKER_SEEDS = [
         'hired',
     ),
     (
-        '09178501005',
+        '09982304715',
         'Elena Santos',
         'Malabon',
         [{'skill': 'Janitor', 'years_experience': 5}],
@@ -75,7 +75,7 @@ WORKER_SEEDS = [
         'viewed',
     ),
     (
-        '09178501006',
+        '09181239508',
         'Carlo Mendoza',
         'Navotas',
         [{'skill': 'Sewer', 'years_experience': 4}],
@@ -83,7 +83,7 @@ WORKER_SEEDS = [
         'shortlisted',
     ),
     (
-        '09178501007',
+        '09662841073',
         'Patricia Cruz',
         'Caloocan',
         [{'skill': 'Driver', 'years_experience': 3}],
@@ -98,16 +98,45 @@ SHORT_DESCRIPTION = (
 )
 
 
-def _aware_dt(d: date, hour: int = 10, minute: int = 0) -> datetime:
+def _random_clock_time() -> time:
+    """Plausible daytime / early evening registration activity."""
+    return time(
+        random.randint(6, 22),
+        random.randint(0, 59),
+        random.randint(0, 59),
+    )
+
+
+def _aware_dt(d: date, hour: int = 10, minute: int = 0, second: int = 0) -> datetime:
     tz = timezone.get_current_timezone()
-    naive = datetime.combine(d, time(hour, minute), tzinfo=None)
+    naive = datetime.combine(d, time(hour, minute, second), tzinfo=None)
     return timezone.make_aware(naive, tz)
+
+
+def _aware_random_on_date(d: date) -> datetime:
+    """Timezone-aware datetime on a calendar day with random clock time."""
+    t = _random_clock_time()
+    return _aware_dt(d, t.hour, t.minute, t.second)
 
 
 def _aware_date_range(start: date, end: date) -> date:
     """Inclusive random date between start and end."""
     delta = (end - start).days
     return start + timedelta(days=random.randint(0, delta))
+
+
+def _random_aware_between_dates(d0: date, d1: date) -> datetime:
+    """Random moment on a random calendar day in [d0, d1] inclusive."""
+    d = _aware_date_range(d0, d1)
+    return _aware_random_on_date(d)
+
+
+def _random_aware_between(dt_start: datetime, dt_end: datetime) -> datetime:
+    """Random aware datetime in [dt_start, dt_end] inclusive (by second)."""
+    if dt_start >= dt_end:
+        return dt_start + timedelta(seconds=random.randint(0, 300))
+    span = int((dt_end - dt_start).total_seconds())
+    return dt_start + timedelta(seconds=random.randint(0, max(span, 1)))
 
 
 class Command(BaseCommand):
@@ -145,16 +174,9 @@ class Command(BaseCommand):
             )
         )
 
-        # --- Employers ---
-        employer_dates = [
-            date(2026, 3, 19),
-            date(2026, 3, 21),
-            date(2026, 3, 23),
-            date(2026, 3, 25),
-            date(2026, 3, 26),
-        ]
-        j_join = _aware_dt(random.choice(employer_dates), 9, 30)
-        f_join = _aware_dt(random.choice(employer_dates), 14, 15)
+        # --- Employers (random join times within Mar 19–26, 2026) ---
+        j_join = _random_aware_between_dates(date(2026, 3, 19), date(2026, 3, 26))
+        f_join = _random_aware_between_dates(date(2026, 3, 19), date(2026, 3, 26))
 
         jolly_user = User.objects.create_user(
             username=JOLLY_PHONE,
@@ -259,8 +281,16 @@ class Command(BaseCommand):
         )
         jobs_map['fouraces_td'] = td_f
 
+        # Jobs: random created/updated within Mar 20–29 (updated always after created).
+        for job in (td_j, jan_j, sew_j, td_f):
+            jc = _random_aware_between_dates(date(2026, 3, 20), date(2026, 3, 29))
+            ju = jc + timedelta(seconds=random.randint(120, 72 * 3600))
+            Job.objects.filter(pk=job.pk).update(created_at=jc, updated_at=ju)
+            job.refresh_from_db()
+
         worker_join_start = date(2026, 3, 27)
         worker_join_end = date(2026, 3, 30)
+        app_window_end = _aware_dt(date(2026, 3, 30), 23, 59, random.randint(10, 55))
 
         for phone, full_name, city, skills, job_key, app_status in WORKER_SEEDS:
             parts = full_name.split(' ', 1)
@@ -275,12 +305,9 @@ class Command(BaseCommand):
                 last_name=last,
                 role='worker',
             )
-            w_join = _aware_dt(
-                _aware_date_range(worker_join_start, worker_join_end),
-                random.randint(8, 16),
-                random.choice([0, 15, 30, 45]),
-            )
+            w_join = _random_aware_between_dates(worker_join_start, worker_join_end)
             User.objects.filter(pk=w_user.pk).update(date_joined=w_join)
+            w_user.refresh_from_db()
 
             WorkerProfile.objects.create(
                 user=w_user,
@@ -304,36 +331,65 @@ class Command(BaseCommand):
 
             if job_key and app_status:
                 job = jobs_map[job_key]
+                job.refresh_from_db()
                 app = Application.objects.create(
                     job=job,
                     worker=w_user,
                     status=app_status,
                 )
+                lo = max(
+                    w_user.date_joined,
+                    job.created_at,
+                ) + timedelta(minutes=random.randint(20, 360))
+                hi = app_window_end
+                if lo >= hi:
+                    lo = hi - timedelta(hours=random.randint(2, 12))
+                app_created = _random_aware_between(lo, hi)
+
                 if app_status == 'hired':
-                    ApplicationContract.objects.create(
+                    hire_latest = min(
+                        app_created + timedelta(days=5),
+                        _aware_dt(date(2026, 3, 31), random.randint(9, 17), random.randint(0, 59), random.randint(0, 59)),
+                    )
+                    hire_time = _random_aware_between(
+                        app_created + timedelta(hours=1),
+                        hire_latest,
+                    )
+                    contract = ApplicationContract.objects.create(
                         application=app,
                         contract_status=ApplicationContract.STATUS_COMPLETE,
                     )
-                    hire_time = _aware_dt(date(2026, 3, 30), 11, 0)
+                    app_updated = hire_time + timedelta(seconds=random.randint(30, 900))
                     Application.objects.filter(pk=app.pk).update(
+                        created_at=app_created,
                         hired_at=hire_time,
-                        updated_at=hire_time,
+                        updated_at=app_updated,
                     )
-                # Align application timestamps for believable ordering
-                app_created = _aware_dt(
-                    _aware_date_range(worker_join_start, worker_join_end),
-                    18,
-                    0,
-                )
-                Application.objects.filter(pk=app.pk).update(
-                    created_at=app_created,
-                    updated_at=app_created,
-                )
+                    contract_done = hire_time - timedelta(minutes=random.randint(8, 180))
+                    ApplicationContract.objects.filter(pk=contract.pk).update(
+                        updated_at=contract_done,
+                        employer_confirmed_at=contract_done
+                        - timedelta(minutes=random.randint(0, 45)),
+                    )
+                else:
+                    app_updated = _random_aware_between(
+                        app_created + timedelta(minutes=5),
+                        min(app_created + timedelta(days=3), app_window_end),
+                    )
+                    if app_updated <= app_created:
+                        app_updated = app_created + timedelta(
+                            seconds=random.randint(400, 86400)
+                        )
+                    Application.objects.filter(pk=app.pk).update(
+                        created_at=app_created,
+                        updated_at=app_updated,
+                    )
 
         self.stdout.write(self.style.SUCCESS('Professor demo seed complete.'))
+        worker_phones = ', '.join(row[0] for row in WORKER_SEEDS)
         self.stdout.write(
             f'Demo login password for all new accounts: {DEMO_PASSWORD}\n'
             f'  Employers: {JOLLY_PHONE} (Jolly), {FOURACES_PHONE} (FourAces)\n'
-            f'  Workers: 09178501001–09178501007\n'
+            f'  Workers: {worker_phones}\n'
             f'Protected phones (unchanged): {", ".join(sorted(PROTECTED_PHONES))}'
         )
