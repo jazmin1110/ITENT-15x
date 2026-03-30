@@ -4,7 +4,7 @@
 
 1. **Install and migrate** (from project root): `pip install -r requirements.txt` then `python manage.py migrate`.
 
-2. **Professor / screenshot demo (Jolly, FourAces, 7 workers joined Mar 29–30, 4 applications, no hires)** — destructive: deletes every user except protected phones and Django superusers.
+2. **Professor / screenshot demo (Jolly, FourAces, 3 workers on Mar 29 or 30, sample applications, no hires)** — destructive: deletes every user except protected phones and Django superusers.
 
    ```bash
    python manage.py seed_professor_demo --force

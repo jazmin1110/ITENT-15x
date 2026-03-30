@@ -1,7 +1,7 @@
 """
 Purge all users except a keep-list (phones + superusers), then seed professor demo data.
 
-Workers sign up only Mar 29–30, 2026 (not Mar 27–28). Four sample applications; none hired.
+Three worker profiles (signed up Mar 29 or 30 only, random time). Two sample applications; none hired.
 
 Usage:
   python manage.py seed_professor_demo --force
@@ -32,7 +32,7 @@ DEMO_PASSWORD = 'ProfDemo2026!'
 JOLLY_PHONE = '09178153228'
 FOURACES_PHONE = '09178332328'
 
-# Demo workers: avoid protected + employer phones
+# Demo workers (3 only): avoid protected + employer phones
 WORKER_SEEDS = [
     # (phone, full_name, city, skills_json, apply_job_key or None, app_status or None)
     # apply_job_key: jolly_td, jolly_janitor, jolly_sewer, fouraces_td
@@ -41,22 +41,6 @@ WORKER_SEEDS = [
         'Rommel Bautista',
         'Quezon City',
         [{'skill': 'Masonry', 'years_experience': 4}, {'skill': 'Helper', 'years_experience': 2}],
-        None,
-        None,
-    ),
-    (
-        '09267318402',
-        'Angeline Mercado',
-        'Makati',
-        [{'skill': 'Painting', 'years_experience': 3}],
-        None,
-        None,
-    ),
-    (
-        '09055481297',
-        'Joseph Dela Cruz',
-        'Pasig',
-        [{'skill': 'Carpentry', 'years_experience': 6}],
         None,
         None,
     ),
@@ -74,22 +58,6 @@ WORKER_SEEDS = [
         'Malabon',
         [{'skill': 'Janitor', 'years_experience': 5}],
         'jolly_janitor',
-        'viewed',
-    ),
-    (
-        '09181239508',
-        'Carlo Mendoza',
-        'Navotas',
-        [{'skill': 'Sewer', 'years_experience': 4}],
-        'jolly_sewer',
-        'shortlisted',
-    ),
-    (
-        '09662841073',
-        'Patricia Cruz',
-        'Caloocan',
-        [{'skill': 'Driver', 'years_experience': 3}],
-        'fouraces_td',
         'sent',
     ),
 ]
@@ -150,8 +118,8 @@ def _random_worker_signup_mar_2026() -> datetime:
 class Command(BaseCommand):
     help = (
         'DANGEROUS: Delete all users except protected phone numbers and superusers, '
-        'then create Jolly/FourAces demo employers, 4 jobs, 7 workers (joined Mar 29–30), '
-        '4 applications (no hires). Requires --force.'
+        'then create Jolly/FourAces demo employers, 4 jobs, 3 workers (joined Mar 29 or 30), '
+        'sample applications (no hires). Requires --force.'
     )
 
     def add_arguments(self, parser):
