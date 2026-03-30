@@ -4,14 +4,22 @@
 
 1. **Install and migrate** (from project root): `pip install -r requirements.txt` then `python manage.py migrate`.
 
-2. **Load demo users and jobs**:
+2. **Professor / screenshot demo (Jolly, FourAces, 7 workers, 4 applications, 1 hired)** — destructive: deletes every user except protected phones and Django superusers.
+
+   ```bash
+   python manage.py seed_professor_demo --force
+   ```
+
+   - **Keeps** phone numbers: `09173010251`, `09177988286`, `09778137452`, and any user with `is_superuser=True`.
+   - **Password** for all newly created demo accounts (employers + workers): `ProfDemo2026!`
+   - **Employer logins:** `09178153228` (Jolly), `09178332328` (FourAces)
+   - **Workers:** `09178501001` … `09178501007`
+
+   On **Render**, run the same command once in the service **Shell** after deploy (not during `build.sh`).
+
+3. **Legacy bulk test users** (`test_*` accounts):
    ```bash
    python manage.py populate_testdata
-   ```
-   Test accounts use usernames like `test_worker_01` / `test_employer_01` and password `TestPass123!`.
-
-3. **Remove all fake data**:
-   ```bash
    python manage.py populate_testdata --clear
    ```
 
