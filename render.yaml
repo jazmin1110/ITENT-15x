@@ -39,3 +39,5 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.12.3"
+      - key: SEED_PROFESSOR_DEMO
+        value: "1"
