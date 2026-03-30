@@ -15,7 +15,14 @@
    - **Employer logins:** `09178153228` (Jolly), `09178332328` (FourAces)
    - **Workers:** `09178501001` … `09178501007`
 
-   On **Render**, run the same command once in the service **Shell** after deploy (not during `build.sh`).
+   On **Render** with a paid Shell: run the same command in the web service **Shell**.
+
+   **Render free tier (no Shell):** seed from your laptop against production Postgres:
+
+   1. Dashboard → **Postgres** → **Connect** → copy **External Database URL**.
+   2. `cp render_database.env.example render_database.env` and set `DATABASE_URL` in `render_database.env` (file is gitignored).
+   3. `./scripts/seed_render_production.sh`  
+      (runs `migrate` + `seed_professor_demo --force` on that database — your live Render URL will show the new data.)
 
 3. **Legacy bulk test users** (`test_*` accounts):
    ```bash
