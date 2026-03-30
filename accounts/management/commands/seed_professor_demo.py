@@ -1,6 +1,8 @@
 """
 Purge all users except a keep-list (phones + superusers), then seed professor demo data.
 
+Workers sign up only Mar 29–30, 2026 (not Mar 27–28). Four sample applications; none hired.
+
 Usage:
   python manage.py seed_professor_demo --force
 
@@ -18,7 +20,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from accounts.models import User, WorkerProfile, EmployerProfile
-from jobs.models import Job, Application, ApplicationContract
+from jobs.models import Job, Application
 
 PROTECTED_PHONES = frozenset(
     {'09173010251', '09177988286', '09778137452'}
@@ -64,7 +66,7 @@ WORKER_SEEDS = [
         'Valenzuela',
         [{'skill': 'Driver', 'years_experience': 8}],
         'jolly_td',
-        'hired',
+        'viewed',
     ),
     (
         '09982304715',
@@ -139,11 +141,17 @@ def _random_aware_between(dt_start: datetime, dt_end: datetime) -> datetime:
     return dt_start + timedelta(seconds=random.randint(0, max(span, 1)))
 
 
+def _random_worker_signup_mar_2026() -> datetime:
+    """Worker sign-ups only Mar 29–30, 2026 (exclude Mar 27–28)."""
+    d = random.choice([date(2026, 3, 29), date(2026, 3, 30)])
+    return _aware_random_on_date(d)
+
+
 class Command(BaseCommand):
     help = (
         'DANGEROUS: Delete all users except protected phone numbers and superusers, '
-        'then create Jolly/FourAces demo employers, 4 jobs, 7 workers, 4 applications '
-        '(1 hired with completed contract). Requires --force.'
+        'then create Jolly/FourAces demo employers, 4 jobs, 7 workers (joined Mar 29–30), '
+        '4 applications (no hires). Requires --force.'
     )
 
     def add_arguments(self, parser):
@@ -288,8 +296,6 @@ class Command(BaseCommand):
             Job.objects.filter(pk=job.pk).update(created_at=jc, updated_at=ju)
             job.refresh_from_db()
 
-        worker_join_start = date(2026, 3, 27)
-        worker_join_end = date(2026, 3, 30)
         app_window_end = _aware_dt(date(2026, 3, 30), 23, 59, random.randint(10, 55))
 
         for phone, full_name, city, skills, job_key, app_status in WORKER_SEEDS:
@@ -305,7 +311,7 @@ class Command(BaseCommand):
                 last_name=last,
                 role='worker',
             )
-            w_join = _random_aware_between_dates(worker_join_start, worker_join_end)
+            w_join = _random_worker_signup_mar_2026()
             User.objects.filter(pk=w_user.pk).update(date_joined=w_join)
             w_user.refresh_from_db()
 
@@ -346,44 +352,18 @@ class Command(BaseCommand):
                     lo = hi - timedelta(hours=random.randint(2, 12))
                 app_created = _random_aware_between(lo, hi)
 
-                if app_status == 'hired':
-                    hire_latest = min(
-                        app_created + timedelta(days=5),
-                        _aware_dt(date(2026, 3, 31), random.randint(9, 17), random.randint(0, 59), random.randint(0, 59)),
+                app_updated = _random_aware_between(
+                    app_created + timedelta(minutes=5),
+                    min(app_created + timedelta(days=3), app_window_end),
+                )
+                if app_updated <= app_created:
+                    app_updated = app_created + timedelta(
+                        seconds=random.randint(400, 86400)
                     )
-                    hire_time = _random_aware_between(
-                        app_created + timedelta(hours=1),
-                        hire_latest,
-                    )
-                    contract = ApplicationContract.objects.create(
-                        application=app,
-                        contract_status=ApplicationContract.STATUS_COMPLETE,
-                    )
-                    app_updated = hire_time + timedelta(seconds=random.randint(30, 900))
-                    Application.objects.filter(pk=app.pk).update(
-                        created_at=app_created,
-                        hired_at=hire_time,
-                        updated_at=app_updated,
-                    )
-                    contract_done = hire_time - timedelta(minutes=random.randint(8, 180))
-                    ApplicationContract.objects.filter(pk=contract.pk).update(
-                        updated_at=contract_done,
-                        employer_confirmed_at=contract_done
-                        - timedelta(minutes=random.randint(0, 45)),
-                    )
-                else:
-                    app_updated = _random_aware_between(
-                        app_created + timedelta(minutes=5),
-                        min(app_created + timedelta(days=3), app_window_end),
-                    )
-                    if app_updated <= app_created:
-                        app_updated = app_created + timedelta(
-                            seconds=random.randint(400, 86400)
-                        )
-                    Application.objects.filter(pk=app.pk).update(
-                        created_at=app_created,
-                        updated_at=app_updated,
-                    )
+                Application.objects.filter(pk=app.pk).update(
+                    created_at=app_created,
+                    updated_at=app_updated,
+                )
 
         self.stdout.write(self.style.SUCCESS('Professor demo seed complete.'))
         worker_phones = ', '.join(row[0] for row in WORKER_SEEDS)
