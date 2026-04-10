@@ -37,12 +37,12 @@
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--color-text);
-  max-width: 18ch;
+  max-width: 22rem;
 }
 
 @media (min-width: 768px) {
   .landing-hero__title {
-    max-width: 22ch;
+    max-width: 28rem;
     font-size: 2.5rem;
   }
 }
@@ -52,23 +52,6 @@
   color: var(--color-text-muted);
   max-width: 36rem;
   line-height: 1.55;
-}
-
-.landing-trust-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-}
-
-.landing-trust-pills .badge {
-  font-weight: 500;
-  padding: 0.45rem 0.75rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--gray-700);
-  border: 1px solid var(--color-border);
-  font-size: 0.8125rem;
 }
 
 .landing-section-title {
@@ -83,34 +66,6 @@
   max-width: 40rem;
   margin-bottom: 1.75rem;
   line-height: 1.55;
-}
-
-.landing-problem-grid .card {
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  height: 100%;
-}
-
-.landing-problem-grid .card-title {
-  font-weight: 600;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.landing-problem-grid .card-title i {
-  color: var(--color-primary);
-  font-size: 1.25rem;
-}
-
-.landing-cta-strip {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 1.25rem 1.5rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .landing-preview {
