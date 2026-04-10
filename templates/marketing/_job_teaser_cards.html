@@ -44,14 +44,14 @@
               &nbsp;<span class="text-warning" aria-hidden="true">&#9733;</span> {{ job.employer.get_average_rating }}/5
               <small>({{ job.employer.get_rating_count }})</small>
             {% else %}
-              &nbsp;<small>No ratings yet</small>
+              &nbsp;<small>Wala pang ratings</small>
             {% endif %}
           </div>
         {% endif %}
       </div>
       <div class="card-footer text-center py-3">
         {% url 'job_detail' job.id as job_next %}
-        <a href="{% url 'signup' %}?next={{ job_next|urlencode }}" class="btn btn-primary w-100">Mag-sign up para tingnan</a>
+        <a href="{% url 'signup' %}?next={{ job_next|urlencode }}" class="btn btn-primary w-100">Sign up para makita / apply</a>
       </div>
     </div>
   </div>
