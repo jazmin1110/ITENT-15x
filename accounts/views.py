@@ -40,7 +40,7 @@ def home(request):
     preview_jobs = (
         Job.objects.filter(status='open')
         .select_related('employer__employer_profile')
-        .order_by('-created_at')[:6]
+        .order_by('-created_at')[:3]
     )
     return render(
         request,
