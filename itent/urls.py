@@ -3,7 +3,7 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
-from accounts.views import dashboard
+from accounts.views import dashboard, home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -11,7 +11,7 @@ urlpatterns = [
     path('jobs/', include('jobs.urls')),
     path('chat/', include('chat.urls')),
     path('dashboard/', dashboard, name='dashboard'),
-    path('', dashboard, name='home'),
+    path('', home, name='home'),
 ]
 
 # User uploads (avatars, verification docs). django.conf.urls.static.static()

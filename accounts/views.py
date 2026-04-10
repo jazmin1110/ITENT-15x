@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.db import transaction
+from django.utils.http import url_has_allowed_host_and_scheme
+from jobs.models import Job
 from .decorators import staff_member_required
 from .form_utils import first_invalid_field_name
 from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
@@ -15,6 +17,38 @@ from .models import User, WorkerProfile, EmployerProfile
 from .permissions import is_platform_admin
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_next_url(request, get_value=None, post_value=None):
+    """Return next URL only if safe for redirect (open redirect protection)."""
+    cand = get_value or post_value
+    if not cand:
+        return None
+    if url_has_allowed_host_and_scheme(
+        url=cand,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return cand
+    return None
+
+
+def home(request):
+    """Public landing for guests; same redirects as dashboard for signed-in users."""
+    if request.user.is_authenticated:
+        return dashboard(request)
+    preview_jobs = (
+        Job.objects.filter(status='open')
+        .select_related('employer__employer_profile')
+        .order_by('-created_at')[:6]
+    )
+    return render(
+        request,
+        'marketing/landing.html',
+        {
+            'preview_jobs': preview_jobs,
+        },
+    )
 
 
 class CustomLoginView(LoginView):
@@ -34,19 +68,37 @@ def signup(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
 
+    next_url = _safe_next_url(request, get_value=request.GET.get('next'))
+
     if request.method == 'POST':
         form = SignUpForm(request.POST)
+        posted_next = _safe_next_url(
+            request,
+            post_value=request.POST.get('next'),
+        )
         if form.is_valid():
             user = form.save()
             login(request, user, backend="accounts.backends.PhoneEmailBackend")
             messages.success(request, 'Account created! Please complete your profile.')
+            if posted_next:
+                return redirect(posted_next)
             if user.role == 'worker':
                 return redirect('worker_profile')
             else:
                 return redirect('employer_profile')
+        elif posted_next:
+            next_url = posted_next
     else:
         form = SignUpForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+
+    return render(
+        request,
+        'accounts/signup.html',
+        {
+            'form': form,
+            'next_url': next_url,
+        },
+    )
 
 
 @login_required

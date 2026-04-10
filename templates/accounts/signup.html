@@ -14,6 +14,9 @@
 
         <form method="post" id="signupForm" novalidate>
           {% csrf_token %}
+          {% if next_url %}
+          <input type="hidden" name="next" value="{{ next_url }}">
+          {% endif %}
 
           {% if form.non_field_errors %}
             <div class="alert alert-danger d-flex align-items-center" role="alert">
@@ -101,7 +104,7 @@
 
         <div class="text-center mt-4 pt-3 border-top">
           <span class="text-muted">May account na?</span>
-          <a href="{% url 'login' %}" class="fw-semibold">Mag-login</a>
+          <a href="{% url 'login' %}{% if next_url %}?next={{ next_url|urlencode }}{% endif %}" class="fw-semibold">Mag-login</a>
         </div>
       </div>
     </div>

@@ -1,0 +1,187 @@
+/* Landing page — scoped to .landing-page; uses tokens from base.css */
+
+.landing-main {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.landing-page section {
+  padding: 3rem 0;
+}
+
+.landing-page .landing-section--tight {
+  padding: 2.25rem 0;
+}
+
+.landing-hero {
+  background: linear-gradient(
+    165deg,
+    var(--blue-50) 0%,
+    var(--gray-50) 48%,
+    var(--color-surface) 100%
+  );
+  border-bottom: 1px solid var(--color-border);
+  padding: 3rem 0 3.5rem;
+}
+
+@media (min-width: 768px) {
+  .landing-hero {
+    padding: 4rem 0 4.5rem;
+  }
+}
+
+.landing-hero__title {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--color-text);
+  max-width: 18ch;
+}
+
+@media (min-width: 768px) {
+  .landing-hero__title {
+    max-width: 22ch;
+    font-size: 2.5rem;
+  }
+}
+
+.landing-hero__lead {
+  font-size: 1.0625rem;
+  color: var(--color-text-muted);
+  max-width: 36rem;
+  line-height: 1.55;
+}
+
+.landing-trust-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.landing-trust-pills .badge {
+  font-weight: 500;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--gray-700);
+  border: 1px solid var(--color-border);
+  font-size: 0.8125rem;
+}
+
+.landing-section-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.landing-section-intro {
+  color: var(--color-text-muted);
+  max-width: 40rem;
+  margin-bottom: 1.75rem;
+  line-height: 1.55;
+}
+
+.landing-problem-grid .card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+
+.landing-problem-grid .card-title {
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.landing-problem-grid .card-title i {
+  color: var(--color-primary);
+  font-size: 1.25rem;
+}
+
+.landing-cta-strip {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.landing-preview {
+  background: var(--gray-100);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.landing-pricing .card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+
+.landing-pricing .card.border-primary {
+  box-shadow: var(--shadow-md);
+}
+
+.landing-pricing .price-tag {
+  font-weight: 800;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.landing-pricing .price-sub {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.landing-boost-card {
+  background: var(--blue-50);
+  border: 1px dashed var(--blue-100);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.landing-boost-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.landing-final-cta {
+  background: linear-gradient(
+    180deg,
+    var(--blue-700) 0%,
+    var(--blue-600) 100%
+  );
+  color: var(--white);
+  padding: 3rem 0;
+}
+
+.landing-final-cta h2 {
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.landing-final-cta p {
+  opacity: 0.92;
+  max-width: 32rem;
+  margin-bottom: 1.25rem;
+}
+
+.landing-final-cta .btn-light {
+  font-weight: 600;
+}
+
+.landing-final-cta .btn-outline-light {
+  font-weight: 600;
+}

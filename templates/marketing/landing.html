@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}TiwalaPH — Trabaho at hiring na may tiwala{% endblock %}
+
+{% block main_class %}landing-main{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+  <header class="landing-hero">
+    <div class="container">
+      <div class="row align-items-center gy-4">
+        <div class="col-lg-7">
+          <h1 class="landing-hero__title">Hanap ng trabaho o tauhan? Dito, may transparency at verification.</h1>
+          <p class="landing-hero__lead mb-0">
+            Ang TiwalaPH ay nag-uugnay ng <strong>mga worker</strong> at <strong>employer</strong> sa Metro Manila—may malinaw na rate, skills, at tatak na employer para mas mabilis ang desisyon at mas kaunting sorpresa.
+          </p>
+          <div class="landing-trust-pills" role="list">
+            <span class="badge" role="listitem"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>Verification-first</span>
+            <span class="badge" role="listitem"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Metro Manila</span>
+            <span class="badge" role="listitem"><i class="bi bi-currency-exchange me-1" aria-hidden="true"></i>Malinaw na presyo</span>
+          </div>
+          <div class="d-flex flex-column flex-sm-row gap-2 gap-lg-3 mt-4">
+            <a href="#preview-trabaho" class="btn btn-primary btn-lg px-4">Maghanap ng trabaho</a>
+            <a href="#para-sa-employers" class="btn btn-outline-primary btn-lg px-4">Mag-hire (employers)</a>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="landing-cta-strip">
+            <p class="small text-muted mb-2 fw-semibold text-uppercase letter-spacing-1">Simula agad</p>
+            <p class="mb-3">Gumawa ng libreng account para makita ang buong detalye at mag-apply.</p>
+            <div class="d-grid gap-2">
+              <a href="{% url 'signup' %}" class="btn btn-primary">Sign up</a>
+              <a href="{% url 'login' %}" class="btn btn-outline-secondary">Log in</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="landing-section--tight" aria-labelledby="landing-problem-heading">
+    <div class="container">
+      <h2 id="landing-problem-heading" class="landing-section-title">Anong problema ang tinutulungan namin masolusyonan?</h2>
+      <p class="landing-section-intro">
+        Para sa parehong panig, madalas ang unclear na setup, mahirap i-verify ang kabila, at matagal malaman kung tugma ba talaga ang trabaho sa bayad at skills.
+      </p>
+      <div class="row g-4 landing-problem-grid">
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h3 class="card-title h6 mb-3"><i class="bi bi-person-check" aria-hidden="true"></i> Para sa mga worker</h3>
+            <p class="text-muted small mb-0">
+              Makakahanap ka ng listings na may <strong>lungsod</strong>, <strong>arawang o buwanang rate</strong>, at <strong>skills</strong> na naka-publish nang harapan—para mas mabilis mong masabi kung para sa’yo ang role bago mo pa i-commit ang oras mo.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h3 class="card-title h6 mb-3"><i class="bi bi-building" aria-hidden="true"></i> Para sa mga employer</h3>
+            <p class="text-muted small mb-0">
+              Mag-post ng bakanteng pwesto, tingnan ang mga aplikante, at magkaroon ng mas organisadong hiring flow sa loob ng iisang platform—kasama ang messaging at verification na tumutulong protektahan ang brand mo.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="landing-cta-strip mt-4 d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3">
+        <div>
+          <strong>Handa nang sumabak?</strong>
+          <span class="d-block text-muted small">Isang account lang — piliin ang Worker o Employer pag nag-sign up.</span>
+        </div>
+        <div class="d-flex flex-column flex-sm-row gap-2 flex-shrink-0">
+          <a href="{% url 'signup' %}" class="btn btn-primary">Sign up</a>
+          <a href="{% url 'login' %}" class="btn btn-outline-secondary">Log in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="preview-trabaho" class="landing-preview landing-section--tight" aria-labelledby="landing-preview-heading">
+    <div class="container">
+      <h2 id="landing-preview-heading" class="landing-section-title">Mga trabahong bukas ngayon</h2>
+      <p class="landing-section-intro mb-4">
+        I-preview ang totoong listings. Kapag gusto mong tingnan ang buong detalye o mag-apply, ia-redirect ka namin sa sign up — mabilis, walang kalat.
+      </p>
+      {% include 'marketing/_job_teaser_cards.html' %}
+      {% url 'job_list' as jobs_list_next %}
+      <div class="text-center mt-2">
+        <a href="{% url 'signup' %}?next={{ jobs_list_next|urlencode }}" class="btn btn-outline-primary">Mag-sign up para sa lahat ng jobs</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="para-sa-employers" class="landing-section--tight landing-pricing" aria-labelledby="landing-pricing-heading">
+    <div class="container">
+      <h2 id="landing-pricing-heading" class="landing-section-title">Pricing para sa employers</h2>
+      <p class="landing-section-intro">
+        Simple tiers habang pinalalakas namin ang platform. Ang billing at collection ay maaaring mag-iba bago ang full launch — ito ang direksyon ng presyo namin.
+      </p>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h3 class="h6 fw-semibold text-muted mb-2">Monthly</h3>
+            <p class="price-tag mb-1">₱500 <span class="fs-6 fw-normal text-muted">/ buwan</span></p>
+            <p class="price-sub mb-3">Bayad buwan-buwan; walang long-term lock-in.</p>
+            <ul class="small text-muted ps-3 mb-4">
+              <li>Mag-post at i-manage ang job listings</li>
+              <li>Tingnan ang aplikante at magpatuloy sa flow sa app</li>
+              <li>Suporta sa verified employer journey</li>
+            </ul>
+            <a href="{% url 'signup' %}" class="btn btn-outline-primary w-100">Mag-sign up bilang employer</a>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4 border-primary">
+            <span class="badge bg-primary mb-2">Pinaka-matipid</span>
+            <h3 class="h6 fw-semibold text-muted mb-2">Annual</h3>
+            <p class="price-tag mb-1">₱4,800 <span class="fs-6 fw-normal text-muted">/ taon</span></p>
+            <p class="price-sub mb-3">Kasing-presyo ng <strong>₱400/buwan</strong> kapag naka-annual — nakaka-save ka kumpara sa buwan-buwang ₱500.</p>
+            <ul class="small text-muted ps-3 mb-4">
+              <li>Lahat ng kasama sa monthly</li>
+              <li>Best value kung tuloy-tuloy ang hiring</li>
+            </ul>
+            <a href="{% url 'signup' %}" class="btn btn-primary w-100">Mag-sign up bilang employer</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="landing-boost-card" role="region" aria-labelledby="landing-boost-heading">
+        <h3 id="landing-boost-heading"><i class="bi bi-rocket-takeoff me-1" aria-hidden="true"></i> Dagdag: Featured job boost</h3>
+        <p class="small text-muted mb-2">
+          Magbayad nang <strong>one-time</strong> para i-“boost” ang isang post — mas mataas ang visibility at may destacadong badge sa listahan nang halimbawang <strong>7 araw</strong>. Inirerekomenda naming presyong panimula: <strong>₱149</strong> kada boost (maaari ring bundle ng tatlo nang may kaunting diskwento) — madaling intindihin sa employer at mabilis i-implement kapag handa na ang bayarin sa app.
+        </p>
+        <p class="small text-muted mb-0"><em>Pricing at availability ng boost ay sasabihan kapag live na ang add-on sa dashboard.</em></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-final-cta" aria-labelledby="landing-final-heading">
+    <div class="container">
+      <h2 id="landing-final-heading">Salihan ang TiwalaPH</h2>
+      <p>Gumawa ng account sa ilang hakbang at simulan ang hiring o job search nang mas malinaw at organisado.</p>
+      <div class="d-flex flex-column flex-sm-row gap-2">
+        <a href="{% url 'signup' %}" class="btn btn-light">Sign up</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-light">Log in</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

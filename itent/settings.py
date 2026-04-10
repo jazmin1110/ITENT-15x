@@ -158,7 +158,7 @@ AUTHENTICATION_BACKENDS = [
 # Login settings
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/accounts/login/"
+LOGOUT_REDIRECT_URL = "/"
 
 # Session security: expire on browser close + after 15 min of inactivity
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
