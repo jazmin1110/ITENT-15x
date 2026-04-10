@@ -97,20 +97,6 @@
   color: var(--color-text-muted);
 }
 
-.landing-boost-card {
-  background: var(--blue-50);
-  border: 1px dashed var(--blue-100);
-  border-radius: var(--radius-md);
-  padding: 1.25rem 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.landing-boost-card h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
 .landing-final-cta {
   background: linear-gradient(
     180deg,
