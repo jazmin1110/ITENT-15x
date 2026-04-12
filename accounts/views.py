@@ -12,8 +12,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from jobs.models import Job
 from .decorators import staff_member_required
 from .form_utils import first_invalid_field_name
-from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
-from .models import User, WorkerProfile, EmployerProfile
+from .forms import SignUpForm, WorkerProfileForm, WorkerPortfolioFormSet, EmployerProfileForm
+from .models import User, WorkerProfile, WorkerPortfolioItem, EmployerProfile
 from .permissions import is_platform_admin
 
 logger = logging.getLogger(__name__)
@@ -188,6 +188,38 @@ def worker_profile(request):
         'profile': profile,
         'show_profile_cta': show_profile_cta,
         'profile_focus_field': profile_focus_field,
+    })
+
+
+@login_required
+def worker_portfolio(request):
+    """Manage work proof photos and files (worker only)."""
+    if request.user.role != 'worker':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    qs = WorkerPortfolioItem.objects.filter(worker_profile=profile).order_by('sort_order', '-created_at')
+
+    if request.method == 'POST':
+        formset = WorkerPortfolioFormSet(request.POST, request.FILES, queryset=qs)
+        if formset.is_valid():
+            with transaction.atomic():
+                instances = formset.save(commit=False)
+                for obj in instances:
+                    obj.worker_profile = profile
+                    obj.save()
+                formset.save_m2m()
+                for obj in formset.deleted_objects:
+                    obj.delete()
+            messages.success(request, 'Na-save ang portfolio!')
+            return redirect('worker_portfolio')
+    else:
+        formset = WorkerPortfolioFormSet(queryset=qs)
+
+    return render(request, 'accounts/worker_portfolio.html', {
+        'formset': formset,
+        'profile': profile,
     })
 
 

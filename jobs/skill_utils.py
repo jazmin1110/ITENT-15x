@@ -37,8 +37,21 @@ def required_skill_names(raw) -> set[str]:
     return names
 
 
+def _coerce_self_rating(val) -> int | None:
+    """Optional 1–5 self-rating; invalid or empty → None."""
+    if val is None or val == '':
+        return None
+    try:
+        n = int(val)
+    except (TypeError, ValueError):
+        return None
+    if 1 <= n <= 5:
+        return n
+    return None
+
+
 def normalize_skill_entries(raw) -> list[dict]:
-    """Return a list of {\"skill\": str, \"years_experience\": int | None} for templates."""
+    """Return a list of dicts with skill, years_experience, and optional self_rating (1–5)."""
     if not raw:
         return []
     out = []
@@ -54,5 +67,9 @@ def normalize_skill_entries(raw) -> list[dict]:
                     y = None
             else:
                 y = None
-            out.append({'skill': item['skill'], 'years_experience': y})
+            row = {'skill': item['skill'], 'years_experience': y}
+            sr = _coerce_self_rating(item.get('self_rating'))
+            if sr is not None:
+                row['self_rating'] = sr
+            out.append(row)
     return out

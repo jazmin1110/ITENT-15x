@@ -10,7 +10,8 @@ from django.urls import reverse
 
 from accounts.form_utils import first_invalid_field_name
 from accounts.forms import EmployerProfileForm, WorkerProfileForm
-from accounts.models import User, WorkerProfile, EmployerProfile
+from accounts.models import User, WorkerProfile, WorkerPortfolioItem, EmployerProfile
+from jobs.models import Application, Job
 
 # Valid biodata for worker profile POSTs / WorkerProfileForm (18+ DOB).
 _WORKER_BIODATA_VALID = {'date_of_birth': '1990-05-15', 'gender': 'male'}
@@ -240,6 +241,43 @@ class WorkerProfileTests(TestCase):
             [
                 {'skill': 'Helper', 'years_experience': 2},
                 {'skill': 'Masonry', 'years_experience': 7},
+            ],
+        )
+
+    def test_skills_self_rating_round_trip(self):
+        user = User.objects.create_user(
+            username='09177000099',
+            email='',
+            password='secret',
+            phone_number='09177000099',
+            role='worker',
+        )
+        form = WorkerProfileForm(
+            data={
+                'full_name': 'Rating User',
+                **_WORKER_BIODATA_VALID,
+                'city': 'Manila',
+                'contact_number': '09177000099',
+                'skills': ['Helper', 'Masonry'],
+                'years_Helper': 2,
+                'rating_Helper': 4,
+                'years_Masonry': 7,
+                'rating_Masonry': 5,
+                'email': '',
+                'national_id_number': '',
+            },
+            user=user,
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        profile = form.save(commit=False)
+        profile.user = user
+        profile.save()
+        profile.refresh_from_db()
+        self.assertEqual(
+            profile.skills,
+            [
+                {'skill': 'Helper', 'years_experience': 2, 'self_rating': 4},
+                {'skill': 'Masonry', 'years_experience': 7, 'self_rating': 5},
             ],
         )
 
@@ -848,3 +886,105 @@ class ProfileFormFocusUXTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'This field is required')
         self.assertContains(response, 'var name = "company_name"')
+
+
+class PortfolioAccessTests(TestCase):
+    """Portfolio media and employer job-scoped page require applicant relationship."""
+
+    def setUp(self):
+        self.employer = User.objects.create_user(
+            username='09991234510',
+            email='e10@test.com',
+            password='pass',
+            role='employer',
+            phone_number='09991234510',
+        )
+        self.worker = User.objects.create_user(
+            username='09991234511',
+            email='w11@test.com',
+            password='pass',
+            role='worker',
+            phone_number='09991234511',
+        )
+        self.other_employer = User.objects.create_user(
+            username='09991234512',
+            email='e12@test.com',
+            password='pass',
+            role='employer',
+            phone_number='09991234512',
+        )
+        EmployerProfile.objects.create(
+            user=self.employer,
+            company_name='Test Co',
+            city='Manila',
+            contact_person='A',
+            contact_number='09991234510',
+        )
+        EmployerProfile.objects.create(
+            user=self.other_employer,
+            company_name='Other Co',
+            city='Manila',
+            contact_person='B',
+            contact_number='09991234512',
+        )
+        self.worker_profile = WorkerProfile.objects.create(
+            user=self.worker,
+            full_name='Worker One',
+            city='Manila',
+            contact_number='09991234511',
+            years_experience=0,
+            skills=[{'skill': 'Helper', 'years_experience': 1}],
+        )
+        buf = io.BytesIO()
+        Image.new('RGB', (40, 40), color='red').save(buf, format='PNG')
+        buf.seek(0)
+        photo = SimpleUploadedFile('p.png', buf.read(), content_type='image/png')
+        self.item = WorkerPortfolioItem.objects.create(
+            worker_profile=self.worker_profile,
+            title='Job',
+            photo=photo,
+        )
+        self.job = Job.objects.create(
+            employer=self.employer,
+            title='Laborer',
+            city='Manila',
+            daily_rate=500,
+            working_hours='7am–4pm',
+            required_skills=[{'skill': 'Helper', 'years_experience': None}],
+            start_date=date.today(),
+            status='open',
+            positions_needed=1,
+        )
+        self.client = Client()
+
+    def test_worker_can_fetch_own_portfolio_photo(self):
+        self.client.force_login(self.worker)
+        r = self.client.get(reverse('portfolio_item_photo', args=[self.item.pk]))
+        self.assertEqual(r.status_code, 200)
+
+    def test_employer_with_application_can_fetch_photo(self):
+        Application.objects.create(job=self.job, worker=self.worker)
+        self.client.force_login(self.employer)
+        r = self.client.get(reverse('portfolio_item_photo', args=[self.item.pk]))
+        self.assertEqual(r.status_code, 200)
+
+    def test_employer_without_application_404(self):
+        self.client.force_login(self.other_employer)
+        r = self.client.get(reverse('portfolio_item_photo', args=[self.item.pk]))
+        self.assertEqual(r.status_code, 404)
+
+    def test_employer_portfolio_page_404_without_application(self):
+        self.client.force_login(self.employer)
+        r = self.client.get(
+            reverse('employer_worker_portfolio', args=[self.job.id, self.worker.id]),
+        )
+        self.assertEqual(r.status_code, 404)
+
+    def test_employer_portfolio_page_ok_with_application(self):
+        Application.objects.create(job=self.job, worker=self.worker)
+        self.client.force_login(self.employer)
+        r = self.client.get(
+            reverse('employer_worker_portfolio', args=[self.job.id, self.worker.id]),
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Portfolio')

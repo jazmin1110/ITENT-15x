@@ -18,6 +18,13 @@ urlpatterns = [
         name='dismiss_vacancy_prompt',
     ),
     path('<int:job_id>/applicants/', views.applicants, name='applicants'),
+    path(
+        '<int:job_id>/applicants/<int:worker_id>/portfolio/',
+        views.employer_worker_portfolio,
+        name='employer_worker_portfolio',
+    ),
+    path('portfolio/item/<int:item_id>/photo/', views.portfolio_item_photo, name='portfolio_item_photo'),
+    path('portfolio/item/<int:item_id>/file/', views.portfolio_item_file, name='portfolio_item_file'),
     path('application/<int:application_id>/status/<str:status>/', views.update_application_status, name='update_application_status'),
     path('application/<int:application_id>/contract/upload/', contract_views.contract_employer_upload, name='contract_employer_upload'),
     path('application/<int:application_id>/contract/worker-accept/', contract_views.contract_worker_accept, name='contract_worker_accept'),

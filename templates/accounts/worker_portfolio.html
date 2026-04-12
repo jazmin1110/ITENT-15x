@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Portfolio ng trabaho - Tiwala{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <a href="{% url 'worker_profile' %}" class="btn btn-outline-secondary btn-sm mb-3">
+      <i class="bi bi-arrow-left"></i> Bumalik sa profile
+    </a>
+
+    <div class="page-header mb-4">
+      <h2 class="mb-1">Portfolio ng trabaho</h2>
+      <p class="text-muted text-sm mb-0">
+        Mag-upload ng larawan at opsyonal na proof (PDF) ng nakaraang proyekto. Makikita lang ito ng employer kapag nag-apply ka sa trabaho nila.
+      </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="card border-0 shadow-sm">
+      {% csrf_token %}
+      {{ formset.management_form }}
+
+      {% if formset.non_form_errors %}
+        <div class="alert alert-danger m-3 mb-0">{{ formset.non_form_errors }}</div>
+      {% endif %}
+
+      <div class="card-body">
+        {% for form in formset.forms %}
+          <div class="border rounded p-3 mb-3 portfolio-form-row">
+            {% if form.id %}{{ form.id }}{% endif %}
+            {% if form.DELETE %}
+              <div class="form-check mb-2">
+                {{ form.DELETE }}
+                <label class="form-check-label text-danger small" for="{{ form.DELETE.id_for_label }}">Alisin ang entry na ito</label>
+              </div>
+            {% endif %}
+
+            <div class="row g-3 align-items-start">
+              {% if form.instance.pk and form.instance.photo %}
+                <div class="col-md-3">
+                  <p class="small text-muted mb-1">Kasalukuyang larawan</p>
+                  <img
+                    src="{% url 'portfolio_item_photo' form.instance.pk %}"
+                    alt=""
+                    class="img-fluid rounded border"
+                    style="max-height: 140px; object-fit: cover; width: 100%;"
+                  >
+                </div>
+              {% endif %}
+              <div class="col-md-9">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small mb-0" for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small mb-0" for="{{ form.related_skill.id_for_label }}">{{ form.related_skill.label }}</label>
+                    {{ form.related_skill }}
+                    {% if form.related_skill.errors %}<div class="text-danger small">{{ form.related_skill.errors.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small mb-0" for="{{ form.caption.id_for_label }}">{{ form.caption.label }}</label>
+                    {{ form.caption }}
+                    {% if form.caption.errors %}<div class="text-danger small">{{ form.caption.errors.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small mb-0" for="{{ form.photo.id_for_label }}">{{ form.photo.label }}</label>
+                    {{ form.photo }}
+                    {% if form.photo.errors %}<div class="text-danger small">{{ form.photo.errors.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small mb-0" for="{{ form.proof_file.id_for_label }}">{{ form.proof_file.label }}</label>
+                    {{ form.proof_file }}
+                    {% if form.proof_file.errors %}<div class="text-danger small">{{ form.proof_file.errors.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small mb-0" for="{{ form.sort_order.id_for_label }}">{{ form.sort_order.label }}</label>
+                    {{ form.sort_order }}
+                    {% if form.sort_order.errors %}<div class="text-danger small">{{ form.sort_order.errors.0 }}</div>{% endif %}
+                  </div>
+                </div>
+                {% if form.non_field_errors %}
+                  <div class="text-danger small mt-2">{{ form.non_field_errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card-footer bg-transparent border-top-0 d-flex flex-wrap gap-2 justify-content-between">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> I-save ang portfolio
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

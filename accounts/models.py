@@ -129,6 +129,31 @@ class WorkerProfile(models.Model):
         verbose_name_plural = "Worker Profiles"
 
 
+class WorkerPortfolioItem(models.Model):
+    """Photos and optional document proof of past work (served via permission-checked views)."""
+
+    worker_profile = models.ForeignKey(
+        WorkerProfile,
+        on_delete=models.CASCADE,
+        related_name='portfolio_items',
+    )
+    title = models.CharField(max_length=255, blank=True, default='')
+    caption = models.TextField(blank=True, default='')
+    related_skill = models.CharField(max_length=255, blank=True, default='')
+    photo = models.ImageField(upload_to='worker_portfolio/')
+    proof_file = models.FileField(upload_to='worker_portfolio/', blank=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', '-created_at']
+        verbose_name = "Worker portfolio item"
+        verbose_name_plural = "Worker portfolio items"
+
+    def __str__(self):
+        return self.title or f"Portfolio #{self.pk}"
+
+
 class EmployerProfile(models.Model):
     """Extended profile for employers."""
     VERIFICATION_CHOICES = [

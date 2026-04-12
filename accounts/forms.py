@@ -3,17 +3,19 @@ from datetime import date
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.forms.models import modelformset_factory
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from jobs.skill_utils import (
     PREDEFINED_SKILL_CHOICES,
     PREDEFINED_SKILL_CODES,
+    _coerce_self_rating,
     canonical_predefined_skill,
     normalize_skill_entries,
 )
 
-from .models import User, WorkerProfile, EmployerProfile
+from .models import User, WorkerProfile, WorkerPortfolioItem, EmployerProfile
 from itent.choices import CITY_CHOICES, GENDER_CHOICES, MARITAL_STATUS_CHOICES
 
 WORKER_MAX_CUSTOM_SKILLS = 10
@@ -34,6 +36,9 @@ def _multi_get(data, key: str) -> list:
 PH_PHONE_RE = re.compile(r'^(09\d{9}|\+639\d{9})$')
 
 AVATAR_MAX_BYTES = 2 * 1024 * 1024
+WORKER_PORTFOLIO_MAX_ITEMS = 15
+PORTFOLIO_PHOTO_MAX_BYTES = 2 * 1024 * 1024
+PORTFOLIO_PROOF_FILE_MAX_BYTES = 5 * 1024 * 1024
 
 
 def validate_ph_phone_number_unique(phone: str, *, exclude_user: User | None = None) -> str:
@@ -210,6 +215,18 @@ class WorkerProfileForm(forms.ModelForm):
                     'placeholder': '—',
                 }),
             )
+            self.fields[f'rating_{code}'] = forms.IntegerField(
+                required=False,
+                min_value=1,
+                max_value=5,
+                label=f'{label} — sariling rating (1–5, opsyonal)',
+                widget=forms.NumberInput(attrs={
+                    'class': 'form-control form-control-sm',
+                    'min': 1,
+                    'max': 5,
+                    'placeholder': '—',
+                }),
+            )
 
         if self.is_bound:
             self.custom_skills_initial = self._custom_rows_from_data(self.data)
@@ -226,15 +243,22 @@ class WorkerProfileForm(forms.ModelForm):
     def _custom_rows_from_data(self, data) -> list[dict]:
         names = _multi_get(data, 'custom_skill_name')
         years = _multi_get(data, 'custom_skill_years')
-        n = max(len(names), len(years))
+        ratings = _multi_get(data, 'custom_skill_rating')
+        n = max(len(names), len(years), len(ratings))
         rows = []
         for i in range(n):
             name = (names[i] if i < len(names) else '') or ''
             yraw = years[i] if i < len(years) else ''
+            rraw = ratings[i] if i < len(ratings) else ''
             name = name.strip()
             ystr = (str(yraw).strip() if yraw is not None else '')
-            if name or ystr:
-                rows.append({'name': name, 'years': yraw if yraw is not None else ''})
+            rstr = (str(rraw).strip() if rraw is not None else '')
+            if name or ystr or rstr:
+                rows.append({
+                    'name': name,
+                    'years': yraw if yraw is not None else '',
+                    'rating': rraw if rraw is not None else '',
+                })
         return rows
 
     def _custom_rows_from_instance(self) -> list[dict]:
@@ -246,9 +270,11 @@ class WorkerProfileForm(forms.ModelForm):
             if canonical_predefined_skill(name) is not None:
                 continue
             y = entry['years_experience']
+            r = entry.get('self_rating')
             rows.append({
                 'name': name,
                 'years': '' if y is None else y,
+                'rating': '' if r is None else r,
             })
         return rows
 
@@ -258,6 +284,7 @@ class WorkerProfileForm(forms.ModelForm):
         if not self.instance or not self.instance.pk or not self.instance.skills:
             return
         per_code_years: dict[str, int | None] = {}
+        per_code_rating: dict[str, int] = {}
         for entry in normalize_skill_entries(self.instance.skills):
             name = entry['skill']
             y = entry['years_experience']
@@ -270,18 +297,29 @@ class WorkerProfileForm(forms.ModelForm):
                 prev = per_code_years[code]
                 if prev is None or y > prev:
                     per_code_years[code] = y
-        ordered = [c for c, _ in self.SKILL_CHOICES if c in per_code_years]
+            sr = entry.get('self_rating')
+            if sr is not None:
+                if code not in per_code_rating or sr > per_code_rating[code]:
+                    per_code_rating[code] = sr
+        ordered = [
+            c for c, _ in self.SKILL_CHOICES
+            if c in per_code_years or c in per_code_rating
+        ]
         self.fields['skills'].initial = ordered
         for code in ordered:
-            y = per_code_years[code]
+            y = per_code_years.get(code)
             yfield = f'years_{code}'
             if y is not None and yfield in self.fields:
                 self.fields[yfield].initial = y
+            r = per_code_rating.get(code)
+            rfield = f'rating_{code}'
+            if r is not None and rfield in self.fields:
+                self.fields[rfield].initial = r
 
     @property
     def skill_rows(self):
         return [
-            (code, label, self[f'years_{code}'])
+            (code, label, self[f'years_{code}'], self[f'rating_{code}'])
             for code, label in self.SKILL_CHOICES
         ]
 
@@ -371,17 +409,25 @@ class WorkerProfileForm(forms.ModelForm):
 
         names = _multi_get(self.data, 'custom_skill_name')
         years = _multi_get(self.data, 'custom_skill_years')
-        custom_out: list[tuple[str, int | None]] = []
+        ratings = _multi_get(self.data, 'custom_skill_rating')
+        custom_out: list[tuple[str, int | None, int | None]] = []
         seen_custom: set[str] = set()
 
         for i, raw_name in enumerate(names):
             name = (raw_name or '').strip()
             y_raw = years[i] if i < len(years) else ''
+            r_raw = ratings[i] if i < len(ratings) else ''
             if not name:
                 if y_raw not in (None, ''):
                     self.add_error(
                         'skills',
                         'May taon ng karanasan na nakalagay nang walang pangalan ng skill sa isa sa mga karagdagang row.',
+                    )
+                    return cleaned
+                if r_raw not in (None, ''):
+                    self.add_error(
+                        'skills',
+                        'May rating na nakalagay nang walang pangalan ng skill sa isa sa mga karagdagang row.',
                     )
                     return cleaned
                 continue
@@ -412,7 +458,8 @@ class WorkerProfileForm(forms.ModelForm):
                     exc.messages[0] if getattr(exc, 'messages', None) else str(exc),
                 )
                 return cleaned
-            custom_out.append((name, y_val))
+            r_val = _coerce_self_rating(r_raw)
+            custom_out.append((name, y_val, r_val))
 
         if len(custom_out) > WORKER_MAX_CUSTOM_SKILLS:
             self.add_error(
@@ -433,12 +480,19 @@ class WorkerProfileForm(forms.ModelForm):
 
         for code in selected:
             y = cleaned.get(f'years_{code}')
-            payload.append({'skill': code, 'years_experience': y})
+            r = cleaned.get(f'rating_{code}')
+            row: dict = {'skill': code, 'years_experience': y}
+            if r is not None:
+                row['self_rating'] = r
+            payload.append(row)
             if y is not None:
                 year_values.append(y)
 
-        for name, y in custom_out:
-            payload.append({'skill': name, 'years_experience': y})
+        for name, y, r in custom_out:
+            row = {'skill': name, 'years_experience': y}
+            if r is not None:
+                row['self_rating'] = r
+            payload.append(row)
             if y is not None:
                 year_values.append(y)
 
@@ -460,15 +514,125 @@ class WorkerProfileForm(forms.ModelForm):
         for item in self._skills_payload:
             raw_name = item['skill']
             canon = canonical_predefined_skill(raw_name)
-            normalized.append({
+            row = {
                 'skill': canon if canon is not None else raw_name,
                 'years_experience': item['years_experience'],
-            })
+            }
+            if item.get('self_rating') is not None:
+                row['self_rating'] = item['self_rating']
+            normalized.append(row)
         instance.skills = normalized
         instance.years_experience = self._years_experience_agg
         if commit:
             instance.save()
         return instance
+
+
+class WorkerPortfolioItemForm(forms.ModelForm):
+    class Meta:
+        model = WorkerPortfolioItem
+        fields = ['title', 'caption', 'related_skill', 'photo', 'proof_file', 'sort_order']
+        labels = {
+            'title': 'Pamagat (opsyonal)',
+            'caption': 'Paglalarawan',
+            'related_skill': 'Kaugnay na skill (opsyonal)',
+            'photo': 'Larawan',
+            'proof_file': 'Karagdagang proof (PDF o larawan, opsyonal)',
+            'sort_order': 'Ayos',
+        }
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control form-control-sm',
+                'placeholder': 'Halimbawa: Masonry project',
+            }),
+            'caption': forms.Textarea(attrs={
+                'class': 'form-control form-control-sm',
+                'rows': 2,
+                'placeholder': 'Maikling paglalarawan ng trabaho',
+            }),
+            'related_skill': forms.TextInput(attrs={
+                'class': 'form-control form-control-sm',
+                'placeholder': 'Halimbawa: Masonry',
+            }),
+            'photo': forms.FileInput(attrs={
+                'class': 'form-control form-control-sm',
+                'accept': 'image/jpeg,image/png,image/gif,image/webp',
+            }),
+            'proof_file': forms.ClearableFileInput(attrs={
+                'class': 'form-control form-control-sm',
+                'accept': '.pdf,.jpg,.jpeg,.png',
+            }),
+            'sort_order': forms.NumberInput(attrs={
+                'class': 'form-control form-control-sm',
+                'min': 0,
+            }),
+        }
+
+    def clean_photo(self):
+        f = self.cleaned_data.get('photo')
+        if not f:
+            return f
+        if f.size > PORTFOLIO_PHOTO_MAX_BYTES:
+            raise forms.ValidationError('Masyadong malaki ang larawan (max 2MB).')
+        return f
+
+    def clean_proof_file(self):
+        f = self.cleaned_data.get('proof_file')
+        if not f:
+            return f
+        if f.size > PORTFOLIO_PROOF_FILE_MAX_BYTES:
+            raise forms.ValidationError('Masyadong malaki ang file (max 5MB).')
+        return f
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('DELETE'):
+            return cleaned
+        photo = cleaned.get('photo')
+        has_existing_photo = bool(self.instance.pk and self.instance.photo)
+        if photo or has_existing_photo:
+            return cleaned
+        if any((cleaned.get('title') or '').strip(), (cleaned.get('caption') or '').strip(),
+                (cleaned.get('related_skill') or '').strip(), cleaned.get('proof_file')):
+            raise forms.ValidationError({'photo': 'Kailangan ng larawan kung may nilalaman ang entry.'})
+        return cleaned
+
+
+class BaseWorkerPortfolioFormSet(forms.BaseModelFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        kept = 0
+        for form in self.forms:
+            cd = form.cleaned_data
+            if not cd or cd.get('DELETE'):
+                continue
+            inst = form.instance
+            photo = cd.get('photo')
+            has_photo = bool(photo) or (inst.pk and inst.photo)
+            has_any = has_photo or cd.get('proof_file') or (inst.pk and inst.proof_file) or any(
+                (cd.get(k) or '').strip() for k in ('title', 'caption', 'related_skill')
+            )
+            if not has_any:
+                continue
+            if not has_photo:
+                raise forms.ValidationError('Kailangan ng larawan sa bawat portfolio entry na may laman.')
+            kept += 1
+        if kept > WORKER_PORTFOLIO_MAX_ITEMS:
+            raise forms.ValidationError(
+                f'Masyadong maraming portfolio item (max {WORKER_PORTFOLIO_MAX_ITEMS}).'
+            )
+
+
+WorkerPortfolioFormSet = modelformset_factory(
+    WorkerPortfolioItem,
+    form=WorkerPortfolioItemForm,
+    formset=BaseWorkerPortfolioFormSet,
+    extra=1,
+    can_delete=True,
+    max_num=WORKER_PORTFOLIO_MAX_ITEMS,
+)
 
 
 class EmployerProfileForm(forms.ModelForm):

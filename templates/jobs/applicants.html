@@ -99,8 +99,13 @@
       {% if app.worker.worker_profile %}
         <div class="mb-2">
           {% for entry in app.worker.worker_profile.skill_entries_normalized %}
-            <span class="skill-tag">{{ entry.skill }}</span>
+            <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}{% if entry.self_rating %} <span class="text-nowrap">★{{ entry.self_rating }}/5</span>{% endif %}</span>
           {% endfor %}
+        </div>
+        <div class="mb-2">
+          <a href="{% url 'employer_worker_portfolio' job.id app.worker.id %}" class="btn btn-outline-secondary btn-sm text-xs">
+            <i class="bi bi-images"></i> Portfolio / proof
+          </a>
         </div>
       {% endif %}
 
@@ -175,6 +180,7 @@
             <th>City</th>
             <th>Experience</th>
             <th>Skills</th>
+            <th>Portfolio</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -228,8 +234,17 @@
             <td>
               {% if app.worker.worker_profile %}
                 {% for entry in app.worker.worker_profile.skill_entries_normalized %}
-                  <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
+                  <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}{% if entry.self_rating %} ★{{ entry.self_rating }}/5{% endif %}</span>
                 {% endfor %}
+              {% endif %}
+            </td>
+            <td>
+              {% if app.worker.worker_profile %}
+                <a href="{% url 'employer_worker_portfolio' job.id app.worker.id %}" class="btn btn-outline-secondary btn-sm text-xs">
+                  <i class="bi bi-images"></i> Tingnan
+                </a>
+              {% else %}
+                &mdash;
               {% endif %}
             </td>
             <td>
@@ -297,7 +312,7 @@
             </td>
           </tr>
           <tr class="table-light border-bottom">
-            <td colspan="7" class="py-3">
+            <td colspan="8" class="py-3">
               {% with c=app.contract_or_none %}
                 <div class="text-xs fw-semibold text-uppercase text-muted mb-2">Kontrata</div>
                 {% if app.status != 'shortlisted' and app.status != 'hired' and app.status != 'completed' %}
@@ -366,7 +381,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7">
+            <td colspan="8">
               <div class="empty-state py-4">
                 <i class="bi bi-people"></i>
                 <h5>No applicants yet</h5>

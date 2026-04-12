@@ -1,3 +1,6 @@
+import mimetypes
+
+from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -8,6 +11,7 @@ from django.db.models import (
     FloatField,
     IntegerField,
     OuterRef,
+    Prefetch,
     Q,
     Subquery,
     Value,
@@ -26,8 +30,23 @@ from .employer_job_utils import (
     show_vacancy_reopen_banner,
 )
 from chat.models import Conversation
-from accounts.models import WorkerProfile
+from accounts.models import User, WorkerProfile, WorkerPortfolioItem
 from itent.choices import METRO_MANILA_CITIES
+
+
+def _user_can_access_portfolio_item(user, item: WorkerPortfolioItem) -> bool:
+    """Worker owns the item, or employer has any application from that worker."""
+    if not user.is_authenticated:
+        return False
+    wp = item.worker_profile
+    if user.role == 'worker' and wp.user_id == user.pk:
+        return True
+    if user.role == 'employer':
+        return Application.objects.filter(
+            worker_id=wp.user_id,
+            job__employer_id=user.pk,
+        ).exists()
+    return False
 
 
 @login_required
@@ -202,7 +221,13 @@ def applicants(request, job_id):
 
     annotated = (
         job.applications.select_related('worker__worker_profile', 'contract')
-        .prefetch_related('ratings')
+        .prefetch_related(
+            'ratings',
+            Prefetch(
+                'worker__worker_profile__portfolio_items',
+                queryset=WorkerPortfolioItem.objects.order_by('sort_order', '-created_at'),
+            ),
+        )
         .annotate(
             sort_status_priority=status_priority,
             sort_is_verified=is_worker_verified,
@@ -480,7 +505,6 @@ def rate_employer(request, application_id):
 @login_required
 def view_ratings(request, user_id):
     """View all ratings for a user."""
-    from accounts.models import User
     user = get_object_or_404(User, id=user_id)
     ratings = user.ratings_received.select_related('rater', 'application__job').order_by('-created_at')
 
@@ -488,3 +512,53 @@ def view_ratings(request, user_id):
         'rated_user': user,
         'ratings': ratings,
     })
+
+
+@login_required
+def employer_worker_portfolio(request, job_id, worker_id):
+    """Employer-only: view a worker's portfolio for applicants to this job."""
+    if request.user.role != 'employer':
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard')
+
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    if not Application.objects.filter(job=job, worker_id=worker_id).exists():
+        raise Http404()
+    worker = get_object_or_404(User, id=worker_id, role='worker')
+    worker_profile = get_object_or_404(WorkerProfile, user=worker)
+    items = worker_profile.portfolio_items.order_by('sort_order', '-created_at')
+    return render(request, 'jobs/employer_worker_portfolio.html', {
+        'job': job,
+        'worker': worker,
+        'worker_profile': worker_profile,
+        'items': items,
+    })
+
+
+@login_required
+def portfolio_item_photo(request, item_id):
+    item = get_object_or_404(WorkerPortfolioItem, pk=item_id)
+    if not _user_can_access_portfolio_item(request.user, item):
+        raise Http404()
+    if not item.photo:
+        raise Http404()
+    content_type, _ = mimetypes.guess_type(item.photo.name)
+    if not content_type:
+        content_type = 'image/jpeg'
+    return FileResponse(item.photo.open('rb'), content_type=content_type)
+
+
+@login_required
+def portfolio_item_file(request, item_id):
+    item = get_object_or_404(WorkerPortfolioItem, pk=item_id)
+    if not _user_can_access_portfolio_item(request.user, item):
+        raise Http404()
+    if not item.proof_file:
+        raise Http404()
+    content_type, _ = mimetypes.guess_type(item.proof_file.name)
+    if not content_type:
+        content_type = 'application/octet-stream'
+    resp = FileResponse(item.proof_file.open('rb'), content_type=content_type)
+    filename = item.proof_file.name.rsplit('/', 1)[-1]
+    resp['Content-Disposition'] = f'inline; filename="{filename}"'
+    return resp
