@@ -11,7 +11,7 @@ from django.urls import reverse
 from accounts.form_utils import first_invalid_field_name
 from accounts.forms import EmployerProfileForm, WorkerProfileForm
 from accounts.models import User, WorkerProfile, WorkerPortfolioItem, EmployerProfile
-from jobs.models import Application, Job
+from jobs.models import Application, ApplicationSkillRating, Job
 
 # Valid biodata for worker profile POSTs / WorkerProfileForm (18+ DOB).
 _WORKER_BIODATA_VALID = {'date_of_birth': '1990-05-15', 'gender': 'male'}
@@ -241,43 +241,6 @@ class WorkerProfileTests(TestCase):
             [
                 {'skill': 'Helper', 'years_experience': 2},
                 {'skill': 'Masonry', 'years_experience': 7},
-            ],
-        )
-
-    def test_skills_self_rating_round_trip(self):
-        user = User.objects.create_user(
-            username='09177000099',
-            email='',
-            password='secret',
-            phone_number='09177000099',
-            role='worker',
-        )
-        form = WorkerProfileForm(
-            data={
-                'full_name': 'Rating User',
-                **_WORKER_BIODATA_VALID,
-                'city': 'Manila',
-                'contact_number': '09177000099',
-                'skills': ['Helper', 'Masonry'],
-                'years_Helper': 2,
-                'rating_Helper': 4,
-                'years_Masonry': 7,
-                'rating_Masonry': 5,
-                'email': '',
-                'national_id_number': '',
-            },
-            user=user,
-        )
-        self.assertTrue(form.is_valid(), form.errors)
-        profile = form.save(commit=False)
-        profile.user = user
-        profile.save()
-        profile.refresh_from_db()
-        self.assertEqual(
-            profile.skills,
-            [
-                {'skill': 'Helper', 'years_experience': 2, 'self_rating': 4},
-                {'skill': 'Masonry', 'years_experience': 7, 'self_rating': 5},
             ],
         )
 
@@ -988,3 +951,23 @@ class PortfolioAccessTests(TestCase):
         )
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Portfolio')
+
+    def test_employer_can_save_per_skill_ratings(self):
+        Application.objects.create(job=self.job, worker=self.worker)
+        self.worker_profile.skills = [{'skill': 'Helper', 'years_experience': 2}]
+        self.worker_profile.save()
+        self.client.force_login(self.employer)
+        r = self.client.post(
+            reverse('employer_worker_portfolio', args=[self.job.id, self.worker.id]),
+            data={'employer_rating_0': '4'},
+        )
+        self.assertRedirects(
+            r,
+            reverse('employer_worker_portfolio', args=[self.job.id, self.worker.id]),
+            fetch_redirect_response=False,
+        )
+        app = Application.objects.get(job=self.job, worker=self.worker)
+        self.assertEqual(
+            ApplicationSkillRating.objects.get(application=app, skill_name='Helper').score,
+            4,
+        )

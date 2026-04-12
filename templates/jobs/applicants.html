@@ -99,7 +99,7 @@
       {% if app.worker.worker_profile %}
         <div class="mb-2">
           {% for entry in app.worker.worker_profile.skill_entries_normalized %}
-            <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}{% if entry.self_rating %} <span class="text-nowrap">★{{ entry.self_rating }}/5</span>{% endif %}</span>
+            <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
           {% endfor %}
         </div>
         <div class="mb-2">
@@ -234,7 +234,7 @@
             <td>
               {% if app.worker.worker_profile %}
                 {% for entry in app.worker.worker_profile.skill_entries_normalized %}
-                  <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}{% if entry.self_rating %} ★{{ entry.self_rating }}/5{% endif %}</span>
+                  <span class="skill-tag">{{ entry.skill }}{% if entry.years_experience != None %} ({{ entry.years_experience }}+ yrs){% endif %}</span>
                 {% endfor %}
               {% endif %}
             </td>

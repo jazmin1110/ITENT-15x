@@ -19,9 +19,9 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from .models import Job, Application, Rating
+from .models import ApplicationSkillRating, Job, Application, Rating
 from .forms import JobForm, RatingForm
-from .skill_utils import required_skill_names, PREDEFINED_SKILL_CHOICES
+from .skill_utils import canonical_predefined_skill, required_skill_names, PREDEFINED_SKILL_CHOICES
 from .employer_job_utils import (
     acknowledge_vacancy_keep_closed,
     hired_count_for_job,
@@ -514,24 +514,77 @@ def view_ratings(request, user_id):
     })
 
 
+def _portfolio_photos_for_skill(items: list, skill_name: str):
+    """Match WorkerPortfolioItem rows to a worker skill label."""
+    target = canonical_predefined_skill(skill_name) or skill_name
+    out = []
+    for it in items:
+        rs = (it.related_skill or '').strip()
+        if not rs:
+            continue
+        k = canonical_predefined_skill(rs) or rs
+        if k.lower() == target.lower():
+            out.append(it)
+    return out
+
+
 @login_required
 def employer_worker_portfolio(request, job_id, worker_id):
-    """Employer-only: view a worker's portfolio for applicants to this job."""
+    """Employer-only: view a worker's portfolio per skill and rate skills for this application."""
     if request.user.role != 'employer':
         messages.error(request, 'Access denied.')
         return redirect('dashboard')
 
     job = get_object_or_404(Job, id=job_id, employer=request.user)
-    if not Application.objects.filter(job=job, worker_id=worker_id).exists():
-        raise Http404()
+    application = get_object_or_404(
+        Application.objects.prefetch_related('skill_ratings'),
+        job=job,
+        worker_id=worker_id,
+    )
     worker = get_object_or_404(User, id=worker_id, role='worker')
     worker_profile = get_object_or_404(WorkerProfile, user=worker)
-    items = worker_profile.portfolio_items.order_by('sort_order', '-created_at')
+
+    skill_entries = worker_profile.skill_entries_normalized
+    items = list(worker_profile.portfolio_items.all())
+    ratings_by_skill = {r.skill_name: r.score for r in application.skill_ratings.all()}
+    skill_sections = []
+    for entry in skill_entries:
+        sk = entry['skill']
+        skill_sections.append({
+            'entry': entry,
+            'photos': _portfolio_photos_for_skill(items, sk),
+            'employer_rating': ratings_by_skill.get(sk),
+        })
+
+    if request.method == 'POST':
+        for i, entry in enumerate(skill_entries):
+            skill_name = entry['skill']
+            raw = (request.POST.get(f'employer_rating_{i}') or '').strip()
+            if raw == '':
+                ApplicationSkillRating.objects.filter(
+                    application=application,
+                    skill_name=skill_name,
+                ).delete()
+                continue
+            try:
+                score = int(raw)
+            except ValueError:
+                continue
+            if 1 <= score <= 5:
+                ApplicationSkillRating.objects.update_or_create(
+                    application=application,
+                    skill_name=skill_name,
+                    defaults={'score': score},
+                )
+        messages.success(request, 'Na-save ang mga rating sa skill.')
+        return redirect('employer_worker_portfolio', job_id=job.id, worker_id=worker.id)
+
     return render(request, 'jobs/employer_worker_portfolio.html', {
         'job': job,
         'worker': worker,
         'worker_profile': worker_profile,
-        'items': items,
+        'application': application,
+        'skill_sections': skill_sections,
     })
 
 

@@ -1,6 +1,7 @@
 import logging
 import os
 
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
@@ -12,8 +13,11 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from jobs.models import Job
 from .decorators import staff_member_required
 from .form_utils import first_invalid_field_name
-from .forms import SignUpForm, WorkerProfileForm, WorkerPortfolioFormSet, EmployerProfileForm
-from .models import User, WorkerProfile, WorkerPortfolioItem, EmployerProfile
+from jobs.skill_utils import PREDEFINED_SKILL_CHOICES, canonical_predefined_skill
+
+from .forms import SignUpForm, WorkerProfileForm, EmployerProfileForm
+from .models import User, WorkerProfile, EmployerProfile
+from .skill_portfolio_utils import build_portfolio_map, process_skill_portfolio_uploads
 from .permissions import is_platform_admin
 
 logger = logging.getLogger(__name__)
@@ -113,6 +117,21 @@ def dashboard(request):
     return redirect('staff_home')
 
 
+def _custom_skill_portfolio_lists(profile, form) -> list[list]:
+    """Parallel to custom_skills_initial: existing photo rows per custom skill name."""
+    rows = form.custom_skills_initial
+    m = build_portfolio_map(profile) if profile else {}
+    out: list[list] = []
+    for row in rows:
+        name = (row.get('name') or '').strip()
+        if not name:
+            out.append([])
+            continue
+        key = canonical_predefined_skill(name) or name
+        out.append(m.get(key, []))
+    return out
+
+
 @login_required
 def worker_profile(request):
     """Worker profile view and edit with verification documents."""
@@ -169,6 +188,11 @@ def worker_profile(request):
                 return redirect('login')
             messages.success(request, 'Na-save ang profile!')
             request.session['profile_saved_cta'] = 'worker'
+            try:
+                process_skill_portfolio_uploads(request, profile)
+            except ValidationError as exc:
+                msg = exc.messages[0] if getattr(exc, 'messages', None) else str(exc)
+                messages.error(request, msg)
             return redirect('worker_profile')
         logger.warning(
             'worker_profile validation failed user_id=%s errors=%s',
@@ -183,43 +207,21 @@ def worker_profile(request):
     show_profile_cta = request.session.pop('profile_saved_cta', None) == 'worker'
     profile_focus_field = first_invalid_field_name(form) if form.errors else None
 
+    portfolio_map = build_portfolio_map(profile) if profile else {}
+    custom_skill_portfolio_rows = _custom_skill_portfolio_lists(profile, form)
+    predefined_skill_blocks = [
+        (code, label, form[f'years_{code}'], portfolio_map.get(code, []))
+        for code, label in PREDEFINED_SKILL_CHOICES
+    ]
+    custom_skill_combined = list(zip(form.custom_skills_initial, custom_skill_portfolio_rows))
+
     return render(request, 'accounts/worker_profile.html', {
         'form': form,
         'profile': profile,
         'show_profile_cta': show_profile_cta,
         'profile_focus_field': profile_focus_field,
-    })
-
-
-@login_required
-def worker_portfolio(request):
-    """Manage work proof photos and files (worker only)."""
-    if request.user.role != 'worker':
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
-    profile = get_object_or_404(WorkerProfile, user=request.user)
-    qs = WorkerPortfolioItem.objects.filter(worker_profile=profile).order_by('sort_order', '-created_at')
-
-    if request.method == 'POST':
-        formset = WorkerPortfolioFormSet(request.POST, request.FILES, queryset=qs)
-        if formset.is_valid():
-            with transaction.atomic():
-                instances = formset.save(commit=False)
-                for obj in instances:
-                    obj.worker_profile = profile
-                    obj.save()
-                formset.save_m2m()
-                for obj in formset.deleted_objects:
-                    obj.delete()
-            messages.success(request, 'Na-save ang portfolio!')
-            return redirect('worker_portfolio')
-    else:
-        formset = WorkerPortfolioFormSet(queryset=qs)
-
-    return render(request, 'accounts/worker_portfolio.html', {
-        'formset': formset,
-        'profile': profile,
+        'predefined_skill_blocks': predefined_skill_blocks,
+        'custom_skill_combined': custom_skill_combined,
     })
 
 

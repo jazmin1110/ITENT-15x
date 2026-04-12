@@ -102,6 +102,33 @@ class Application(models.Model):
             return None
 
 
+class ApplicationSkillRating(models.Model):
+    """Employer rates the worker per skill for this job application."""
+
+    application = models.ForeignKey(
+        Application,
+        on_delete=models.CASCADE,
+        related_name='skill_ratings',
+    )
+    skill_name = models.CharField(max_length=255)
+    score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['application', 'skill_name'],
+                name='uniq_application_skill_rating',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.application_id} {self.skill_name}: {self.score}'
+
+
 class ApplicationContract(models.Model):
     """Contract PDF + acceptance workflow before hire."""
 

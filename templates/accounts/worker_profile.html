@@ -169,10 +169,10 @@
             {% include 'partials/form_label_required.html' with label='Mga Skills' field=form.skills use_div=1 force_required=1 %}
             {% if form.skills.errors %}<div class="text-danger small mb-2">{{ form.skills.errors.0 }}</div>{% endif %}
             <div class="d-flex flex-column gap-3">
-              {% for code, label, year_field, rating_field in form.skill_rows %}
-                <div class="border rounded py-3 px-3 px-sm-4 profile-skill-card profile-field-wrap{% if year_field.errors or rating_field.errors %} is-invalid{% endif %}" id="profile-field-wrap-{{ year_field.name }}">
+              {% for code, label, year_field, skill_photos in predefined_skill_blocks %}
+                <div class="border rounded py-3 px-3 px-sm-4 profile-skill-card profile-field-wrap{% if year_field.errors %} is-invalid{% endif %}" id="profile-field-wrap-{{ year_field.name }}">
                   <div class="row align-items-end g-2 gx-md-3 mx-0">
-                    <div class="col-lg-4 ps-0 pe-lg-2">
+                    <div class="col-lg-5 ps-0 pe-lg-2">
                       <div class="form-check mb-0 ps-1">
                         <input
                           class="form-check-input"
@@ -185,40 +185,67 @@
                         <label class="form-check-label fw-semibold" for="id_skill_{{ code }}">{{ label }}</label>
                       </div>
                     </div>
-                    <div class="col-md-4 col-lg-4 ps-0 ps-md-2 pe-md-2">
+                    <div class="col-md-7 col-lg-7 ps-0 ps-md-2 pe-0">
                       <label class="form-label small text-muted mb-0" for="{{ year_field.id_for_label }}">{{ year_field.label }}</label>
                       {{ year_field }}
                       {% if year_field.errors %}<div class="text-danger small mt-1">{{ year_field.errors.0 }}</div>{% endif %}
                     </div>
-                    <div class="col-md-4 col-lg-4 ps-0 ps-md-2 pe-0">
-                      <label class="form-label small text-muted mb-0" for="{{ rating_field.id_for_label }}">{{ rating_field.label }}</label>
-                      {{ rating_field }}
-                      {% if rating_field.errors %}<div class="text-danger small mt-1">{{ rating_field.errors.0 }}</div>{% endif %}
-                    </div>
+                  </div>
+                  <div class="mt-3 pt-2 border-top">
+                    <p class="small text-muted mb-2 mb-0">Larawan ng nakaraang trabaho (para sa skill na ito)</p>
+                    {% if skill_photos %}
+                      <div class="d-flex flex-wrap gap-2 mb-2">
+                        {% for p in skill_photos %}
+                          <div class="position-relative border rounded p-1" style="width: 88px;">
+                            <img src="{% url 'portfolio_item_photo' p.pk %}" alt="" class="rounded w-100" style="height: 72px; object-fit: cover;">
+                            <div class="form-check mt-1 mb-0">
+                              <input class="form-check-input" type="checkbox" name="delete_portfolio" value="{{ p.pk }}" id="del_pf_{{ p.pk }}">
+                              <label class="form-check-label text-danger small" for="del_pf_{{ p.pk }}">Alisin</label>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                    <input type="file" name="skill_photo_{{ code }}" class="form-control form-control-sm" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+                    <small class="text-muted">Maaaring pumili ng maraming larawan (max 2MB bawat isa).</small>
                   </div>
                 </div>
               {% endfor %}
             </div>
 
             <div id="custom-skills-rows" class="d-flex flex-column gap-3 mt-3">
-              {% for row in form.custom_skills_initial %}
+              {% for row, row_photos in custom_skill_combined %}
                 <div class="border rounded p-3 custom-skill-row">
                   <div class="row align-items-end g-2">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                       <label class="form-label small text-muted mb-0">Ibang skill</label>
                       <input type="text" name="custom_skill_name" class="form-control form-control-sm" maxlength="80" value="{{ row.name }}" placeholder="Halimbawa: Welding" autocomplete="off">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                       <label class="form-label small text-muted mb-0">Taon (opsyonal)</label>
                       <input type="number" name="custom_skill_years" class="form-control form-control-sm" min="0" max="80" placeholder="—" value="{{ row.years }}">
                     </div>
-                    <div class="col-md-3">
-                      <label class="form-label small text-muted mb-0">Rating 1–5 (opsyonal)</label>
-                      <input type="number" name="custom_skill_rating" class="form-control form-control-sm" min="1" max="5" placeholder="—" value="{{ row.rating|default:'' }}">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end pb-1">
+                    <div class="col-md-3 d-flex align-items-end pb-1">
                       <button type="button" class="btn btn-outline-danger btn-sm remove-custom-skill w-100" title="Alisin"><span class="visually-hidden">Alisin</span>×</button>
                     </div>
+                  </div>
+                  <div class="mt-3 pt-2 border-top">
+                    <p class="small text-muted mb-2 mb-0">Larawan ng nakaraang trabaho (para sa skill na ito)</p>
+                    {% if row_photos %}
+                      <div class="d-flex flex-wrap gap-2 mb-2">
+                        {% for p in row_photos %}
+                          <div class="position-relative border rounded p-1" style="width: 88px;">
+                            <img src="{% url 'portfolio_item_photo' p.pk %}" alt="" class="rounded w-100" style="height: 72px; object-fit: cover;">
+                            <div class="form-check mt-1 mb-0">
+                              <input class="form-check-input" type="checkbox" name="delete_portfolio" value="{{ p.pk }}" id="del_cpf_{{ p.pk }}">
+                              <label class="form-check-label text-danger small" for="del_cpf_{{ p.pk }}">Alisin</label>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                    <input type="file" name="custom_skill_photo_{{ forloop.counter0 }}" class="form-control form-control-sm" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+                    <small class="text-muted">Maaaring pumili ng maraming larawan (max 2MB bawat isa).</small>
                   </div>
                 </div>
               {% endfor %}
@@ -232,31 +259,29 @@
           <template id="custom-skill-row-template">
             <div class="border rounded p-3 custom-skill-row" data-template-clone="1">
               <div class="row align-items-end g-2">
-                <div class="col-md-4">
+                <div class="col-md-5">
                   <label class="form-label small text-muted mb-0">Ibang skill</label>
                   <input type="text" name="custom_skill_name" class="form-control form-control-sm" maxlength="80" value="" placeholder="Halimbawa: Welding" autocomplete="off">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                   <label class="form-label small text-muted mb-0">Taon (opsyonal)</label>
                   <input type="number" name="custom_skill_years" class="form-control form-control-sm" min="0" max="80" placeholder="—" value="">
                 </div>
-                <div class="col-md-3">
-                  <label class="form-label small text-muted mb-0">Rating 1–5 (opsyonal)</label>
-                  <input type="number" name="custom_skill_rating" class="form-control form-control-sm" min="1" max="5" placeholder="—" value="">
-                </div>
-                <div class="col-md-2 d-flex align-items-end pb-1">
+                <div class="col-md-3 d-flex align-items-end pb-1">
                   <button type="button" class="btn btn-outline-danger btn-sm remove-custom-skill w-100" title="Alisin"><span class="visually-hidden">Alisin</span>×</button>
                 </div>
+              </div>
+              <div class="mt-3 pt-2 border-top custom-skill-photo-slot">
+                <p class="small text-muted mb-2 mb-0">Larawan ng nakaraang trabaho (para sa skill na ito)</p>
+                <input type="file" class="form-control form-control-sm custom-skill-photo-input" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+                <small class="text-muted">Maaaring pumili ng maraming larawan (max 2MB bawat isa).</small>
               </div>
             </div>
           </template>
 
-          <div class="alert alert-light border mb-4">
-            <a href="{% url 'worker_portfolio' %}" class="text-decoration-none fw-semibold">
-              <i class="bi bi-images"></i> Portfolio ng trabaho (larawan at proof)
-            </a>
-            <span class="text-muted small d-block mt-1">Makikita ang mga ito ng employer kapag nag-apply ka sa trabaho nila.</span>
-          </div>
+          <p class="text-muted small mb-0 mt-2">
+            <i class="bi bi-info-circle"></i> Makikita ng employer ang mga larawan kapag nag-apply ka sa trabaho nila.
+          </p>
 
           <hr class="my-4">
 
@@ -394,9 +419,22 @@
 
   container.querySelectorAll(".custom-skill-row").forEach(bindRemove);
 
+  var form = container.closest("form");
+  if (form) {
+    form.addEventListener("submit", function () {
+      container.querySelectorAll(".custom-skill-row").forEach(function (row, i) {
+        var finp = row.querySelector(".custom-skill-photo-input");
+        if (finp) finp.name = "custom_skill_photo_" + i;
+      });
+    });
+  }
+
   addBtn.addEventListener("click", function () {
     var node = tpl.content.firstElementChild.cloneNode(true);
     node.removeAttribute("data-template-clone");
+    var idx = container.querySelectorAll(".custom-skill-row").length;
+    var finp = node.querySelector(".custom-skill-photo-input");
+    if (finp) finp.name = "custom_skill_photo_" + idx;
     bindRemove(node);
     container.appendChild(node);
     var inp = node.querySelector('input[name="custom_skill_name"]');

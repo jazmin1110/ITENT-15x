@@ -10,7 +10,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
     path('worker-profile/', views.worker_profile, name='worker_profile'),
-    path('worker-portfolio/', views.worker_portfolio, name='worker_portfolio'),
     path('verify-national-id/', views.verify_national_id, name='verify_national_id'),
     path('submit-worker-verification/', views.submit_worker_verification, name='submit_worker_verification'),
 

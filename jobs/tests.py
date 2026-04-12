@@ -219,15 +219,6 @@ class SkillUtilsTests(TestCase):
             ],
         )
 
-    def test_normalize_skill_entries_self_rating(self):
-        out = normalize_skill_entries([
-            {'skill': 'Helper', 'years_experience': 2, 'self_rating': 4},
-        ])
-        self.assertEqual(
-            out,
-            [{'skill': 'Helper', 'years_experience': 2, 'self_rating': 4}],
-        )
-
     def test_overlap_with_dict_shaped_worker_skills_matches_legacy_strings(self):
         job_skills = required_skill_names(
             [{'skill': 'Helper', 'years_experience': None}]

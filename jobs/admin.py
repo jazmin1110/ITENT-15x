@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Job, Application
+from .models import ApplicationSkillRating, Job, Application
 
 
 @admin.register(Job)
@@ -23,3 +23,10 @@ class JobAdmin(admin.ModelAdmin):
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ['worker', 'job', 'status', 'created_at']
     list_filter = ['status']
+
+
+@admin.register(ApplicationSkillRating)
+class ApplicationSkillRatingAdmin(admin.ModelAdmin):
+    list_display = ['application', 'skill_name', 'score', 'updated_at']
+    list_filter = ['score']
+    search_fields = ['skill_name']
