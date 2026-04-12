@@ -17,6 +17,7 @@ from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -163,6 +164,21 @@ class Command(BaseCommand):
                 'This command deletes almost all users. Re-run with --force to proceed.'
             )
 
+        # Atomic: avoid partial state on Postgres if any insert fails (e.g. field length).
+        with transaction.atomic():
+            self._seed_all()
+
+        self.stdout.write(self.style.SUCCESS('Professor demo seed complete.'))
+        worker_phones = ', '.join(row[0] for row in WORKER_SEEDS)
+        self.stdout.write(
+            f'Demo login password for all new accounts: {DEMO_PASSWORD}\n'
+            f'  Employers: {JOLLY_PHONE} (Jolly), {FOURACES_PHONE} (FourAces), '
+            f'{EGLOBAL_PHONE} (eGlobal), {NEWPRO_PHONE} (Newpro), {HANDO_PHONE} (HandO)\n'
+            f'  Workers: {worker_phones}\n'
+            f'Protected phones (unchanged): {", ".join(sorted(PROTECTED_PHONES))}'
+        )
+
+    def _seed_all(self) -> None:
         protected = User.objects.filter(
             Q(phone_number__in=PROTECTED_PHONES) | Q(is_superuser=True)
         )
@@ -241,7 +257,7 @@ class Command(BaseCommand):
             company_name='eGlobal Outsourcing Management Services',
             city='Manila',
             contact_person='Clement del Rosario',
-            contact_number='09173090545 / 09238042830',
+            contact_number='0917 309 0545',
             verification_status='verified',
         )
 
@@ -540,12 +556,23 @@ class Command(BaseCommand):
                     updated_at=app_updated,
                 )
 
-        self.stdout.write(self.style.SUCCESS('Professor demo seed complete.'))
-        worker_phones = ', '.join(row[0] for row in WORKER_SEEDS)
-        self.stdout.write(
-            f'Demo login password for all new accounts: {DEMO_PASSWORD}\n'
-            f'  Employers: {JOLLY_PHONE} (Jolly), {FOURACES_PHONE} (FourAces), '
-            f'{EGLOBAL_PHONE} (eGlobal), {NEWPRO_PHONE} (Newpro), {HANDO_PHONE} (HandO)\n'
-            f'  Workers: {worker_phones}\n'
-            f'Protected phones (unchanged): {", ".join(sorted(PROTECTED_PHONES))}'
+        # Ensure all five demo employers exist (full profile rows).
+        demo_employer_phones = (
+            JOLLY_PHONE,
+            FOURACES_PHONE,
+            EGLOBAL_PHONE,
+            NEWPRO_PHONE,
+            HANDO_PHONE,
+        )
+        for phone in demo_employer_phones:
+            u = User.objects.filter(phone_number=phone, role='employer').first()
+            if not u:
+                raise CommandError(f'Seed incomplete: missing employer user {phone}')
+            if not EmployerProfile.objects.filter(user=u).exists():
+                raise CommandError(f'Seed incomplete: missing employer profile for {phone}')
+
+        # All employer profiles verified (including any pre-existing rows kept with protected users).
+        EmployerProfile.objects.all().update(
+            verification_status='verified',
+            rejection_reason='',
         )

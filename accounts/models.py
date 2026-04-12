@@ -71,7 +71,7 @@ class WorkerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='worker_profile')
     full_name = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
-    contact_number = models.CharField(max_length=20)
+    contact_number = models.CharField(max_length=120)
     years_experience = models.IntegerField(default=0)
     skills = models.JSONField(default=list)
 
@@ -167,7 +167,7 @@ class EmployerProfile(models.Model):
     company_name = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     contact_person = models.CharField(max_length=255)
-    contact_number = models.CharField(max_length=20)
+    contact_number = models.CharField(max_length=120)
 
     doc_sec_dti = models.FileField(upload_to='employer_docs/', blank=True)
     doc_barangay_clearance = models.FileField(upload_to='employer_docs/', blank=True)
