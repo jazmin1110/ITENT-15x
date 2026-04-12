@@ -246,6 +246,43 @@ def _stamp_application_times(
         lo = hi - timedelta(hours=random.randint(2, 12))
     if lo >= hi:
         lo = hi - timedelta(minutes=30)
+
+    if mark_hired:
+        # At least a few days between application sent and hire; hire_at stays within app_window_end.
+        min_days = random.randint(3, 8)
+        min_gap = timedelta(days=min_days) + timedelta(hours=random.randint(1, 12))
+        latest_apply = app_window_end - min_gap
+        if latest_apply < lo:
+            min_gap = timedelta(days=3) + timedelta(hours=random.randint(1, 12))
+            latest_apply = app_window_end - min_gap
+        apply_hi = min(hi, latest_apply)
+        if apply_hi < lo:
+            app_created = lo
+            hired_at = min(
+                app_created + timedelta(days=3) + timedelta(hours=random.randint(2, 18)),
+                app_window_end,
+            )
+        else:
+            app_created = _random_aware_between(lo, apply_hi)
+            earliest_hire = app_created + min_gap
+            if earliest_hire < app_created + timedelta(days=3):
+                earliest_hire = app_created + timedelta(days=3) + timedelta(hours=random.randint(0, 8))
+            hired_at = _random_aware_between(earliest_hire, app_window_end)
+        app_updated = _random_aware_between(
+            app_created + timedelta(minutes=30),
+            min(app_created + timedelta(days=2), hired_at - timedelta(hours=2)),
+        )
+        if app_updated <= app_created:
+            app_updated = app_created + timedelta(hours=random.randint(2, 36))
+        if app_updated >= hired_at:
+            app_updated = app_created + timedelta(hours=random.randint(4, 48))
+        Application.objects.filter(pk=app.pk).update(
+            created_at=app_created,
+            updated_at=app_updated,
+            hired_at=hired_at,
+        )
+        return
+
     app_created = _random_aware_between(lo, hi)
     app_updated = _random_aware_between(
         app_created + timedelta(minutes=5),
@@ -253,13 +290,7 @@ def _stamp_application_times(
     )
     if app_updated <= app_created:
         app_updated = app_created + timedelta(seconds=random.randint(400, 86400))
-    updates = {'created_at': app_created, 'updated_at': app_updated}
-    if mark_hired:
-        updates['hired_at'] = _random_aware_between(
-            app_created + timedelta(hours=1),
-            min(app_window_end, app_created + timedelta(days=6)),
-        )
-    Application.objects.filter(pk=app.pk).update(**updates)
+    Application.objects.filter(pk=app.pk).update(created_at=app_created, updated_at=app_updated)
 
 
 # Short Taglish threads for sample chats (less formal tone).
