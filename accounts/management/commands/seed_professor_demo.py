@@ -2,7 +2,8 @@
 Purge all users except a keep-list (phones + superusers), then seed professor demo data.
 
 Five employers (unique join dates Mar 22–Apr 8, 2026), Jolly/FourAces plus three new companies with jobs.
-Three worker profiles (Mar 29–30). Two sample applications; none hired.
+Ten worker profiles (unique join dates Mar 29–Apr 10, 2026). Three sample applications with
+Taglish chat threads; none hired. Workers are not verified.
 
 Usage:
   python manage.py seed_professor_demo --force
@@ -22,6 +23,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from accounts.models import User, WorkerProfile, EmployerProfile
+from chat.models import Conversation, Message
 from jobs.models import Job, Application
 
 PROTECTED_PHONES = frozenset(
@@ -37,33 +39,99 @@ EGLOBAL_PHONE = '09173090545'
 NEWPRO_PHONE = '09175202420'
 HANDO_PHONE = '09178961965'
 
-# Demo workers (3 only): avoid protected + employer phones
+# Demo workers (10): unique signup dates (Mar 29–Apr 10, 2026), distinct phones/names.
+# Tuple: phone, full_name, city, skills, job_key, app_status, signup_date
+# Exactly three rows have job_key + app_status (conversation + Taglish messages seeded later).
 WORKER_SEEDS = [
-    # (phone, full_name, city, skills_json, apply_job_key or None, app_status or None)
-    # apply_job_key: jolly_td, jolly_janitor, jolly_sewer, fouraces_td
     (
-        '09175648291',
-        'Rommel Bautista',
+        '09184729356',
+        'Darnell Ortega',
         'Quezon City',
         [{'skill': 'Masonry', 'years_experience': 4}, {'skill': 'Helper', 'years_experience': 2}],
         None,
         None,
+        date(2026, 3, 29),
     ),
     (
-        '09358172946',
-        'Mario Reyes',
+        '09451287319',
+        'Vince Calderon',
         'Valenzuela',
         [{'skill': 'Driver', 'years_experience': 8}],
-        'jolly_td',
-        'viewed',
+        None,
+        None,
+        date(2026, 3, 30),
     ),
     (
-        '09982304715',
-        'Elena Santos',
+        '09951238467',
+        'Charmaine Tolentino',
         'Malabon',
         [{'skill': 'Janitor', 'years_experience': 5}],
-        'jolly_janitor',
-        'sent',
+        None,
+        None,
+        date(2026, 3, 31),
+    ),
+    (
+        '09294817230',
+        'Rico Navarro',
+        'Manila',
+        [{'skill': 'Carpentry', 'years_experience': 6}],
+        'eg_carp',
+        'viewed',
+        date(2026, 4, 1),
+    ),
+    (
+        '09051239482',
+        'Janine Mercado',
+        'Calamba, Laguna',
+        [{'skill': 'Electrician', 'years_experience': 4}],
+        'np_elec',
+        'shortlisted',
+        date(2026, 4, 2),
+    ),
+    (
+        '09673829174',
+        'Buddy Lacson',
+        'Muntinlupa',
+        [{'skill': 'Machine Operator', 'years_experience': 3}],
+        'np_mach',
+        'viewed',
+        date(2026, 4, 3),
+    ),
+    (
+        '09219384765',
+        'Sophia Uy',
+        'Pasig',
+        [{'skill': 'Plumber', 'years_experience': 5}],
+        None,
+        None,
+        date(2026, 4, 5),
+    ),
+    (
+        '09166372840',
+        'Lorenzo Abad',
+        'Marikina',
+        [{'skill': 'Sewer', 'years_experience': 4}],
+        None,
+        None,
+        date(2026, 4, 6),
+    ),
+    (
+        '09572819463',
+        'Irish Fernandez',
+        'Las Piñas',
+        [{'skill': 'Furniture Assembler', 'years_experience': 2}],
+        None,
+        None,
+        date(2026, 4, 8),
+    ),
+    (
+        '09483927158',
+        'Harold Sy',
+        'Taguig',
+        [{'skill': 'Electrician', 'years_experience': 4}],
+        None,
+        None,
+        date(2026, 4, 10),
     ),
 ]
 
@@ -114,12 +182,6 @@ def _random_aware_between(dt_start: datetime, dt_end: datetime) -> datetime:
     return dt_start + timedelta(seconds=random.randint(0, max(span, 1)))
 
 
-def _random_worker_signup_mar_2026() -> datetime:
-    """Worker sign-ups only Mar 29–30, 2026 (exclude Mar 27–28)."""
-    d = random.choice([date(2026, 3, 29), date(2026, 3, 30)])
-    return _aware_random_on_date(d)
-
-
 def _five_unique_dates_mar22_apr8_2026() -> list[date]:
     """Five distinct calendar days between 2026-03-22 and 2026-04-08 inclusive."""
     pool: list[date] = []
@@ -144,11 +206,117 @@ def _stamp_job_timestamps(job: Job, employer_joined: datetime) -> None:
     job.refresh_from_db()
 
 
+# Taglish chat scripts for demo applications (worker ↔ employer), believable per job skill.
+CONVO_SCRIPTS: dict[str, list[tuple[str, str]]] = {
+    'eg_carp': [
+        (
+            'worker',
+            'Hi po! Nakita ko yung post ninyo for Carpenter (formworks, ceiling, finishing). '
+            'May mga 6 years ako diyan, mostly sa condo at office fit-out sa Metro Manila.',
+        ),
+        (
+            'employer',
+            'Hi Rico, salamat sa pag-apply. Yung scope namin includes ceiling trims and basic '
+            'formworks—comfortable ka ba sa tight deadlines pag may punch list?',
+        ),
+        (
+            'worker',
+            'Yes po, sanay ako sa ganun. Nag-coordinate ako lagi sa site engineer; alam ko '
+            'yung sequence from framing hanggang finishing para hindi mag-backtrack.',
+        ),
+        (
+            'employer',
+            'Good. Pwede mo ba i-send yung photos ng previous sites mo? Preferably yung may '
+            'ceiling detail and formwork.',
+        ),
+        (
+            'worker',
+            'Sige po, send ko tonight after work. May mga pics ako from last project sa Makati '
+            'and BGC. Thank you!',
+        ),
+    ],
+    'np_elec': [
+        (
+            'worker',
+            'Hi Sir Philip, nag-apply ako sa Electrician opening niyo. NC II certified po ako, '
+            '4 years sa industrial plant—motor controls, panels, basic troubleshooting.',
+        ),
+        (
+            'employer',
+            'Hi Janine, noted. May hands-on ka ba sa 3-phase motors at sa control panels sa '
+            'manufacturing line?',
+        ),
+        (
+            'worker',
+            'Oo po. Sa previous company nag-PM ako ng motor starters, nag-check ng overload '
+            'settings, and nag-trace ako ng faults hanggang sa field devices.',
+        ),
+        (
+            'employer',
+            'Okay. We’ll align din on safety—LOTO, PPE, and permit-to-work. Pwede ka ba for a '
+            'short call tomorrow late afternoon?',
+        ),
+        (
+            'worker',
+            'Keribells po, free ako after 5pm. Text niyo lang yung link or number. Thanks!',
+        ),
+    ],
+    'np_mach': [
+        (
+            'worker',
+            'Hello po, nag-send ako ng application for Machine Operator. 3 years ako sa line '
+            'na may CNC-style setup—loading, offsets, basic cleaning ng fixtures.',
+        ),
+        (
+            'employer',
+            'Hi Buddy, thanks. Sanay ka ba sa lockout/tagout and yung daily checklist bago mag-run?',
+        ),
+        (
+            'worker',
+            'Yes po, mandatory yun sa amin dati. Nag-verify ako ng guards, nag-LOTO bago mag-PM '
+            'ng belts and rollers—may logbook din kami per shift.',
+        ),
+        (
+            'employer',
+            'Nice. Shift is 8–5, may OT pag peak season. Target start is around first week of '
+            'April—okay ba sayo yung travel to Calamba daily?',
+        ),
+        (
+            'worker',
+            'Okay lang po, nasanay ako sa commute. Ping niyo lang ako once shortlisted for '
+            'orientation. Salamat!',
+        ),
+    ],
+}
+
+
+def _seed_conversation_for_application(
+    app: Application,
+    job_key: str,
+) -> None:
+    """Create one conversation with staggered Taglish messages after an application exists."""
+    script = CONVO_SCRIPTS.get(job_key)
+    if not script:
+        return
+    job = app.job
+    worker = app.worker
+    employer = job.employer
+    conv = Conversation.objects.create(job=job, worker=worker, employer=employer)
+    t0 = app.created_at + timedelta(minutes=random.randint(45, 180))
+    Conversation.objects.filter(pk=conv.pk).update(created_at=t0)
+    for i, (role, content) in enumerate(script):
+        sender = worker if role == 'worker' else employer
+        msg = Message.objects.create(conversation=conv, sender=sender, content=content)
+        msg_t = t0 + timedelta(minutes=5 + i * random.randint(8, 35))
+        Message.objects.filter(pk=msg.pk).update(created_at=msg_t)
+
+
 class Command(BaseCommand):
     help = (
         'DANGEROUS: Delete all users except protected phone numbers and superusers, '
         'then create 5 employers (incl. Jolly/FourAces + 3 new companies), their jobs, '
-        '3 workers (joined Mar 29 or 30), sample applications (no hires). Requires --force.'
+        '10 workers (joined Mar 29–Apr 10, 2026), 3 applications with chat, none hired. '
+        'Workers unverified. Requires --force.'
     )
 
     def add_arguments(self, parser):
@@ -464,6 +632,14 @@ class Command(BaseCommand):
             status='open',
         )
 
+        jobs_map['eg_carp'] = eg_carp
+        jobs_map['eg_elec'] = eg_elec
+        jobs_map['eg_plumb'] = eg_plumb
+        jobs_map['np_elec'] = np_elec
+        jobs_map['np_mach'] = np_mach
+        jobs_map['ho_drv'] = ho_drv
+        jobs_map['ho_fasm'] = ho_fasm
+
         all_jobs = [
             td_j,
             jan_j,
@@ -487,9 +663,11 @@ class Command(BaseCommand):
         for job in all_jobs:
             _stamp_job_timestamps(job, employer_joins[job.employer_id])
 
-        app_window_end = _aware_dt(date(2026, 3, 30), 23, 59, random.randint(10, 55))
+        app_window_end = _aware_dt(date(2026, 4, 10), 23, 59, random.randint(10, 55))
 
-        for phone, full_name, city, skills, job_key, app_status in WORKER_SEEDS:
+        _female_first = {'Charmaine', 'Janine', 'Sophia', 'Irish'}
+
+        for phone, full_name, city, skills, job_key, app_status, signup_day in WORKER_SEEDS:
             parts = full_name.split(' ', 1)
             first = parts[0]
             last = parts[1] if len(parts) > 1 else ''
@@ -502,7 +680,7 @@ class Command(BaseCommand):
                 last_name=last,
                 role='worker',
             )
-            w_join = _random_worker_signup_mar_2026()
+            w_join = _aware_random_on_date(signup_day)
             User.objects.filter(pk=w_user.pk).update(date_joined=w_join)
             w_user.refresh_from_db()
 
@@ -517,13 +695,13 @@ class Command(BaseCommand):
                 or 2,
                 skills=skills,
                 date_of_birth=date(1992, 5, 10),
-                gender='male' if first in ('Rommel', 'Joseph', 'Mario', 'Carlo') else 'female',
+                gender='female' if first in _female_first else 'male',
                 marital_status='single',
                 nationality='Filipino',
                 religion='',
                 languages_known='Filipino, English',
-                national_id_status='verified',
-                verification_status='verified',
+                national_id_status='not_verified',
+                verification_status='not_submitted',
             )
 
             if job_key and app_status:
@@ -541,6 +719,8 @@ class Command(BaseCommand):
                 hi = app_window_end
                 if lo >= hi:
                     lo = hi - timedelta(hours=random.randint(2, 12))
+                if lo >= hi:
+                    lo = hi - timedelta(minutes=30)
                 app_created = _random_aware_between(lo, hi)
 
                 app_updated = _random_aware_between(
@@ -555,6 +735,8 @@ class Command(BaseCommand):
                     created_at=app_created,
                     updated_at=app_updated,
                 )
+                app.refresh_from_db()
+                _seed_conversation_for_application(app, job_key)
 
         # Ensure all five demo employers exist (full profile rows).
         demo_employer_phones = (
