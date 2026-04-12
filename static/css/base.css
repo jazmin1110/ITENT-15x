@@ -1,5 +1,5 @@
 /* ==========================================================
-   TiwalaPH Design System
+   Tiwala Design System
    Blue & white, clean, professional, trust-first
    ========================================================== */
 
@@ -85,14 +85,29 @@ a:hover {
   -webkit-backdrop-filter: blur(12px);
 }
 .tiwala-navbar .navbar-brand {
-  font-weight: 800;
-  font-size: 1.35rem;
-  color: var(--color-primary);
-  letter-spacing: -0.5px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  line-height: 0;
 }
 .tiwala-navbar .navbar-brand:hover {
-  color: var(--color-primary-hover);
   text-decoration: none;
+  opacity: 0.92;
+}
+.tiwala-navbar .navbar-brand:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.tiwala-navbar .navbar-brand .brand-logo {
+  display: block;
+  height: 36px;
+  width: auto;
+  max-width: min(200px, 52vw);
+}
+.tiwala-navbar .brand-logo--offcanvas {
+  height: 28px;
+  max-width: min(160px, 55vw);
 }
 .tiwala-navbar .nav-link {
   color: var(--gray-500);
@@ -577,12 +592,17 @@ a[href*="/chat/"].btn.btn-success:hover {
   max-width: 420px;
 }
 .auth-brand {
-  font-weight: 800;
-  font-size: 2rem;
-  color: var(--color-primary);
-  letter-spacing: -0.5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   margin-bottom: 0.25rem;
+}
+.auth-brand .brand-logo--auth {
+  display: block;
+  height: auto;
+  max-width: 240px;
+  width: 100%;
 }
 .auth-subtitle {
   text-align: center;

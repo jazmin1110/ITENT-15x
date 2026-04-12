@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Applicants - {{ job.title }} - TiwalaPH{% endblock %}
+{% block title %}Applicants - {{ job.title }} - Tiwala{% endblock %}
 
 {% block content %}
 <a href="{% url 'employer_jobs' %}" class="btn btn-outline-secondary btn-sm mb-3">
@@ -301,7 +301,7 @@
               {% with c=app.contract_or_none %}
                 <div class="text-xs fw-semibold text-uppercase text-muted mb-2">Kontrata</div>
                 {% if app.status != 'shortlisted' and app.status != 'hired' and app.status != 'completed' %}
-                  <p class="text-muted small mb-0">I-shortlist muna para ma-upload ang PDF at mag-chat sa TiwalaPH.</p>
+                  <p class="text-muted small mb-0">I-shortlist muna para ma-upload ang PDF at mag-chat sa Tiwala.</p>
                 {% elif app.status == 'shortlisted' %}
                   {% if not c %}
                     <form method="post" action="{% url 'contract_employer_upload' app.id %}" enctype="multipart/form-data" class="row g-2 align-items-end">

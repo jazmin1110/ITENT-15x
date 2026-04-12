@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Login - TiwalaPH{% endblock %}
+{% block title %}Login - Tiwala{% endblock %}
 
 {% block content %}
 <div class="auth-page">
@@ -8,7 +9,7 @@
     <div class="card">
       <div class="card-body p-4 p-md-5">
         <div class="auth-brand">
-          <i class="bi bi-shield-check"></i> TiwalaPH
+          <img class="brand-logo brand-logo--auth" src="{% static 'img/branding/tiwala-wordmark.png' %}" alt="Tiwala" width="240" height="60" loading="eager" decoding="async">
         </div>
         <p class="auth-subtitle">Mag-login sa iyong account</p>
 

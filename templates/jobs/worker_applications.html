@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}My Applications - TiwalaPH{% endblock %}
+{% block title %}My Applications - Tiwala{% endblock %}
 
 {% block content %}
 <div class="page-header mb-4">
@@ -53,7 +53,7 @@
             </a>
           </div>
         {% elif app.status == 'shortlisted' or app.status == 'hired' %}
-          <p class="small text-muted mt-2 mb-0">Mag-message sa TiwalaPH kapag available na ang chat.</p>
+          <p class="small text-muted mt-2 mb-0">Mag-message sa Tiwala kapag available na ang chat.</p>
         {% endif %}
 
         {% with c=app.contract_or_none %}
