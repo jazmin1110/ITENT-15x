@@ -1,7 +1,8 @@
 """
 Purge all users except a keep-list (phones + superusers), then seed professor demo data.
 
-Three worker profiles (signed up Mar 29 or 30 only, random time). Two sample applications; none hired.
+Five employers (unique join dates Mar 22–Apr 8, 2026), Jolly/FourAces plus three new companies with jobs.
+Three worker profiles (Mar 29–30). Two sample applications; none hired.
 
 Usage:
   python manage.py seed_professor_demo --force
@@ -31,6 +32,9 @@ DEMO_PASSWORD = 'ProfDemo2026!'
 # Account phones (also usernames)
 JOLLY_PHONE = '09178153228'
 FOURACES_PHONE = '09178332328'
+EGLOBAL_PHONE = '09173090545'
+NEWPRO_PHONE = '09175202420'
+HANDO_PHONE = '09178961965'
 
 # Demo workers (3 only): avoid protected + employer phones
 WORKER_SEEDS = [
@@ -115,11 +119,35 @@ def _random_worker_signup_mar_2026() -> datetime:
     return _aware_random_on_date(d)
 
 
+def _five_unique_dates_mar22_apr8_2026() -> list[date]:
+    """Five distinct calendar days between 2026-03-22 and 2026-04-08 inclusive."""
+    pool: list[date] = []
+    d = date(2026, 3, 22)
+    end = date(2026, 4, 8)
+    while d <= end:
+        pool.append(d)
+        d += timedelta(days=1)
+    return random.sample(pool, 5)
+
+
+def _stamp_job_timestamps(job: Job, employer_joined: datetime) -> None:
+    """Job posted after employer account exists; random created/updated."""
+    ceiling = _aware_dt(date(2026, 5, 1), 22, 0, random.randint(0, 59))
+    lo = employer_joined + timedelta(minutes=random.randint(30, 72 * 60))
+    hi = min(lo + timedelta(days=20), ceiling)
+    if lo >= hi:
+        hi = lo + timedelta(hours=random.randint(2, 48))
+    jc = _random_aware_between(lo, hi)
+    ju = jc + timedelta(seconds=random.randint(120, 72 * 3600))
+    Job.objects.filter(pk=job.pk).update(created_at=jc, updated_at=ju)
+    job.refresh_from_db()
+
+
 class Command(BaseCommand):
     help = (
         'DANGEROUS: Delete all users except protected phone numbers and superusers, '
-        'then create Jolly/FourAces demo employers, 4 jobs, 3 workers (joined Mar 29 or 30), '
-        'sample applications (no hires). Requires --force.'
+        'then create 5 employers (incl. Jolly/FourAces + 3 new companies), their jobs, '
+        '3 workers (joined Mar 29 or 30), sample applications (no hires). Requires --force.'
     )
 
     def add_arguments(self, parser):
@@ -150,9 +178,13 @@ class Command(BaseCommand):
             )
         )
 
-        # --- Employers (random join times within Mar 19–26, 2026) ---
-        j_join = _random_aware_between_dates(date(2026, 3, 19), date(2026, 3, 26))
-        f_join = _random_aware_between_dates(date(2026, 3, 19), date(2026, 3, 26))
+        # --- Employers: five unique calendar join dates (Mar 22–Apr 8, 2026), random times ---
+        d_jolly, d_fouraces, d_eglobal, d_newpro, d_hando = _five_unique_dates_mar22_apr8_2026()
+        j_join = _aware_random_on_date(d_jolly)
+        f_join = _aware_random_on_date(d_fouraces)
+        eg_join = _aware_random_on_date(d_eglobal)
+        np_join = _aware_random_on_date(d_newpro)
+        ho_join = _aware_random_on_date(d_hando)
 
         jolly_user = User.objects.create_user(
             username=JOLLY_PHONE,
@@ -191,6 +223,63 @@ class Command(BaseCommand):
             city='Caloocan City',
             contact_person='Clarissa',
             contact_number=FOURACES_PHONE,
+            verification_status='verified',
+        )
+
+        eg_user = User.objects.create_user(
+            username=EGLOBAL_PHONE,
+            email='',
+            password=DEMO_PASSWORD,
+            phone_number=EGLOBAL_PHONE,
+            first_name='Clement',
+            last_name='del Rosario',
+            role='employer',
+        )
+        User.objects.filter(pk=eg_user.pk).update(date_joined=eg_join)
+        EmployerProfile.objects.create(
+            user=eg_user,
+            company_name='eGlobal Outsourcing Management Services',
+            city='Manila',
+            contact_person='Clement del Rosario',
+            contact_number='09173090545 / 09238042830',
+            verification_status='verified',
+        )
+
+        np_user = User.objects.create_user(
+            username=NEWPRO_PHONE,
+            email='',
+            password=DEMO_PASSWORD,
+            phone_number=NEWPRO_PHONE,
+            first_name='Philip',
+            last_name='Dee',
+            role='employer',
+        )
+        User.objects.filter(pk=np_user.pk).update(date_joined=np_join)
+        EmployerProfile.objects.create(
+            user=np_user,
+            company_name='Newpro Industrial Manufacturing Corporation',
+            city='Calamba, Laguna',
+            contact_person='Philip Dee',
+            contact_number=NEWPRO_PHONE,
+            verification_status='verified',
+        )
+
+        ho_user = User.objects.create_user(
+            username=HANDO_PHONE,
+            email='',
+            password=DEMO_PASSWORD,
+            phone_number=HANDO_PHONE,
+            first_name='Kitchie',
+            last_name='-',
+            role='employer',
+        )
+        User.objects.filter(pk=ho_user.pk).update(date_joined=ho_join)
+        EmployerProfile.objects.create(
+            user=ho_user,
+            company_name='HandO Home and Office Furniture',
+            city='Muntinlupa City, Metro Manila',
+            contact_person='Kitchie',
+            contact_number=HANDO_PHONE,
             verification_status='verified',
         )
 
@@ -257,12 +346,130 @@ class Command(BaseCommand):
         )
         jobs_map['fouraces_td'] = td_f
 
-        # Jobs: random created/updated within Mar 20–29 (updated always after created).
-        for job in (td_j, jan_j, sew_j, td_f):
-            jc = _random_aware_between_dates(date(2026, 3, 20), date(2026, 3, 29))
-            ju = jc + timedelta(seconds=random.randint(120, 72 * 3600))
-            Job.objects.filter(pk=job.pk).update(created_at=jc, updated_at=ju)
-            job.refresh_from_db()
+        eg_carp = Job.objects.create(
+            employer=eg_user,
+            title='Carpenter (formworks, ceiling, finishing)',
+            city='Manila',
+            daily_rate=Decimal('800.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description=(
+                'Specializing in formworks, ceiling, and finishing. '
+                'Rates and terms per company policy.'
+            ),
+            required_skills=[{'skill': 'Carpentry', 'years_experience': None}],
+            start_date=date(2026, 4, 10),
+            positions_needed=2,
+            status='open',
+        )
+        eg_elec = Job.objects.create(
+            employer=eg_user,
+            title='Electrician (NC II/III certification required)',
+            city='Manila',
+            daily_rate=Decimal('950.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description='NC II or NC III certification required.',
+            required_skills=[{'skill': 'Electrician', 'years_experience': None}],
+            start_date=date(2026, 4, 12),
+            positions_needed=1,
+            status='open',
+        )
+        eg_plumb = Job.objects.create(
+            employer=eg_user,
+            title='Plumber',
+            city='Manila',
+            daily_rate=Decimal('695.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description='Plumbing installation and repair.',
+            required_skills=[{'skill': 'Plumber', 'years_experience': None}],
+            start_date=date(2026, 4, 8),
+            positions_needed=3,
+            status='open',
+        )
+
+        np_elec = Job.objects.create(
+            employer=np_user,
+            title='Electrician (NC II/III certification required)',
+            city='Calamba, Laguna',
+            daily_rate=Decimal('700.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description='NC II or NC III certification required.',
+            required_skills=[{'skill': 'Electrician', 'years_experience': None}],
+            start_date=date(2026, 4, 5),
+            positions_needed=1,
+            status='open',
+        )
+        np_mach = Job.objects.create(
+            employer=np_user,
+            title='Machine Operator',
+            city='Calamba, Laguna',
+            daily_rate=Decimal('600.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description='Industrial manufacturing; machine operation and line support.',
+            required_skills=[{'skill': 'Machine Operator', 'years_experience': None}],
+            start_date=date(2026, 4, 7),
+            positions_needed=2,
+            status='open',
+        )
+
+        ho_drv = Job.objects.create(
+            employer=ho_user,
+            title='Driver (Professional License)',
+            city='Muntinlupa',
+            daily_rate=Decimal('800.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description=(
+                'Professional driver license required. Must know how to drive '
+                'automatic and manual transmission.'
+            ),
+            required_skills=[{'skill': 'Driver', 'years_experience': None}],
+            start_date=date(2026, 4, 15),
+            positions_needed=1,
+            status='open',
+        )
+        ho_fasm = Job.objects.create(
+            employer=ho_user,
+            title='Furniture Assembler',
+            city='Muntinlupa',
+            daily_rate=Decimal('695.00'),
+            rate_type=Job.RATE_TYPE_DAILY,
+            working_hours='8am–5pm',
+            short_description=(
+                'Male, 18–40 years old, willing to learn, can read drawings and instructions.'
+            ),
+            required_skills=[{'skill': 'Furniture Assembler', 'years_experience': None}],
+            start_date=date(2026, 4, 12),
+            positions_needed=1,
+            status='open',
+        )
+
+        all_jobs = [
+            td_j,
+            jan_j,
+            sew_j,
+            td_f,
+            eg_carp,
+            eg_elec,
+            eg_plumb,
+            np_elec,
+            np_mach,
+            ho_drv,
+            ho_fasm,
+        ]
+        employer_joins = {
+            jolly_user.pk: j_join,
+            four_user.pk: f_join,
+            eg_user.pk: eg_join,
+            np_user.pk: np_join,
+            ho_user.pk: ho_join,
+        }
+        for job in all_jobs:
+            _stamp_job_timestamps(job, employer_joins[job.employer_id])
 
         app_window_end = _aware_dt(date(2026, 3, 30), 23, 59, random.randint(10, 55))
 
@@ -337,7 +544,8 @@ class Command(BaseCommand):
         worker_phones = ', '.join(row[0] for row in WORKER_SEEDS)
         self.stdout.write(
             f'Demo login password for all new accounts: {DEMO_PASSWORD}\n'
-            f'  Employers: {JOLLY_PHONE} (Jolly), {FOURACES_PHONE} (FourAces)\n'
+            f'  Employers: {JOLLY_PHONE} (Jolly), {FOURACES_PHONE} (FourAces), '
+            f'{EGLOBAL_PHONE} (eGlobal), {NEWPRO_PHONE} (Newpro), {HANDO_PHONE} (HandO)\n'
             f'  Workers: {worker_phones}\n'
             f'Protected phones (unchanged): {", ".join(sorted(PROTECTED_PHONES))}'
         )
